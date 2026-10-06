@@ -169,47 +169,46 @@ const RSVPSection: React.FC<RSVPSectionProps> = ({
           </div>
 
           <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
-            {wishesList.map((wish) => (
-              <div
-                key={wish.id}
-                className="bg-white rounded-2xl p-4 border border-[#ECE3D5] shadow-xs space-y-2 text-left"
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-7 h-7 rounded-full bg-[#82694D]/15 text-[#82694D] flex items-center justify-center font-bold text-xs">
-                      {wish.name.charAt(0).toUpperCase()}
+            {wishesList.map((wish, idx) => (
+              <ScrollReveal key={wish.id} variant="up" delay={idx * 80}>
+                <div className="bg-white/95 rounded-2xl p-4 border border-[#ECE3D5] shadow-xs hover:shadow-md transition-shadow space-y-2 text-left">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-7 h-7 rounded-full bg-[#82694D]/15 text-[#82694D] flex items-center justify-center font-bold text-xs">
+                        {wish.name.charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-[#352B20]">
+                          {wish.name}
+                        </p>
+                        <p className="text-[10px] text-[#8A7E72]">
+                          {wish.timestamp}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-xs font-bold text-[#352B20]">
-                        {wish.name}
-                      </p>
-                      <p className="text-[10px] text-[#8A7E72]">
-                        {wish.timestamp}
-                      </p>
-                    </div>
+
+                    <span
+                      className={`text-[9px] px-2 py-0.5 rounded-full font-bold uppercase ${
+                        wish.attendance === 'hadir'
+                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                          : wish.attendance === 'tidak_hadir'
+                            ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                            : 'bg-amber-50 text-amber-700 border border-amber-200'
+                      }`}
+                    >
+                      {wish.attendance === 'hadir'
+                        ? 'Hadir'
+                        : wish.attendance === 'tidak_hadir'
+                          ? 'Berhalangan'
+                          : 'Belum Pasti'}
+                    </span>
                   </div>
 
-                  <span
-                    className={`text-[9px] px-2 py-0.5 rounded-full font-bold uppercase ${
-                      wish.attendance === 'hadir'
-                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                        : wish.attendance === 'tidak_hadir'
-                          ? 'bg-rose-50 text-rose-700 border border-rose-200'
-                          : 'bg-amber-50 text-amber-700 border border-amber-200'
-                    }`}
-                  >
-                    {wish.attendance === 'hadir'
-                      ? 'Hadir'
-                      : wish.attendance === 'tidak_hadir'
-                        ? 'Berhalangan'
-                        : 'Belum Pasti'}
-                  </span>
+                  <p className="text-xs text-[#5D5245] leading-relaxed pl-9">
+                    {wish.message}
+                  </p>
                 </div>
-
-                <p className="text-xs text-[#5D5245] leading-relaxed pl-9">
-                  {wish.message}
-                </p>
-              </div>
+              </ScrollReveal>
             ))}
           </div>
         </div>

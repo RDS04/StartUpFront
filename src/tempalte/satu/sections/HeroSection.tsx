@@ -19,32 +19,38 @@ const HeroSection: React.FC<HeroSectionProps> = ({ timeLeft }) => {
   return (
     <section className="relative pt-6 pb-14 px-6 text-center z-10 space-y-8">
       {/* Corner Floral Ornaments */}
-      <img
-        src={bungaKiri}
-        alt="Floral Accent Left"
-        className="absolute -top-6 -left-6 w-28 sm:w-36 pointer-events-none z-20 animate-flower-sway-left drop-shadow-md"
-      />
-      <img
-        src={bungaKanan}
-        alt="Floral Accent Right"
-        className="absolute -top-6 -right-6 w-28 sm:w-36 pointer-events-none z-20 animate-flower-sway-right drop-shadow-md"
-      />
-
-      {/* Header Tag */}
-      <div className="space-y-2 pt-2 relative z-10">
-        <span className="text-[10px] uppercase tracking-[0.35em] text-[#8B263E] font-bold block">
-          WALIMATUL 'URS
-        </span>
-        <h2 className="font-script-calligraphy text-6xl sm:text-7xl text-[#58111A] leading-tight drop-shadow-sm">
-          Andi <span className="text-[#8B263E] text-5xl font-serif">&</span> Rosna
-        </h2>
-        <p className="text-xs uppercase font-serif tracking-[0.2em] text-[#6E5E4F] font-medium">
-          Sabtu, 24 Oktober 2026
-        </p>
+      <div className="absolute -top-6 -left-6 z-20 pointer-events-none animate-flower-enter-left">
+        <img
+          src={bungaKiri}
+          alt="Floral Accent Left"
+          className="w-28 sm:w-36 animate-flower-sway-left drop-shadow-md"
+        />
+      </div>
+      <div className="absolute -top-6 -right-6 z-20 pointer-events-none animate-flower-enter-right">
+        <img
+          src={bungaKanan}
+          alt="Floral Accent Right"
+          className="w-28 sm:w-36 animate-flower-sway-right drop-shadow-md"
+        />
       </div>
 
+      {/* Header Tag */}
+      <ScrollReveal variant="down">
+        <div className="space-y-2 pt-2 relative z-10">
+          <span className="text-[10px] uppercase tracking-[0.35em] text-[#8B263E] font-bold block">
+            WALIMATUL 'URS
+          </span>
+          <h2 className="font-[#58111A] font-script-calligraphy text-6xl sm:text-7xl leading-tight drop-shadow-sm">
+            Andi <span className="text-[#8B263E] text-5xl font-serif">&</span> Rosna
+          </h2>
+          <p className="text-xs uppercase font-serif tracking-[0.2em] text-[#6E5E4F] font-medium">
+            Sabtu, 24 Oktober 2026
+          </p>
+        </div>
+      </ScrollReveal>
+
       {/* Realtime Countdown Timer Card */}
-      <ScrollReveal variant="up" delay={100}>
+      <ScrollReveal variant="flip" delay={120}>
         <div className="rounded-3xl p-6 sm:p-7 border border-[#E0D5C4] shadow-md space-y-4 text-center bg-white/85 backdrop-blur-md transition-all">
           <div className="flex items-center justify-center gap-2 text-[#8B263E]">
             <Clock className="w-4 h-4" />

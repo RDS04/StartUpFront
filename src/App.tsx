@@ -50,7 +50,7 @@ export function App() {
 
   if (route === 'template-satu') {
     return (
-      <div className="relative min-h-screen bg-[#180407] overflow-x-hidden">
+      <div className="relative min-h-screen bg-[#180407]">
         {/* Floating Top Back Banner */}
         <div className="fixed top-4 left-4 z-50">
           <button

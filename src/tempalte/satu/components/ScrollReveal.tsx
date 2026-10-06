@@ -1,12 +1,21 @@
 import React, { useRef, useEffect } from 'react';
 
-// --- Scroll Reveal Animation Component (IntersectionObserver) ---
-export const ScrollReveal: React.FC<{
+export type ScrollRevealVariant = 'up' | 'down' | 'zoom' | 'left' | 'right' | 'flip';
+
+export interface ScrollRevealProps {
   children: React.ReactNode;
-  variant?: 'up' | 'zoom' | 'left' | 'right';
+  variant?: ScrollRevealVariant;
   delay?: number;
   className?: string;
-}> = ({ children, variant = 'up', delay = 0, className = '' }) => {
+}
+
+// --- Scroll Reveal Animation Component (IntersectionObserver) ---
+export const ScrollReveal: React.FC<ScrollRevealProps> = ({
+  children,
+  variant = 'up',
+  delay = 0,
+  className = '',
+}) => {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -19,7 +28,7 @@ export const ScrollReveal: React.FC<{
           node.classList.add('reveal-active');
         }
       },
-      { threshold: 0.12, rootMargin: '0px 0px -30px 0px' }
+      { threshold: 0.1, rootMargin: '0px 0px -40px 0px' }
     );
 
     observer.observe(node);
@@ -36,7 +45,11 @@ export const ScrollReveal: React.FC<{
         ? 'reveal-left'
         : variant === 'right'
           ? 'reveal-right'
-          : 'reveal-init';
+          : variant === 'down'
+            ? 'reveal-down'
+            : variant === 'flip'
+              ? 'reveal-flip'
+              : 'reveal-init';
 
   return (
     <div

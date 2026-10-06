@@ -1,0 +1,318 @@
+/* ========================================================
+   3D ATM CARD & INTERACTIVE FORM STYLES
+   ======================================================== */
+
+.card-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 12px 0;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  color: #1e293b;
+}
+
+/* Perspective Wrapper for 3D Tilt & Flip */
+.card-perspective {
+  width: 100%;
+  max-width: 340px;
+  height: 210px;
+  perspective: 1000px;
+  margin: 0 auto;
+}
+
+/* Card 3D Element */
+.atm-card {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 18px;
+  transform-style: preserve-3d;
+  transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.3s ease;
+  cursor: pointer;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.24), 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.atm-card.flipped {
+  transform: rotateY(180deg);
+}
+
+.atm-card:hover {
+  box-shadow: 0 22px 45px rgba(0, 0, 0, 0.32), 0 6px 16px rgba(0, 0, 0, 0.18);
+}
+
+/* Glare Overlay */
+.card-glare {
+  position: absolute;
+  inset: 0;
+  border-radius: 18px;
+  pointer-events: none;
+  z-index: 10;
+  transition: opacity 0.25s ease;
+}
+
+/* Base Card Face */
+.card-face {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 18px;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  overflow: hidden;
+  box-sizing: border-box;
+  user-select: none;
+}
+
+/* Default Front Side Styling - Dark Luxury Gradient */
+.card-front {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 40%, #090d16 100%);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  color: #f8fafc;
+}
+
+.card-front::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+/* BCA Theme (Royal Blue Gradient) */
+.card-front.bca-theme {
+  background: linear-gradient(135deg, #002d5c 0%, #00529b 50%, #001a38 100%);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: inset 0 0 20px rgba(0, 102, 204, 0.4);
+}
+
+/* Mandiri Theme (Navy & Gold Gradient) */
+.card-front.mandiri-theme {
+  background: linear-gradient(135deg, #091a30 0%, #1a365d 60%, #b38f38 130%);
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  box-shadow: inset 0 0 20px rgba(212, 175, 55, 0.25);
+}
+
+/* Back Side Styling */
+.card-back {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  transform: rotateY(180deg);
+  padding-top: 18px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  color: #f8fafc;
+}
+
+/* Top Row: Bank Name & Contactless */
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  z-index: 2;
+}
+
+.bank-name {
+  font-family: 'Cinzel', 'Playfair Display', serif;
+  font-weight: 800;
+  font-size: 15px;
+  letter-spacing: 1.8px;
+  background: linear-gradient(90deg, #ffffff, #cbd5e1);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.contactless-icon {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* EMV Chip */
+.card-chip {
+  width: 40px;
+  height: 28px;
+  background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
+  border-radius: 6px;
+  position: relative;
+  overflow: hidden;
+  margin-top: 2px;
+  margin-bottom: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.4);
+}
+
+.chip-line {
+  position: absolute;
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.chip-line:nth-child(1) {
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: 1px;
+}
+
+.chip-line:nth-child(2) {
+  left: 33%;
+  top: 0;
+  width: 1px;
+  height: 100%;
+}
+
+.chip-line:nth-child(3) {
+  left: 66%;
+  top: 0;
+  width: 1px;
+  height: 100%;
+}
+
+/* Card Number */
+.card-number {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: #ffffff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9), 0 0 2px rgba(255, 255, 255, 0.5);
+  position: relative;
+  z-index: 2;
+  margin: 4px 0;
+}
+
+/* Bottom Information Row */
+.card-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  position: relative;
+  z-index: 2;
+}
+
+.card-label {
+  font-size: 7.5px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #cbd5e1;
+  margin-bottom: 2px;
+}
+
+.card-value {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  color: #ffffff;
+  text-transform: uppercase;
+}
+
+/* Mastercard Network Logo */
+.card-network-logo {
+  display: flex;
+  align-items: center;
+}
+
+.card-network-logo .circle {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  opacity: 0.95;
+}
+
+.card-network-logo .red {
+  background-color: #eb001b;
+  margin-right: -10px;
+}
+
+.card-network-logo .orange {
+  background-color: #f79e1b;
+}
+
+/* Back Elements */
+.magnetic-bar {
+  width: 100%;
+  height: 38px;
+  background-color: #0f172a;
+  margin-top: 4px;
+}
+
+.cvv-section {
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.signature-strip {
+  flex: 1;
+  height: 28px;
+  background-color: #e2e8f0;
+  color: #475569;
+  font-size: 8px;
+  font-style: italic;
+  display: flex;
+  align-items: center;
+  padding-left: 8px;
+  border-radius: 4px;
+  background-image: repeating-linear-gradient(45deg, #cbd5e1, #cbd5e1 5px, #e2e8f0 5px, #e2e8f0 10px);
+}
+
+.cvv-box {
+  width: 44px;
+  height: 28px;
+  background-color: #ffffff;
+  color: #0f172a;
+  font-family: 'Courier New', Courier, monospace;
+  font-weight: 700;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  letter-spacing: 1px;
+}
+
+.card-disclaimer {
+  padding: 0 20px;
+  font-size: 7.5px;
+  color: #94a3b8;
+  line-height: 1.3;
+  margin: 4px 0;
+}
+
+.hologram-strip {
+  padding: 0 20px 12px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.hologram-seal {
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  background: linear-gradient(135deg, #cbd5e1 0%, #64748b 50%, #94a3b8 100%);
+  color: #0f172a;
+}
+
+.hint-text {
+  font-size: 11px;
+  color: #64748b;
+  margin-bottom: 14px;
+  text-align: center;
+}

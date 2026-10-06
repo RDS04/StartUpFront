@@ -35,11 +35,13 @@ const MempelaiSection: React.FC = () => {
       {/* Mempelai Pria */}
       <ScrollReveal variant="left">
         <div className="bg-white/92 rounded-3xl p-6 border border-[#ECE4D8] shadow-sm text-center space-y-4 relative overflow-hidden">
-          <img
-            src={bungaKiri}
-            alt="Floral Corner"
-            className="absolute -top-5 -left-5 w-24 sm:w-28 pointer-events-none z-20 animate-flower-sway-left drop-shadow-md"
-          />
+          <div className="absolute -top-5 -left-5 z-20 pointer-events-none animate-flower-enter-left">
+            <img
+              src={bungaKiri}
+              alt="Floral Corner"
+              className="w-24 sm:w-28 animate-flower-sway-left drop-shadow-md"
+            />
+          </div>
 
           <div className="relative mx-auto w-36 h-36">
             <div className="absolute inset-0 rounded-full border-2 border-[#D8C7B2] animate-pulse-gentle" />
@@ -92,11 +94,13 @@ const MempelaiSection: React.FC = () => {
       {/* Mempelai Wanita */}
       <ScrollReveal variant="right">
         <div className="bg-white/92 rounded-3xl p-6 border border-[#ECE4D8] shadow-sm text-center space-y-4 relative overflow-hidden">
-          <img
-            src={bungaKanan}
-            alt="Floral Corner"
-            className="absolute -top-5 -right-5 w-24 sm:w-28 pointer-events-none z-20 animate-flower-sway-right drop-shadow-md"
-          />
+          <div className="absolute -top-5 -right-5 z-20 pointer-events-none animate-flower-enter-right">
+            <img
+              src={bungaKanan}
+              alt="Floral Corner"
+              className="w-24 sm:w-28 animate-flower-sway-right drop-shadow-md"
+            />
+          </div>
 
           <div className="relative mx-auto w-36 h-36">
             <div className="absolute inset-0 rounded-full border-2 border-[#D8C7B2] animate-pulse-gentle" />

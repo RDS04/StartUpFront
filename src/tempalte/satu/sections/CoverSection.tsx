@@ -17,11 +17,8 @@ const CoverSection: React.FC<CoverSectionProps> = ({
 }) => {
   return (
     <section
-      className={`w-full ${
-        isEmbedded ? 'h-full min-h-[600px]' : 'min-h-screen min-h-[100dvh]'
-      } flex items-center justify-center relative overflow-hidden select-none bg-cover bg-center bg-no-repeat ${
-        isOpening ? 'animate-cover-exit pointer-events-none' : ''
-      }`}
+      className={`w-full ${isEmbedded ? 'h-full min-h-[600px]' : 'min-h-screen min-h-[100dvh]'
+        } flex items-center justify-center relative overflow-hidden select-none bg-cover bg-center bg-no-repeat`}
       style={{ backgroundImage: `url(${cardBgImage})` }}
     >
       {/* Golden Shimmer Flash Overlay on Open */}
@@ -40,9 +37,8 @@ const CoverSection: React.FC<CoverSectionProps> = ({
 
       {/* Card container */}
       <div
-        className={`w-full max-w-md ${
-          isEmbedded ? 'h-full min-h-[600px] py-6' : 'min-h-screen min-h-[100dvh] py-10 sm:py-12'
-        } px-6 sm:px-8 flex flex-col justify-between text-center relative z-10 overflow-hidden bg-cover bg-center bg-no-repeat sm:border-x sm:border-[#D4AF37]/30 shadow-2xl transition-all`}
+        className={`w-full max-w-md ${isEmbedded ? 'h-full min-h-[600px] py-6' : 'min-h-screen min-h-[100dvh] py-10 sm:py-12'
+          } px-6 sm:px-8 flex flex-col justify-between text-center relative z-10 overflow-hidden bg-cover bg-center bg-no-repeat sm:border-x sm:border-[#D4AF37]/30 shadow-2xl transition-all`}
         style={{ backgroundImage: `url(${cardBgImage})` }}
       >
         {/* Soft gradient overlay */}
@@ -94,9 +90,8 @@ const CoverSection: React.FC<CoverSectionProps> = ({
             <button
               onClick={onOpen}
               disabled={isOpening}
-              className={`w-full py-3.5 px-6 rounded-full bg-gradient-to-r from-[#C5A059] via-[#F3E5AB] to-[#C5A059] hover:from-[#D4AF37] hover:via-[#FFF8ED] hover:to-[#D4AF37] active:scale-95 text-[#2D1606] text-xs sm:text-sm font-bold tracking-wider shadow-[0_4px_20px_rgba(197,160,89,0.35)] hover:shadow-[0_4px_25px_rgba(243,229,171,0.55)] transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer group ${
-                isOpening ? 'scale-105 shadow-[0_0_30px_rgba(243,229,171,0.9)]' : ''
-              }`}
+              className={`w-full py-3.5 px-6 rounded-full bg-gradient-to-r from-[#C5A059] via-[#F3E5AB] to-[#C5A059] hover:from-[#D4AF37] hover:via-[#FFF8ED] hover:to-[#D4AF37] active:scale-95 text-[#2D1606] text-xs sm:text-sm font-bold tracking-wider shadow-[0_4px_20px_rgba(197,160,89,0.35)] hover:shadow-[0_4px_25px_rgba(243,229,171,0.55)] transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer group ${isOpening ? 'scale-105 shadow-[0_0_30px_rgba(243,229,171,0.9)]' : ''
+                }`}
             >
               {isOpening ? (
                 <>

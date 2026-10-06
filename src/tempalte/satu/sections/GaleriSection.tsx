@@ -1,7 +1,8 @@
 import { Copy, Gift, MapPin, Sparkles } from 'lucide-react';
 import { ScrollReveal } from '../components/ScrollReveal';
 import { RoseFloralDivider } from '../components/RoseFloralDivider';
-import type { BankAccountItem } from '../types';
+import { CardBca } from '../../CardAtm/Bca';
+import { CardMandiri } from '../../CardAtm/Mandiri';
 
 const galleryPhotos = [
   {
@@ -27,21 +28,6 @@ const galleryPhotos = [
   {
     url: 'https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?auto=format&fit=crop&w=800&q=80',
     caption: 'Menatap Masa Depan Berdua'
-  }
-];
-
-const bankAccounts: BankAccountItem[] = [
-  {
-    bank: 'Bank Central Asia (BCA)',
-    accountNumber: '8730491230',
-    holderName: 'Andi Irawan',
-    badgeColor: 'bg-[#005B9C]'
-  },
-  {
-    bank: 'Bank Mandiri',
-    accountNumber: '1370019284912',
-    holderName: 'Rosna Linny',
-    badgeColor: 'bg-[#003B70]'
   }
 ];
 
@@ -72,13 +58,12 @@ const GaleriSection: React.FC<GaleriSectionProps> = ({ onOpenLightbox, onCopy })
       </ScrollReveal>
 
       {/* Photo Grid */}
-      <ScrollReveal variant="zoom">
-        <div className="grid grid-cols-2 gap-3">
-          {galleryPhotos.map((photo, idx) => (
+      <div className="grid grid-cols-2 gap-3">
+        {galleryPhotos.map((photo, idx) => (
+          <ScrollReveal key={idx} variant="zoom" delay={idx * 90}>
             <div
-              key={idx}
               onClick={() => onOpenLightbox(photo.url)}
-              className={`relative rounded-2xl overflow-hidden shadow-xs border border-[#ECE3D5] cursor-pointer group ${
+              className={`relative rounded-2xl overflow-hidden shadow-xs hover:shadow-lg border border-[#ECE3D5] cursor-pointer group transition-all duration-300 ${
                 idx === 0 || idx === 3 ? 'h-52' : 'h-40'
               }`}
             >
@@ -88,14 +73,14 @@ const GaleriSection: React.FC<GaleriSectionProps> = ({ onOpenLightbox, onCopy })
                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
               />
               <div className="absolute inset-0 bg-black/25 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                <span className="p-2 rounded-full bg-white/80 text-[#352B20]">
+                <span className="p-2 rounded-full bg-white/80 text-[#352B20] shadow-md">
                   <Sparkles className="w-4 h-4" />
                 </span>
               </div>
             </div>
-          ))}
-        </div>
-      </ScrollReveal>
+          </ScrollReveal>
+        ))}
+      </div>
 
       <div className="pt-6">
         <div className="w-16 h-[1px] bg-[#82694D]/30 mx-auto" />
@@ -120,42 +105,43 @@ const GaleriSection: React.FC<GaleriSectionProps> = ({ onOpenLightbox, onCopy })
           </div>
         </ScrollReveal>
 
-        {/* Bank Cards */}
-        <div className="space-y-3.5">
-          {bankAccounts.map((acc, index) => (
-            <ScrollReveal key={index} variant={index % 2 === 0 ? 'left' : 'right'}>
-              <div className="bg-white/95 rounded-3xl p-5 border border-[#EBE3D6] shadow-sm space-y-3 relative overflow-hidden">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-[#4A1521] font-serif">
-                    {acc.bank}
-                  </span>
-                  <Gift className="w-4 h-4 text-[#8B263E]" />
-                </div>
-
-                <div className="p-3.5 rounded-2xl bg-[#FBF9F5] border border-[#ECE3D5] flex items-center justify-between">
-                  <div>
-                    <p className="text-[10px] text-[#877A6C] uppercase tracking-wider font-semibold">
-                      Nomor Rekening:
-                    </p>
-                    <p className="font-mono text-base font-bold text-[#4A1521] tracking-wider">
-                      {acc.accountNumber}
-                    </p>
-                    <p className="text-[11px] text-[#695F54] font-medium mt-0.5">
-                      a.n {acc.holderName}
-                    </p>
-                  </div>
-
-                  <button
-                    onClick={() => onCopy(acc.accountNumber, `No. Rekening ${acc.bank}`)}
-                    className="p-2.5 rounded-xl bg-[#8B263E] text-white hover:bg-[#6F1D30] transition-all shadow-xs cursor-pointer"
-                    title="Salin No. Rekening"
-                  >
-                    <Copy className="w-4 h-4" />
-                  </button>
-                </div>
+        {/* 3D Bank ATM Cards Separated Components */}
+        <div className="space-y-5">
+          {/* Card BCA */}
+          <ScrollReveal variant="left">
+            <div className="bg-white/95 rounded-3xl p-4 sm:p-5 border border-[#EBE3D6] shadow-sm space-y-2 relative overflow-hidden">
+              <div className="flex items-center justify-between px-1">
+                <span className="text-xs font-bold text-[#4A1521] font-serif">
+                  Bank Central Asia (BCA)
+                </span>
+                <Gift className="w-4 h-4 text-[#8B263E]" />
               </div>
-            </ScrollReveal>
-          ))}
+
+              <CardBca
+                accountNumber="8730 4912 3000"
+                holderName="ANDI IRAWAN"
+                onCopy={onCopy}
+              />
+            </div>
+          </ScrollReveal>
+
+          {/* Card Mandiri */}
+          <ScrollReveal variant="right">
+            <div className="bg-white/95 rounded-3xl p-4 sm:p-5 border border-[#EBE3D6] shadow-sm space-y-2 relative overflow-hidden">
+              <div className="flex items-center justify-between px-1">
+                <span className="text-xs font-bold text-[#4A1521] font-serif">
+                  Bank Mandiri
+                </span>
+                <Gift className="w-4 h-4 text-[#8B263E]" />
+              </div>
+
+              <CardMandiri
+                accountNumber="1370 0192 8491 2"
+                holderName="ROSNA LINNY"
+                onCopy={onCopy}
+              />
+            </div>
+          </ScrollReveal>
 
           {/* Kirim Hadiah Fisik Card */}
           <ScrollReveal variant="zoom">

@@ -177,7 +177,75 @@ export const RusticBlossomTemplate: React.FC<RusticBlossomTemplateProps> = ({
     }
   };
 
-  // Open Invitation Handler with Smooth Transition Animation
+  // Ref for smooth scrolling to main content section
+  const mainContentRef = useRef<HTMLDivElement | null>(null);
+
+  // Disable automatic browser scroll restoration on refresh so it always starts at top
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      if ('scrollRestoration' in window.history) {
+        window.history.scrollRestoration = 'manual';
+      }
+      window.scrollTo(0, 0);
+    }
+  }, []);
+
+  // Strict scroll lock when cover is active (before clicking Buka Undangan)
+  useEffect(() => {
+    const preventScroll = (e: Event) => {
+      if (!isCoverOpen) {
+        e.preventDefault();
+      }
+    };
+
+    if (!isCoverOpen) {
+      window.scrollTo(0, 0);
+      document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+      window.addEventListener('wheel', preventScroll, { passive: false });
+      window.addEventListener('touchmove', preventScroll, { passive: false });
+    } else {
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+    }
+
+    return () => {
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+      window.removeEventListener('wheel', preventScroll);
+      window.removeEventListener('touchmove', preventScroll);
+    };
+  }, [isCoverOpen]);
+
+  // Custom Ultra-Smooth Eased Scroll Function (easeInOutCubic over duration)
+  const smoothScrollTo = (targetY: number, duration: number = 1200, onComplete?: () => void) => {
+    const startY = window.scrollY || window.pageYOffset;
+    const distance = targetY - startY;
+    let startTime: number | null = null;
+
+    const easeInOutCubic = (t: number): number => {
+      return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    };
+
+    const animationStep = (currentTime: number) => {
+      if (startTime === null) startTime = currentTime;
+      const timeElapsed = currentTime - startTime;
+      const progress = Math.min(timeElapsed / duration, 1);
+      const easeProgress = easeInOutCubic(progress);
+
+      window.scrollTo(0, startY + distance * easeProgress);
+
+      if (timeElapsed < duration) {
+        requestAnimationFrame(animationStep);
+      } else if (onComplete) {
+        onComplete();
+      }
+    };
+
+    requestAnimationFrame(animationStep);
+  };
+
+  // Open Invitation Handler with Ultra Smooth Slide-Down Scroll Animation
   const handleOpenInvitation = () => {
     if (isOpening) return;
     setIsOpening(true);
@@ -193,12 +261,30 @@ export const RusticBlossomTemplate: React.FC<RusticBlossomTemplateProps> = ({
         });
     }
 
-    // Allow exit animation to play smoothly before showing main invitation
+    // Unlock body scroll and enable main view
+    document.body.style.overflow = '';
+    setIsCoverOpen(true);
+
+    // Calculate main content position and slide down smoothly
+    const targetElem = mainContentRef.current || document.getElementById('main-content');
+    const targetY = targetElem ? targetElem.offsetTop : window.innerHeight;
+
+    // Small timeout to allow layout DOM paint before animating scroll
     setTimeout(() => {
-      setIsCoverOpen(true);
-      setIsOpening(false);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }, 600);
+      smoothScrollTo(targetY, 1200, () => {
+        setIsOpening(false);
+      });
+    }, 50);
+  };
+
+  // Return to Cover Handler with Smooth Slide-Up Scroll
+  const handleBackToCover = () => {
+    const coverElem = document.getElementById('cover-section');
+    const targetY = coverElem ? coverElem.offsetTop : 0;
+
+    smoothScrollTo(targetY, 1000, () => {
+      setIsCoverOpen(false);
+    });
   };
 
   // Copy to clipboard with toast
@@ -293,13 +379,15 @@ export const RusticBlossomTemplate: React.FC<RusticBlossomTemplateProps> = ({
       </div>
 
       {/* 3. Desktop Left Side Companion Panel */}
-      <aside className="fixed left-6 2xl:left-14 top-1/2 -translate-y-1/2 z-10 hidden xl:flex flex-col items-center text-center max-w-[240px] pointer-events-none select-none">
+      <aside className="fixed left-9 2xl:left-14 top-1/2 -translate-y-1/2 z-10 hidden xl:flex flex-col items-center text-center max-w-[240px] pointer-events-none select-none">
         <div className="relative">
-          <img
-            src={bungaKiri}
-            alt="Floral Corner Decor"
-            className="absolute -bottom-7 -left-7 w-28 opacity-95 animate-flower-sway-left drop-shadow-lg z-20 pointer-events-none"
-          />
+          <div className="absolute -bottom-7 -left-7 z-20 pointer-events-none animate-flower-enter-left">
+            <img
+              src={bungaKiri}
+              alt="Floral Corner Decor"
+              className="w-28 opacity-95 animate-flower-sway-left drop-shadow-lg"
+            />
+          </div>
           <div className="p-6 rounded-3xl bg-white/80 backdrop-blur-md border border-[#E8DEC8] shadow-[0_12px_40px_rgba(139,38,62,0.08)] space-y-4 relative overflow-hidden">
             <div className="absolute -top-10 -left-10 w-28 h-28 bg-[#8B263E]/10 rounded-full blur-xl" />
             <div className="w-20 h-20 mx-auto rounded-full border-2 border-[#D4AF37]/60 bg-gradient-to-br from-[#FFFDF9] to-[#F5ECE0] flex items-center justify-center shadow-md">
@@ -330,11 +418,13 @@ export const RusticBlossomTemplate: React.FC<RusticBlossomTemplateProps> = ({
       {/* 4. Desktop Right Side Companion Panel */}
       <aside className="fixed right-6 2xl:right-14 top-1/2 -translate-y-1/2 z-10 hidden xl:flex flex-col items-center text-center max-w-[240px] pointer-events-none select-none">
         <div className="relative">
-          <img
-            src={bungaKanan}
-            alt="Floral Corner Decor"
-            className="absolute -top-7 -right-7 w-28 opacity-95 animate-flower-sway-right drop-shadow-lg z-20 pointer-events-none"
-          />
+          <div className="absolute -top-7 -right-7 z-20 pointer-events-none animate-flower-enter-right">
+            <img
+              src={bungaKanan}
+              alt="Floral Corner Decor"
+              className="w-28 opacity-95 animate-flower-sway-right drop-shadow-lg"
+            />
+          </div>
           <div className="p-6 rounded-3xl bg-white/80 backdrop-blur-md border border-[#E8DEC8] shadow-[0_12px_40px_rgba(139,38,62,0.08)] space-y-3.5 relative overflow-hidden">
             <div className="absolute -bottom-10 -right-10 w-28 h-28 bg-[#D4AF37]/15 rounded-full blur-xl" />
             <div className="flex items-center justify-center gap-1.5 text-[#8B263E]">
@@ -433,33 +523,34 @@ export const RusticBlossomTemplate: React.FC<RusticBlossomTemplateProps> = ({
       )}
 
       {/* ========================================================
-          COVER SCREEN or MAIN INVITATION
+          UNIFIED CONTINUOUS DIGITAL INVITATION CANVAS
       ======================================================== */}
-      {!isCoverOpen ? (
-        <CoverSection
-          guestName={guestName}
-          isOpening={isOpening}
-          isEmbedded={isEmbedded}
-          onOpen={handleOpenInvitation}
-        />
-      ) : (
-        /* MAIN INVITATION CONTAINER */
-        <main
-          className="w-full max-w-md min-h-screen relative shadow-2xl border-x border-[#E9DFD0] overflow-hidden flex flex-col animate-main-enter"
-          style={{
-            backgroundImage: `url(${backraundTemplate})`,
-            backgroundSize: '100% auto',
-            backgroundRepeat: 'repeat-y',
-            backgroundPosition: 'top center',
-          }}
-        >
-          {/* Global gentle light overlay */}
-          <div className="absolute inset-0 bg-white/30 pointer-events-none z-0" />
+      <main
+        className="w-full max-w-md min-h-screen relative shadow-2xl border-x border-[#D4AF37]/35 flex flex-col bg-cover bg-center bg-no-repeat"
+        style={{
+          backgroundImage: `url(${cardBgImage})`,
+          backgroundAttachment: 'fixed',
+        }}
+      >
+        {/* Global gentle light overlay matching cover ambience */}
+        <div className="absolute inset-0 bg-[#FAF7F2]/88 backdrop-blur-[1px] pointer-events-none z-0" />
 
+        {/* 1. COVER SECTION (Top Section of Continuous Layout) */}
+        <section id="cover-section" className="relative z-10 w-full min-h-screen">
+          <CoverSection
+            guestName={guestName}
+            isOpening={isOpening}
+            isEmbedded={isEmbedded}
+            onOpen={handleOpenInvitation}
+          />
+        </section>
+
+        {/* 2. MAIN INVITATION CONTENT (Hero, Mempelai, Acara, Galeri, RSVP, Footer) */}
+        <div id="main-content" ref={mainContentRef} className="relative z-10 w-full flex flex-col">
           {/* Quick Return to Cover Button */}
-          <div className="pt-4 px-6 flex justify-start relative z-20">
+          <div className="pt-6 px-6 flex justify-start relative z-20">
             <button
-              onClick={() => setIsCoverOpen(false)}
+              onClick={handleBackToCover}
               className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[10px] font-semibold text-[#82694D] bg-white/90 backdrop-blur-xs border border-[#82694D]/30 hover:bg-[#82694D] hover:text-white transition-all shadow-xs cursor-pointer"
             >
               <Mail className="w-3 h-3" />
@@ -503,8 +594,8 @@ export const RusticBlossomTemplate: React.FC<RusticBlossomTemplateProps> = ({
 
           {/* Footer */}
           <FooterSection />
-        </main>
-      )}
+        </div>
+      </main>
     </div>
   );
 };

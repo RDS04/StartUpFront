@@ -30,11 +30,13 @@ const AcaraSection: React.FC = () => {
       {/* Card Akad Nikah */}
       <ScrollReveal variant="left">
         <div className="bg-white/95 rounded-3xl p-6 sm:p-7 border border-[#E9DFD0] shadow-sm space-y-4 text-center relative overflow-hidden">
-          <img
-            src={bungaKiri}
-            alt="Floral Accent"
-            className="absolute -top-6 -left-6 w-24 sm:w-28 pointer-events-none opacity-85 animate-flower-sway-left z-10"
-          />
+          <div className="absolute -top-6 -left-6 z-10 pointer-events-none opacity-90 animate-flower-enter-left">
+            <img
+              src={bungaKiri}
+              alt="Floral Accent"
+              className="w-24 sm:w-28 animate-flower-sway-left drop-shadow-md"
+            />
+          </div>
 
           <div className="w-12 h-12 rounded-full bg-[#FBF7F0] border border-[#E7DCCF] flex items-center justify-center text-[#8B263E] mx-auto shadow-xs relative z-10">
             <Calendar className="w-6 h-6" />
@@ -92,11 +94,13 @@ const AcaraSection: React.FC = () => {
       {/* Card Resepsi Pernikahan */}
       <ScrollReveal variant="right">
         <div className="bg-white/95 rounded-3xl p-6 sm:p-7 border border-[#E9DFD0] shadow-sm space-y-4 text-center relative overflow-hidden">
-          <img
-            src={bungaKanan}
-            alt="Floral Accent"
-            className="absolute -top-6 -right-6 w-24 sm:w-28 pointer-events-none opacity-85 animate-flower-sway-right z-10"
-          />
+          <div className="absolute -top-6 -right-6 z-10 pointer-events-none opacity-90 animate-flower-enter-right">
+            <img
+              src={bungaKanan}
+              alt="Floral Accent"
+              className="w-24 sm:w-28 animate-flower-sway-right drop-shadow-md"
+            />
+          </div>
 
           <div className="w-12 h-12 rounded-full bg-[#FBF7F0] border border-[#E7DCCF] flex items-center justify-center text-[#8B263E] mx-auto shadow-xs relative z-10">
             <Sparkles className="w-6 h-6" />
