@@ -10,7 +10,6 @@ import {
 } from 'lucide-react';
 
 import cardBgImage from '../../assets/templateSatu/bacgraund.jpg';
-import backraundTemplate from '../../assets/templateSatu/backraundTemplate.png';
 import bungaKiri from '../../assets/templateSatu/bungaKiri.png';
 import bungaKanan from '../../assets/templateSatu/bungaKanan.png';
 

@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { Mail, Lock, Eye, EyeOff, ArrowRight, ShieldCheck, Check } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import confetti from 'canvas-confetti';
+import { Mail, Lock, Eye, EyeOff, ArrowRight, ShieldCheck, Check, Sparkles } from 'lucide-react';
 
 interface LoginProps {
   onSwitchToRegister: () => void;
@@ -15,6 +17,19 @@ export const Login: React.FC<LoginProps> = ({ onSwitchToRegister, onSuccessLogin
   const [errorMessage, setErrorMessage] = useState('');
   const [loginSuccess, setLoginSuccess] = useState(false);
 
+  const triggerConfetti = () => {
+    try {
+      confetti({
+        particleCount: 80,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#165b39', '#d4a359', '#10462b', '#edd087', '#f43f5e'],
+      });
+    } catch {
+      // fallback silent
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage('');
@@ -28,55 +43,101 @@ export const Login: React.FC<LoginProps> = ({ onSwitchToRegister, onSuccessLogin
     setTimeout(() => {
       setIsLoading(false);
       setLoginSuccess(true);
+      triggerConfetti();
+
       if (onSuccessLogin) {
         setTimeout(() => onSuccessLogin(email), 1200);
       }
     }, 1000);
   };
 
+  const handleGoogleLogin = () => {
+    setIsLoading(true);
+    setTimeout(() => {
+      setIsLoading(false);
+      setLoginSuccess(true);
+      triggerConfetti();
+      if (onSuccessLogin) onSuccessLogin('google.user@gmail.com');
+    }, 800);
+  };
+
   return (
-    <div className="w-full max-w-md mx-auto">
+    <motion.div 
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -15 }}
+      transition={{ duration: 0.35, ease: 'easeOut' }}
+      className="w-full max-w-md mx-auto"
+    >
       
       {/* Header Form */}
-      <div className="mb-8 text-center sm:text-left">
+      <div className="mb-7 text-center sm:text-left">
+        <motion.div 
+          initial={{ opacity: 0, x: -10 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.1 }}
+          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200/80 text-emerald-800 text-[11px] font-bold uppercase tracking-wider mb-2.5 shadow-2xs"
+        >
+          <Sparkles className="w-3 h-3 text-amber-500 animate-pulse" />
+          <span>Selamat Datang Kembali</span>
+        </motion.div>
+        
         <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-          Selamat Datang Kembali
+          Masuk ke Akun Anda
         </h2>
         <p className="text-xs sm:text-sm text-slate-500 mt-1.5 leading-relaxed">
-          Masuk ke akun <span className="font-serif-wedding font-bold text-[#165b39]">i say yes</span> Anda untuk melanjutkan kelola undangan pernikahan.
+          Kelola &amp; pantau undangan pernikahan Anda bersama <span className="font-serif-wedding font-bold text-[#165b39]">i say yes</span>.
         </p>
       </div>
 
       {/* Success Notification */}
-      {loginSuccess && (
-        <div className="mb-6 p-4 rounded-2xl bg-emerald-50 border border-emerald-300 text-emerald-900 text-xs font-semibold flex items-center gap-3 animate-in fade-in duration-300">
-          <div className="w-7 h-7 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0">
-            <Check className="w-4 h-4 stroke-[3]" />
-          </div>
-          <div>
-            <p className="font-bold">Login Berhasil!</p>
-            <p className="text-[11px] text-emerald-700">Mengalihkan ke dashboard undangan Anda...</p>
-          </div>
-        </div>
-      )}
+      <AnimatePresence>
+        {loginSuccess && (
+          <motion.div 
+            initial={{ opacity: 0, height: 0, y: -10 }}
+            animate={{ opacity: 1, height: 'auto', y: 0 }}
+            exit={{ opacity: 0, height: 0 }}
+            className="mb-6 p-4 rounded-2xl bg-emerald-50 border border-emerald-300 text-emerald-900 text-xs font-semibold flex items-center gap-3 shadow-md shadow-emerald-900/5"
+          >
+            <div className="w-8 h-8 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+              <Check className="w-4 h-4 stroke-[3]" />
+            </div>
+            <div>
+              <p className="font-bold text-sm text-emerald-950">Masuk Berhasil! 🎉</p>
+              <p className="text-[11px] text-emerald-700">Mengalihkan ke dashboard undangan Anda...</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Error Message */}
-      {errorMessage && (
-        <div className="mb-6 p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium">
-          {errorMessage}
-        </div>
-      )}
+      <AnimatePresence>
+        {errorMessage && (
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="mb-6 p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium flex items-center gap-2"
+          >
+            <span>⚠️ {errorMessage}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Login Form */}
       <form onSubmit={handleSubmit} className="space-y-4">
         
         {/* Email or WhatsApp input */}
-        <div>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+        >
           <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
             Email / Nomor WhatsApp
           </label>
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+          <div className="relative group">
+            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-[#165b39] transition-colors">
               <Mail className="w-4 h-4" />
             </div>
             <input
@@ -84,28 +145,32 @@ export const Login: React.FC<LoginProps> = ({ onSwitchToRegister, onSuccessLogin
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="nama@email.com atau 0812xxxx"
-              className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-white text-xs sm:text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/10 transition-all shadow-2xs"
+              className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-white text-xs sm:text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/10 transition-all shadow-xs"
               required
             />
           </div>
-        </div>
+        </motion.div>
 
         {/* Password input */}
-        <div>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
           <div className="flex items-center justify-between mb-1.5">
             <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
               Kata Sandi (Password)
             </label>
             <button
               type="button"
-              onClick={() => alert('Fitur reset password: Tautan pemulihan akan dikirimkan ke email terdaftar.')}
-              className="text-xs font-semibold text-[#165b39] hover:underline"
+              onClick={() => alert('Fitur reset password: Tautan pemulihan akan dikirimkan ke email terdaftar Anda.')}
+              className="text-xs font-semibold text-[#165b39] hover:text-emerald-700 hover:underline cursor-pointer"
             >
               Lupa Password?
             </button>
           </div>
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+          <div className="relative group">
+            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-[#165b39] transition-colors">
               <Lock className="w-4 h-4" />
             </div>
             <input
@@ -113,44 +178,58 @@ export const Login: React.FC<LoginProps> = ({ onSwitchToRegister, onSuccessLogin
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Masukkan password Anda"
-              className="w-full pl-10 pr-11 py-3 rounded-xl border border-slate-200 bg-white text-xs sm:text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/10 transition-all shadow-2xs"
+              className="w-full pl-10 pr-11 py-3 rounded-xl border border-slate-200 bg-white text-xs sm:text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/10 transition-all shadow-xs"
               required
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 focus:outline-none"
+              className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 focus:outline-none cursor-pointer"
               aria-label="Toggle password visibility"
             >
               {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
           </div>
-        </div>
+        </motion.div>
 
         {/* Remember Me */}
-        <div className="flex items-center justify-between pt-1">
-          <label className="flex items-center gap-2 cursor-pointer select-none">
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.25 }}
+          className="flex items-center justify-between pt-1"
+        >
+          <label className="flex items-center gap-2.5 cursor-pointer select-none group">
             <input
               type="checkbox"
               checked={rememberMe}
               onChange={(e) => setRememberMe(e.target.checked)}
-              className="w-4 h-4 rounded border-slate-300 text-emerald-700 focus:ring-emerald-600 cursor-pointer accent-emerald-700"
+              className="w-4 h-4 rounded border-slate-300 text-emerald-700 focus:ring-emerald-600 cursor-pointer accent-[#165b39]"
             />
-            <span className="text-xs text-slate-600 font-medium">Ingat saya di perangkat ini</span>
+            <span className="text-xs text-slate-600 font-medium group-hover:text-slate-900 transition-colors">
+              Ingat saya di perangkat ini
+            </span>
           </label>
-        </div>
+        </motion.div>
 
         {/* Submit Button */}
-        <div className="pt-2">
-          <button
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="pt-2"
+        >
+          <motion.button
             type="submit"
             disabled={isLoading || loginSuccess}
-            className="w-full py-3.5 rounded-xl font-bold text-xs sm:text-sm text-white bg-gradient-to-r from-[#165b39] via-[#1f6e47] to-[#b38b38] hover:brightness-105 active:scale-[0.99] shadow-md shadow-emerald-950/20 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70"
+            whileHover={{ scale: 1.015 }}
+            whileTap={{ scale: 0.985 }}
+            className="w-full py-3.5 rounded-xl font-bold text-xs sm:text-sm text-white bg-gradient-to-r from-[#165b39] via-[#1f6e47] to-[#b38b38] hover:brightness-105 shadow-lg shadow-emerald-950/25 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70"
           >
             {isLoading ? (
               <div className="flex items-center gap-2">
                 <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                <span>Memverifikasi...</span>
+                <span>Memverifikasi Akun...</span>
               </div>
             ) : (
               <>
@@ -158,33 +237,28 @@ export const Login: React.FC<LoginProps> = ({ onSwitchToRegister, onSuccessLogin
                 <ArrowRight className="w-4 h-4" />
               </>
             )}
-          </button>
-        </div>
+          </motion.button>
+        </motion.div>
 
       </form>
 
       {/* Divider */}
       <div className="my-6 relative flex items-center justify-center">
         <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-slate-200" />
+          <div className="w-full border-t border-slate-200/80" />
         </div>
-        <span className="relative px-3 bg-white text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+        <span className="relative px-3 bg-white text-[11px] font-bold text-slate-400 uppercase tracking-wider">
           atau masuk dengan
         </span>
       </div>
 
       {/* Google OAuth Button */}
-      <button
+      <motion.button
         type="button"
-        onClick={() => {
-          setIsLoading(true);
-          setTimeout(() => {
-            setIsLoading(false);
-            setLoginSuccess(true);
-            if (onSuccessLogin) onSuccessLogin('google.user@gmail.com');
-          }, 800);
-        }}
-        className="w-full py-2.5 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs sm:text-sm font-semibold text-slate-700 flex items-center justify-center gap-2.5 shadow-2xs hover:shadow-xs active:scale-[0.99] transition-all cursor-pointer"
+        onClick={handleGoogleLogin}
+        whileHover={{ scale: 1.015, backgroundColor: '#f8fafc' }}
+        whileTap={{ scale: 0.985 }}
+        className="w-full py-3 px-4 rounded-xl border border-slate-200 bg-white text-xs sm:text-sm font-semibold text-slate-700 flex items-center justify-center gap-2.5 shadow-xs hover:shadow-md transition-all cursor-pointer"
       >
         <svg className="w-4 h-4" viewBox="0 0 24 24">
           <path
@@ -205,16 +279,16 @@ export const Login: React.FC<LoginProps> = ({ onSwitchToRegister, onSuccessLogin
           />
         </svg>
         <span>Masuk Cepat dengan Google</span>
-      </button>
+      </motion.button>
 
       {/* Switch to Register link */}
-      <div className="mt-8 text-center pt-2">
+      <div className="mt-7 text-center pt-1">
         <p className="text-xs sm:text-sm text-slate-600">
           Belum memiliki akun?{' '}
           <button
             type="button"
             onClick={onSwitchToRegister}
-            className="font-bold text-[#165b39] hover:underline cursor-pointer"
+            className="font-extrabold text-[#165b39] hover:underline cursor-pointer"
           >
             Daftar Akun Baru Gratis
           </button>
@@ -222,11 +296,12 @@ export const Login: React.FC<LoginProps> = ({ onSwitchToRegister, onSuccessLogin
       </div>
 
       {/* Trust & Security footnote */}
-      <div className="mt-8 pt-4 border-t border-slate-100 flex items-center justify-center gap-1.5 text-[11px] text-slate-400">
+      <div className="mt-7 pt-4 border-t border-slate-100 flex items-center justify-center gap-1.5 text-[11px] text-slate-400">
         <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
         <span>Keamanan akun terenkripsi 256-bit SSL</span>
       </div>
 
-    </div>
+    </motion.div>
   );
 };
+

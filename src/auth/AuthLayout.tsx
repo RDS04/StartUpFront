@@ -1,6 +1,7 @@
 import React from 'react';
-import { WeddingRingsIcon, BotanicalLeaves } from '../landingPage/DecorativeBackground';
-import { ArrowLeft, Sparkles, CheckCircle2, Heart } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { WeddingRingsIcon, BotanicalLeaves, GoldFoilSplash } from '../landingPage/DecorativeBackground';
+import { ArrowLeft, Heart } from 'lucide-react';
 
 interface AuthLayoutProps {
   children: React.ReactNode;
@@ -8,6 +9,16 @@ interface AuthLayoutProps {
   onSwitchMode: (mode: 'login' | 'register') => void;
   onBackToHome: () => void;
 }
+
+// Background Floating Particles
+const FLOATING_PARTICLES = Array.from({ length: 12 }, (_, i) => ({
+  id: i,
+  size: Math.random() * 8 + 4,
+  x: Math.random() * 100,
+  y: Math.random() * 100,
+  duration: Math.random() * 6 + 6,
+  delay: Math.random() * 3,
+}));
 
 export const AuthLayout: React.FC<AuthLayoutProps> = ({
   children,
@@ -18,171 +29,167 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
   return (
     <div className="min-h-screen bg-[#fafbfc] text-slate-800 flex flex-col justify-between selection:bg-emerald-700 selection:text-white relative overflow-hidden font-sans">
       
+      {/* Animated Floating Particles Layer */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden z-0 select-none">
+        {FLOATING_PARTICLES.map((particle) => (
+          <motion.div
+            key={particle.id}
+            className="absolute rounded-full bg-gradient-to-tr from-amber-300/40 to-emerald-400/40 blur-[1px]"
+            style={{
+              width: particle.size,
+              height: particle.size,
+              left: `${particle.x}%`,
+              top: `${particle.y}%`,
+            }}
+            animate={{
+              y: [0, -35, 0],
+              x: [0, 15, 0],
+              opacity: [0.2, 0.7, 0.2],
+              scale: [1, 1.3, 1],
+            }}
+            transition={{
+              duration: particle.duration,
+              repeat: Infinity,
+              ease: 'easeInOut',
+              delay: particle.delay,
+            }}
+          />
+        ))}
+
+        {/* Dynamic Light Orbs */}
+        <motion.div
+          className="absolute -top-32 -left-32 w-96 h-96 bg-emerald-200/40 rounded-full blur-3xl"
+          animate={{
+            scale: [1, 1.2, 1],
+            opacity: [0.4, 0.7, 0.4],
+          }}
+          transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+        />
+        <motion.div
+          className="absolute -bottom-40 right-0 w-[500px] h-[500px] bg-amber-100/40 rounded-full blur-3xl"
+          animate={{
+            scale: [1.2, 1, 1.2],
+            opacity: [0.3, 0.6, 0.3],
+          }}
+          transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
+        />
+      </div>
+
       {/* Top Botanical Leaves Background */}
       <BotanicalLeaves.TopRight />
+      <GoldFoilSplash className="absolute top-12 left-8 w-28 h-28 opacity-20 pointer-events-none" />
 
       {/* Top Navbar Header */}
-      <header className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex items-center justify-between relative z-30">
-        
+      <motion.header 
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5, ease: 'easeOut' }}
+        className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex items-center justify-between relative z-30"
+      >
         {/* Brand Logo */}
-        <div 
+        <motion.div 
           onClick={onBackToHome}
+          whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.97 }}
           className="flex items-center gap-2.5 cursor-pointer group select-none"
         >
-          <WeddingRingsIcon className="w-9 h-9 group-hover:scale-105 transition-transform duration-200 shadow-sm" />
+          <WeddingRingsIcon className="w-9 h-9 group-hover:rotate-6 transition-transform duration-300 drop-shadow-sm" />
           <span className="font-serif-wedding text-2xl font-bold tracking-normal text-slate-900 lowercase">
             i say yes
           </span>
-        </div>
+        </motion.div>
 
         {/* Back to Home Button */}
-        <button
+        <motion.button
           onClick={onBackToHome}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs sm:text-sm font-semibold text-slate-700 hover:text-[#165b39] bg-white/90 hover:bg-white border border-slate-200 shadow-2xs hover:shadow-xs transition-all cursor-pointer active:scale-95"
+          whileHover={{ scale: 1.05, x: -2 }}
+          whileTap={{ scale: 0.95 }}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs sm:text-sm font-semibold text-slate-700 hover:text-[#165b39] bg-white/90 hover:bg-white border border-slate-200/80 shadow-xs hover:shadow-md transition-all cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Kembali ke Beranda</span>
-        </button>
+        </motion.button>
+      </motion.header>
 
-      </header>
-
-      {/* Main Split Screen Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8 flex items-center justify-center relative z-20">
-        
-        <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
-          
-          {/* Left Column: Form Card with Mode Switcher */}
-          <div className="lg:col-span-6 flex flex-col items-center justify-center">
+      {/* Main Centered Form Area */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 flex items-center justify-center relative z-20">
+        <motion.div 
+          initial={{ opacity: 0, y: 20, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          className="w-full flex flex-col items-center justify-center"
+        >
+          <div className="w-full max-w-md bg-white/95 backdrop-blur-xl rounded-3xl border border-slate-200/90 shadow-[0_20px_60px_rgba(20,77,49,0.09)] p-6 sm:p-9 relative overflow-hidden">
             
-            <div className="w-full max-w-md bg-white rounded-3xl border border-slate-200/90 shadow-[0_20px_50px_rgba(20,77,49,0.08)] p-6 sm:p-9 relative">
-              
-              {/* Mode Switcher Tabs */}
-              <div className="flex rounded-2xl bg-slate-100 p-1 mb-6 select-none">
-                <button
-                  type="button"
-                  onClick={() => onSwitchMode('login')}
-                  className={`flex-1 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
-                    activeMode === 'login'
-                      ? 'bg-white text-[#165b39] shadow-sm font-black'
-                      : 'text-slate-500 hover:text-slate-800'
-                  }`}
-                >
-                  Masuk ke Akun
-                </button>
-                <button
-                  type="button"
-                  onClick={() => onSwitchMode('register')}
-                  className={`flex-1 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
-                    activeMode === 'register'
-                      ? 'bg-white text-[#165b39] shadow-sm font-black'
-                      : 'text-slate-500 hover:text-slate-800'
-                  }`}
-                >
-                  Daftar Akun Baru
-                </button>
-              </div>
+            {/* Gold gradient top border highlight */}
+            <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#165b39] via-[#d4a359] to-[#165b39]" />
 
-              {/* Form Content */}
-              {children}
-
-            </div>
-
-          </div>
-
-          {/* Right Column: Luxury Wedding Inspiration & Customer Proof */}
-          <div className="hidden lg:flex lg:col-span-6 flex-col items-center justify-center">
-            
-            <div className="relative w-full max-w-lg rounded-3xl overflow-hidden bg-gradient-to-br from-[#144e32] via-[#165b39] to-[#0f3d26] text-white p-8 sm:p-10 shadow-2xl shadow-emerald-950/30 border border-emerald-500/30 flex flex-col justify-between min-h-[580px]">
-              
-              {/* Background ambient lighting */}
-              <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-400/20 rounded-full blur-3xl pointer-events-none" />
-              <div className="absolute bottom-0 left-0 w-64 h-64 bg-amber-400/15 rounded-full blur-3xl pointer-events-none" />
-
-              {/* Top Card Header */}
-              <div className="relative z-10 space-y-3">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-emerald-200 text-xs font-semibold">
-                  <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-                  <span>Platform Undangan Digital #1 di Indonesia</span>
-                </div>
-
-                <h3 className="font-serif-wedding text-3xl font-bold tracking-tight text-white leading-tight">
-                  Mewujudkan Momen Sakral <br />
-                  <span className="italic font-display-luxury text-amber-200">
-                    Yang Elegan &amp; Berkesan
-                  </span>
-                </h3>
-
-                <p className="text-xs text-emerald-100/80 leading-relaxed font-normal">
-                  Satu akun untuk membuat, mengelola, dan membagikan undangan pernikahan ke ribuan tamu dalam hitungan menit.
-                </p>
-              </div>
-
-              {/* Center Couple Photo Mockup Card */}
-              <div className="relative z-10 my-6">
-                <div className="relative rounded-2xl overflow-hidden border border-white/25 shadow-2xl group">
-                  <img
-                    src="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=700&q=80"
-                    alt="Wedding Couple Showcase"
-                    className="w-full h-56 object-cover group-hover:scale-105 transition-transform duration-500"
+            {/* Animated Mode Switcher Tabs */}
+            <div className="flex rounded-2xl bg-slate-100/90 p-1.5 mb-7 select-none relative shadow-inner">
+              <button
+                type="button"
+                onClick={() => onSwitchMode('login')}
+                className={`relative flex-1 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-colors cursor-pointer z-10 ${
+                  activeMode === 'login' ? 'text-[#165b39]' : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                {activeMode === 'login' && (
+                  <motion.div
+                    layoutId="activeAuthTab"
+                    className="absolute inset-0 bg-white rounded-xl shadow-md"
+                    transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-                  
-                  {/* Floating badges on photo */}
-                  <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-xs">
-                    <div>
-                      <p className="font-serif-wedding text-white font-bold text-sm">Dimas &amp; Anindya</p>
-                      <p className="text-[10px] text-amber-200">Pernikahan 14 Februari 2026</p>
-                    </div>
-                    <span className="px-2.5 py-1 rounded-full bg-emerald-600/90 text-white text-[10px] font-bold shadow-xs">
-                      Tema Emerald Gold
-                    </span>
-                  </div>
-                </div>
-              </div>
+                )}
+                <span className="relative z-10 font-extrabold">Masuk ke Akun</span>
+              </button>
 
-              {/* Bottom Testimonial Quote & Benefits */}
-              <div className="relative z-10 space-y-4 pt-2 border-t border-white/15">
-                <div className="grid grid-cols-2 gap-3 text-xs text-emerald-100/90 font-medium">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-amber-300 shrink-0" />
-                    <span>RSVP Realtime WhatsApp</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-amber-300 shrink-0" />
-                    <span>Amplop Digital &amp; QRIS</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-amber-300 shrink-0" />
-                    <span>Musik Romantis Otomatis</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-amber-300 shrink-0" />
-                    <span>Aktif Selamanya (Lifetime)</span>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between text-[11px] text-emerald-200/80 pt-1">
-                  <span>Telah dipercaya oleh <strong className="text-white">50.000+</strong> pasangan</span>
-                  <div className="flex items-center gap-1 text-amber-300">
-                    <span>★★★★★</span>
-                    <span className="text-white font-bold ml-1">4.9/5</span>
-                  </div>
-                </div>
-              </div>
-
+              <button
+                type="button"
+                onClick={() => onSwitchMode('register')}
+                className={`relative flex-1 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-colors cursor-pointer z-10 ${
+                  activeMode === 'register' ? 'text-[#165b39]' : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                {activeMode === 'register' && (
+                  <motion.div
+                    layoutId="activeAuthTab"
+                    className="absolute inset-0 bg-white rounded-xl shadow-md"
+                    transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                  />
+                )}
+                <span className="relative z-10 font-extrabold">Daftar Akun Baru</span>
+              </button>
             </div>
 
+            {/* Form Content */}
+            {children}
+
           </div>
-
-        </div>
-
+        </motion.div>
       </main>
 
       {/* Footer Minimal */}
-      <footer className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 text-center text-xs text-slate-400 relative z-20">
-        <p>© 2026 <strong className="text-slate-600 font-semibold">i say yes</strong>. Dibuat dengan <Heart className="w-3.5 h-3.5 fill-rose-500 text-rose-500 inline mx-0.5" /> untuk kebahagiaan calon pengantin Indonesia.</p>
-      </footer>
+      <motion.footer 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.4 }}
+        className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 text-center text-xs text-slate-400 relative z-20"
+      >
+        <p>
+          © 2026 <strong className="text-slate-600 font-semibold">i say yes</strong>. Dibuat dengan{' '}
+          <motion.span
+            animate={{ scale: [1, 1.2, 1] }}
+            transition={{ duration: 1.5, repeat: Infinity }}
+            className="inline-block"
+          >
+            <Heart className="w-3.5 h-3.5 fill-rose-500 text-rose-500 inline mx-0.5" />
+          </motion.span>{' '}
+          untuk kebahagiaan calon pengantin Indonesia.
+        </p>
+      </motion.footer>
 
     </div>
   );
 };
+
+
