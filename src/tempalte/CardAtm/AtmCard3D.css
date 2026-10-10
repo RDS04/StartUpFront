@@ -24,6 +24,13 @@
   margin: 0 auto;
 }
 
+/* Vertical Card Perspective */
+.card-perspective.vertical {
+  max-width: 220px;
+  height: 340px;
+}
+
+
 /* Card 3D Element */
 .atm-card {
   position: relative;
@@ -104,6 +111,287 @@
   box-shadow: inset 0 0 20px rgba(212, 175, 55, 0.25);
 }
 
+/* BSI Theme (Gold & Teal Gradient with Curved Accents) */
+.card-front.bsi-theme {
+  background: #f1a329;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: inset 0 0 15px rgba(255, 255, 255, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.bsi-teal-shape {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 42%;
+  height: 100%;
+  background: #0b998c;
+  border-top-right-radius: 90% 100%;
+  border-bottom-right-radius: 90% 100%;
+  z-index: 1;
+}
+
+.bsi-main-gold {
+  position: absolute;
+  top: 0;
+  left: 14%;
+  width: 90%;
+  height: 100%;
+  background: #f1a329;
+  border-top-left-radius: 95% 100%;
+  border-bottom-left-radius: 80% 100%;
+  z-index: 2;
+}
+
+.bsi-light-slice {
+  position: absolute;
+  top: -20%;
+  right: -10%;
+  width: 55%;
+  height: 140%;
+  background: #fad79b;
+  transform: rotate(-32deg);
+  z-index: 3;
+}
+
+/* Embossed Silver Text Style for BSI */
+.bsi-embossed-text {
+  font-family: 'Courier New', Courier, monospace;
+  font-weight: 700;
+  color: #e2e8f0;
+  text-shadow: 
+    -1px -1px 1px rgba(255, 255, 255, 0.9),
+     1px  1px 1px rgba(0, 0, 0, 0.7),
+     2px  2px 3px rgba(0, 0, 0, 0.4);
+}
+
+/* BNI Batik Gold Theme */
+.card-front.bni-theme {
+  background: #d49b4b;
+  background-image: 
+    radial-gradient(circle at 70% 30%, #eab868 0%, #c88c3a 70%),
+    repeating-linear-gradient(45deg, rgba(0, 0, 0, 0.03) 0px, rgba(0, 0, 0, 0.03) 2px, transparent 2px, transparent 8px);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.2);
+  position: relative;
+  overflow: hidden;
+  color: #0f172a;
+}
+
+/* Silver Chip variant */
+.card-chip.silver {
+  background: linear-gradient(135deg, #f1f5f9 0%, #cbd5e1 40%, #94a3b8 100%);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.8), 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.card-chip.silver .chip-line {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+/* KoinWorks NEO Theme */
+.card-front.neo-theme {
+  background: #101c2e;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+  position: relative;
+  overflow: hidden;
+  color: #ffffff;
+}
+
+.neo-red-swoosh {
+  position: absolute;
+  bottom: -20%;
+  right: -15%;
+  width: 75%;
+  height: 90%;
+  background: #e52e38;
+  border-top-left-radius: 90% 80%;
+  z-index: 1;
+}
+
+/* Bank Muamalat Theme (Vertical Purple Brushed Gradient) */
+.card-front.muamalat-theme {
+  background: linear-gradient(180deg, #6c2b8e 0%, #521c72 50%, #3e1258 100%);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.4);
+  position: relative;
+  overflow: hidden;
+  color: #ffffff;
+}
+
+/* Bank Nagari Theme (Royal Blue to Silver Songket Motif) */
+.card-front.nagari-theme {
+  background: #1d4ed8;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: inset 0 0 15px rgba(255, 255, 255, 0.2);
+  position: relative;
+  overflow: hidden;
+  color: #ffffff;
+}
+
+.nagari-songket-right {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 55%;
+  height: 100%;
+  background: #f1f5f9;
+  border-top-left-radius: 40% 100%;
+  border-bottom-left-radius: 40% 100%;
+  z-index: 1;
+  box-shadow: -4px 0 15px rgba(0, 0, 0, 0.15);
+}
+
+/* Bank BTN Theme (Vertical Light Silver with Red Petals Accent) */
+.card-front.btn-theme {
+  background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: inset 0 0 15px rgba(255, 255, 255, 0.8);
+  position: relative;
+  overflow: hidden;
+  color: #1e293b;
+}
+
+/* Bank BTN Gold Theme (Vertical Bright Gold with Orange Petals Accent) */
+.card-front.btn-gold-theme {
+  background: linear-gradient(180deg, #ffcd00 0%, #f7b700 100%);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: inset 0 0 15px rgba(255, 255, 255, 0.3);
+  position: relative;
+  overflow: hidden;
+  color: #1e293b;
+}
+
+/* Bank BTN Platinum Theme (Vertical Carbon Black with Ocean Blue Petals Accent) */
+.card-front.btn-premium-theme {
+  background: linear-gradient(180deg, #2b2b2b 0%, #1a1a1a 100%);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: inset 0 0 15px rgba(255, 255, 255, 0.15);
+  position: relative;
+  overflow: hidden;
+  color: #ffffff;
+}
+
+/* CIMB Niaga Theme (Vibrant Red Gradient with Arrow Geometry Pattern) */
+.card-front.cimb-theme {
+  background: linear-gradient(135deg, #e11d48 0%, #b91c1c 50%, #7f1d1d 100%);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.3);
+  position: relative;
+  overflow: hidden;
+  color: #ffffff;
+}
+
+/* Danamon World Business Theme (Burgundy Red with Gold Swoosh & Dragon Scale Motif) */
+.card-front.danamon-theme {
+  background: linear-gradient(145deg, #70101c 0%, #4a0912 65%, #1d0307 100%);
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  box-shadow: inset 0 0 25px rgba(0, 0, 0, 0.6);
+  position: relative;
+  overflow: hidden;
+  color: #ffffff;
+}
+
+/* PermataBank Theme (Emerald Green with Faceted Crystal Geometry) */
+.card-front.permata-theme {
+  background: linear-gradient(135deg, #056839 0%, #024a27 50%, #012b16 100%);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.4);
+  position: relative;
+  overflow: hidden;
+  color: #ffffff;
+}
+
+/* Bank Mega Theme (Warm Golden Mustard with Flowing Ribbon M Wave) */
+.card-front.mega-theme {
+  background: linear-gradient(135deg, #e39d24 0%, #ca8613 50%, #9e6406 100%);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.3);
+  position: relative;
+  overflow: hidden;
+  color: #ffffff;
+}
+
+/* OCBC Bank Theme (Metallic Red Brushed Finish with Sail Fan Geometry) */
+.card-front.ocbc-theme {
+  background: linear-gradient(135deg, #dc2626 0%, #991b1b 50%, #581c1c 100%);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.4);
+  position: relative;
+  overflow: hidden;
+  color: #ffffff;
+}
+
+/* Bank Sinarmas Theme (Crimson Red Radial Metallic Brush with Faceted Polygon Geometric) */
+.card-front.sinarmas-theme {
+  background: radial-gradient(circle at 20% 20%, #e11d48 0%, #9f1239 50%, #4c0519 100%);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.4);
+  position: relative;
+  overflow: hidden;
+  color: #ffffff;
+}
+
+/* Maybank U Theme (Vertical Mint Cyan / Pastel Teal Minimalist Finish) */
+.card-front.maybank-theme {
+  background: linear-gradient(180deg, #8ad4ce 0%, #68beba 50%, #4faea9 100%);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.4);
+  position: relative;
+  overflow: hidden;
+  color: #0f172a;
+}
+
+/* Bank BTPN Sinaya Theme (Bronze Taupe Metallic with Glowing Orange Loops Motif) */
+.card-front.btpn-theme {
+  background: linear-gradient(135deg, #7c6957 0%, #5c4c3e 50%, #3d3127 100%);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.4);
+  position: relative;
+  overflow: hidden;
+  color: #ffffff;
+}
+
+/* Bank Bukopin Theme (Ocean Blue Waves with Diagonal Dark Blue Swooshes) */
+.card-front.bukopin-theme {
+  background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 50%, #1e1b4b 100%);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.4);
+  position: relative;
+  overflow: hidden;
+  color: #ffffff;
+}
+
+/* Standard Chartered Theme (Ocean Blue Gradient with Trustmark Helix Motif) */
+.card-front.chartered-theme {
+  background: linear-gradient(135deg, #0264b3 0%, #004580 50%, #002b54 100%);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.4);
+  position: relative;
+  overflow: hidden;
+  color: #ffffff;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /* Back Side Styling */
 .card-back {
   background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
@@ -131,6 +419,7 @@
   font-size: 15px;
   letter-spacing: 1.8px;
   background: linear-gradient(90deg, #ffffff, #cbd5e1);
+  background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);

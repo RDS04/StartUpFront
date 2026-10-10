@@ -3,13 +3,15 @@ import { LandingPage } from './landingPage';
 import { AuthPage } from './auth';
 import { RusticBlossomTemplate } from './tempalte/satu/main';
 import { DustyRoseTemplate } from './tempalte/dua/main';
+import { CardAtmPreviewPage } from './tempalte/CardAtm/CardAtmPreviewPage';
 import { ArrowLeft } from 'lucide-react';
 
-type PageRoute = 'landing' | 'login' | 'register' | 'template-satu' | 'template-dua';
+type PageRoute = 'landing' | 'login' | 'register' | 'template-satu' | 'template-dua' | 'card-atm';
 
 export function App() {
   const [route, setRoute] = useState<PageRoute>(() => {
     const hash = window.location.hash.toLowerCase();
+    if (hash.includes('card-atm') || hash.includes('card') || hash.includes('atm')) return 'card-atm';
     if (hash.includes('login')) return 'login';
     if (hash.includes('register')) return 'register';
     if (hash.includes('template-dua') || hash.includes('template/dua')) return 'template-dua';
@@ -22,7 +24,9 @@ export function App() {
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash.toLowerCase();
-      if (hash.includes('login')) {
+      if (hash.includes('card-atm') || hash.includes('card') || hash.includes('atm')) {
+        setRoute('card-atm');
+      } else if (hash.includes('login')) {
         setRoute('login');
       } else if (hash.includes('register')) {
         setRoute('register');
@@ -31,7 +35,7 @@ export function App() {
       } else if (hash.includes('template-satu') || hash.includes('undangan') || hash.includes('template/satu')) {
         setRoute('template-satu');
       } else if (hash === '' || hash === '#' || hash.startsWith('#/') || hash.startsWith('#')) {
-        if (!hash.includes('login') && !hash.includes('register') && !hash.includes('template-')) {
+        if (!hash.includes('login') && !hash.includes('register') && !hash.includes('template-') && !hash.includes('card')) {
           setRoute('landing');
         }
       }
@@ -51,6 +55,10 @@ export function App() {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
+
+  if (route === 'card-atm') {
+    return <CardAtmPreviewPage onBack={() => navigateTo('landing')} />;
+  }
 
   if (route === 'template-dua') {
     return (

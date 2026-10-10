@@ -9,7 +9,7 @@ export interface AtmCardProps {
   bankName: string;
   expiry?: string;
   cvv?: string;
-  cardTheme?: "bca" | "mandiri" | "default";
+  cardTheme?: "bca" | "mandiri" | "bsi" | "bni" | "neo" | "muamalat" | "nagari" | "btn" | "btn-gold" | "btn-premium" | "cmniaga" | "danamon" | "permata" | "mega" | "ocbc" | "sinarmas" | "maybank" | "bptn" | "bukopin" | "chartered" | "default";
   onCopy?: (text: string, label: string) => void;
   showForm?: boolean;
 }
@@ -37,6 +37,24 @@ export const AtmCard: React.FC<AtmCardProps> = ({
   const getThemeClass = () => {
     if (cardTheme === "bca") return "bca-theme";
     if (cardTheme === "mandiri") return "mandiri-theme";
+    if (cardTheme === "bsi") return "bsi-theme";
+    if (cardTheme === "bni") return "bni-theme";
+    if (cardTheme === "neo") return "neo-theme";
+    if (cardTheme === "muamalat") return "muamalat-theme";
+    if (cardTheme === "nagari") return "nagari-theme";
+    if (cardTheme === "btn") return "btn-theme";
+    if (cardTheme === "btn-gold") return "btn-gold-theme";
+    if (cardTheme === "btn-premium") return "btn-premium-theme";
+    if (cardTheme === "cmniaga") return "cimb-theme";
+    if (cardTheme === "danamon") return "danamon-theme";
+    if (cardTheme === "permata") return "permata-theme";
+    if (cardTheme === "mega") return "mega-theme";
+    if (cardTheme === "ocbc") return "ocbc-theme";
+    if (cardTheme === "sinarmas") return "sinarmas-theme";
+    if (cardTheme === "maybank") return "maybank-theme";
+    if (cardTheme === "bptn") return "btpn-theme";
+    if (cardTheme === "bukopin") return "bukopin-theme";
+    if (cardTheme === "chartered") return "chartered-theme";
     return "";
   };
 
