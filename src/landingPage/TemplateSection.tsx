@@ -10,7 +10,7 @@ export interface TemplateItem {
   category: 'Pernikahan' | 'Ulang Tahun' | 'Khitanan' | 'Premium (Gold)';
   names: string;
   date?: string;
-  themeStyle: 'rustic' | 'navy-gold' | 'java-batik' | 'geometric-blush' | 'emerald-luxury' | 'burgundy-arch';
+  themeStyle: 'rustic' | 'navy-gold' | 'dusty-rose' | 'java-batik' | 'geometric-blush' | 'emerald-luxury' | 'burgundy-arch';
 }
 
 const templates: TemplateItem[] = [
@@ -25,12 +25,12 @@ const templates: TemplateItem[] = [
   },
   {
     id: 't2',
-    title: 'Modern Elegant',
+    title: 'Dusty Rose Lily',
     badge: 'BRONZE',
     category: 'Pernikahan',
-    names: 'Dimas & Maya',
-    date: '15.11.2026',
-    themeStyle: 'navy-gold',
+    names: 'Vani & Rahmat',
+    date: '10.10.2026',
+    themeStyle: 'dusty-rose',
   },
   {
     id: 't3',
@@ -145,6 +145,68 @@ const InvitationTemplateContent: React.FC<{ item: TemplateItem }> = ({ item }) =
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#82694D] text-white text-[8px] font-semibold shadow-xs">
             <Music className="w-2.5 h-2.5 animate-spin" />
             <span>A Thousand Years - Christina Perri</span>
+          </div>
+        </div>
+      );
+
+    case 'dusty-rose':
+      return (
+        <div className="w-full bg-[#967678] text-white text-center border-b border-white/20" style={{ fontFamily: "'Onest', sans-serif" }}>
+          {/* Cover */}
+          <div className="relative h-[260px] overflow-hidden">
+            <img
+              src="https://assets.satumomen.com/images/invitation/bg-section-101089281789112220.jpg"
+              alt="Vani & Rahmat"
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/10 to-black/70" />
+            <div className="absolute bottom-4 inset-x-0 space-y-1">
+              <p className="text-[6px] uppercase tracking-[0.35em] text-white/80">The Wedding Of</p>
+              <h4 className="font-serif-wedding text-xl font-semibold">{item.names}</h4>
+              <p className="text-[7px] tracking-[0.3em]">10.10.26</p>
+              <span className="inline-block mt-1 px-3 py-0.5 rounded-full bg-[#57514f] text-[7px]">Open Invitation</span>
+            </div>
+          </div>
+
+          {/* Quote with arch */}
+          <div className="p-4 space-y-2">
+            <div className="w-16 h-20 mx-auto rounded-t-full border-2 border-white/60 p-0.5 overflow-hidden">
+              <img
+                src="https://assets.satumomen.com/images/galleries/907791-gallery-TqU6H1FAAs.jpg"
+                alt="Arch"
+                className="w-full h-full object-cover rounded-t-full"
+              />
+            </div>
+            <p className="text-[7px] leading-relaxed text-white/90">
+              "Dan di antara tanda-tanda (kebesaran)-Nya ialah Dia menciptakan pasangan-pasangan untukmu..."
+            </p>
+            <p className="text-[7px] italic">Surah Ar-Rum : 21</p>
+          </div>
+
+          {/* Resepsi capsule */}
+          <div className="px-6 pb-5">
+            <div className="bg-white/80 text-[#2f2a29] rounded-full py-6 px-3 space-y-0.5">
+              <p className="text-xl text-[#57514f]" style={{ fontFamily: "'Pinyon Script', cursive" }}>Resepsi</p>
+              <p className="text-[8px] font-bold text-[#57514f]">Sabtu, 10 Oktober 2026</p>
+              <p className="text-[7px]">11.00 WIB - Selesai</p>
+              <p className="text-[7px] font-bold">Kediaman Mempelai Pria</p>
+              <span className="inline-block mt-1 px-2.5 py-0.5 rounded-full bg-[#57514f] text-white text-[6px]">Maps</span>
+            </div>
+          </div>
+
+          {/* Gallery */}
+          <div className="px-3 pb-4">
+            <p className="text-lg mb-1.5" style={{ fontFamily: "'Pinyon Script', cursive" }}>Our Moment</p>
+            <div className="grid grid-cols-3 gap-1">
+              {['duXNBO9cDL', 'MHXODbcCmd', 'ekI9OQP65Z'].map((id) => (
+                <img
+                  key={id}
+                  src={`https://assets.satumomen.com/images/galleries/907791-gallery-${id}.jpg`}
+                  alt="Moment"
+                  className="w-full h-12 object-cover"
+                />
+              ))}
+            </div>
           </div>
         </div>
       );

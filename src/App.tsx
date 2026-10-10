@@ -2,15 +2,17 @@ import { useState, useEffect } from 'react';
 import { LandingPage } from './landingPage';
 import { AuthPage } from './auth';
 import { RusticBlossomTemplate } from './tempalte/satu/main';
+import { DustyRoseTemplate } from './tempalte/dua/main';
 import { ArrowLeft } from 'lucide-react';
 
-type PageRoute = 'landing' | 'login' | 'register' | 'template-satu';
+type PageRoute = 'landing' | 'login' | 'register' | 'template-satu' | 'template-dua';
 
 export function App() {
   const [route, setRoute] = useState<PageRoute>(() => {
     const hash = window.location.hash.toLowerCase();
     if (hash.includes('login')) return 'login';
     if (hash.includes('register')) return 'register';
+    if (hash.includes('template-dua') || hash.includes('template/dua')) return 'template-dua';
     if (hash.includes('template-satu') || hash.includes('undangan') || hash.includes('template/satu')) return 'template-satu';
     return 'landing';
   });
@@ -24,10 +26,12 @@ export function App() {
         setRoute('login');
       } else if (hash.includes('register')) {
         setRoute('register');
+      } else if (hash.includes('template-dua') || hash.includes('template/dua')) {
+        setRoute('template-dua');
       } else if (hash.includes('template-satu') || hash.includes('undangan') || hash.includes('template/satu')) {
         setRoute('template-satu');
       } else if (hash === '' || hash === '#' || hash.startsWith('#/') || hash.startsWith('#')) {
-        if (!hash.includes('login') && !hash.includes('register') && !hash.includes('template-satu')) {
+        if (!hash.includes('login') && !hash.includes('register') && !hash.includes('template-')) {
           setRoute('landing');
         }
       }
@@ -47,6 +51,23 @@ export function App() {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
+
+  if (route === 'template-dua') {
+    return (
+      <div className="relative min-h-screen bg-[#7e5f62]">
+        <div className="fixed top-4 left-4 z-[60]">
+          <button
+            onClick={() => navigateTo('landing')}
+            className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#57514f]/90 text-white border border-white/30 shadow-[0_4px_25px_rgba(0,0,0,0.4)] hover:bg-[#3f3a38] hover:scale-105 transition-all text-xs font-semibold backdrop-blur-md cursor-pointer group"
+          >
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+            <span>Kembali ke Platform</span>
+          </button>
+        </div>
+        <DustyRoseTemplate />
+      </div>
+    );
+  }
 
   if (route === 'template-satu') {
     return (

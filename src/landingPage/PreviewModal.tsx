@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { X, Play, Pause, MapPin, Mail, Calendar, Heart, Send, Check, ExternalLink } from 'lucide-react';
 import type { TemplateItem } from './TemplateSection';
 import { RusticBlossomTemplate } from '../tempalte/satu/main';
+import { DustyRoseTemplate } from '../tempalte/dua/main';
 
 interface PreviewModalProps {
   template: TemplateItem | null;
@@ -22,10 +23,14 @@ export const PreviewModal = ({
 
   if (!template) return null;
 
-  const isRustic =
+  const isRusticTpl =
     template.id === 't1' ||
     template.themeStyle === 'rustic' ||
     template.title.toLowerCase().includes('rustic');
+  const isDustyRose = template.id === 't2' || template.themeStyle === 'dusty-rose';
+  // "isRustic" = template punya pratinjau asli (dipakai untuk tab & tombol layar penuh)
+  const isRustic = isRusticTpl || isDustyRose;
+  const fullHref = isDustyRose ? '#/template-dua' : '#template-satu';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
@@ -73,7 +78,7 @@ export const PreviewModal = ({
 
             {isRustic && (
               <a
-                href="#template-satu"
+                href={fullHref}
                 onClick={onClose}
                 className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-semibold text-[#82694D] bg-[#F7F3EC] border border-[#82694D]/30 hover:bg-[#82694D] hover:text-white transition-all cursor-pointer"
                 title="Buka dalam mode layar penuh"
@@ -93,7 +98,11 @@ export const PreviewModal = ({
         </div>
 
         {/* Modal Scrollable Content: REAL TEMPLATE PREVIEW for Rustic Blossom */}
-        {isRustic ? (
+        {isDustyRose ? (
+          <div className="flex-1 overflow-y-auto relative bg-[#967678] min-h-[580px] max-h-[78vh] no-scrollbar">
+            <DustyRoseTemplate key={activeTab} isEmbedded={true} defaultOpen={activeTab === 'content'} />
+          </div>
+        ) : isRustic ? (
           <div className="flex-1 overflow-y-auto relative bg-[#F9F6F0] min-h-[580px] max-h-[78vh] no-scrollbar">
             <RusticBlossomTemplate key={activeTab} isEmbedded={true} defaultOpen={activeTab === 'content'} />
           </div>
@@ -209,9 +218,9 @@ export const PreviewModal = ({
             >
               Tutup
             </button>
-            {(template.title.toLowerCase().includes('rustic') || template.id === 't1') && (
+            {isRustic && (
               <a
-                href="#template-satu"
+                href={fullHref}
                 onClick={onClose}
                 className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-semibold text-[#82694D] bg-[#F7F3EC] border border-[#82694D]/30 hover:bg-[#82694D] hover:text-white transition-all cursor-pointer"
               >
