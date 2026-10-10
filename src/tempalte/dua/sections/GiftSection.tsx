@@ -4,38 +4,100 @@ import { Reveal } from '../components/Reveal';
 import { NameBadge, ScriptTitle, Section } from '../components/Shared';
 import { GIFT } from '../data';
 
-const BankCard: React.FC<{ bank: string; number: string; holder: string; onCopy: (v: string) => void; copied: boolean }> = ({
-  bank,
-  number,
-  holder,
-  onCopy,
-  copied,
-}) => (
-  <div className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#fdf8f5] via-[#f3e6e3] to-[#e2cfcd] p-5 text-left text-[var(--dr-ink)] shadow-[0_15px_40px_rgba(60,40,42,.25)] transition-transform duration-500 hover:-translate-y-1">
-    <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-[var(--dr-bg)]/25 blur-xl" />
-    <div className="absolute -bottom-12 -left-8 h-28 w-28 rounded-full bg-white/70 blur-xl" />
-    <div className="relative flex items-start justify-between">
-      <span className="rounded-md bg-[#f15a22] px-2.5 py-0.5 text-sm font-extrabold italic tracking-wide text-white">{bank}</span>
-      <div className="h-7 w-10 rounded-md bg-gradient-to-br from-[#e9cf8f] to-[#b8955a] shadow-inner" />
-    </div>
-    <p className="relative mt-5 font-mono text-xl font-semibold tracking-[0.18em]">
-      {number.replace(/(\d{4})(?=\d)/g, '$1 ')}
-    </p>
-    <div className="relative mt-3 flex items-end justify-between">
-      <div>
-        <p className="text-[9px] uppercase tracking-[0.25em] text-[var(--dr-ink)]/50">Atas Nama</p>
-        <p className="text-sm font-semibold">{holder}</p>
-      </div>
-      <button
-        onClick={() => onCopy(number)}
-        className="inline-flex cursor-pointer items-center gap-1.5 rounded-full bg-[var(--dr-accent)] px-3.5 py-1.5 text-[11px] font-medium text-white transition hover:bg-[#3f3a38] active:scale-95"
-      >
-        {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
-        {copied ? 'Tersalin' : 'Salin'}
-      </button>
-    </div>
-  </div>
-);
+// Import 3D ATM Card Components
+import { CardBni } from '../../CardAtm/Bni';
+import { CardBca } from '../../CardAtm/Bca';
+import { CardMandiri } from '../../CardAtm/Mandiri';
+import { CardBsi } from '../../CardAtm/bsi';
+import { CardCimbNiaga } from '../../CardAtm/cmniaga';
+import { CardDanamon } from '../../CardAtm/danamon';
+import { CardPermata } from '../../CardAtm/permata';
+import { CardMega } from '../../CardAtm/mega';
+import { CardOcbc } from '../../CardAtm/ocbc';
+import { CardSinarmas } from '../../CardAtm/sinarmas';
+import { CardMaybank } from '../../CardAtm/maybank';
+import { CardBtpn } from '../../CardAtm/bptn';
+import { CardBukopin } from '../../CardAtm/bukopin';
+import { CardChartered } from '../../CardAtm/carthered';
+import { CardMuamalat } from '../../CardAtm/muamalat';
+import { CardNagari } from '../../CardAtm/nagari';
+import { CardNeo } from '../../CardAtm/neo';
+import { CardBtn } from '../../CardAtm/btn';
+import { CardBtnGold } from '../../CardAtm/btn-gold';
+import { CardBtnPremium } from '../../CardAtm/btn-premium';
+import { AtmCard } from '../../CardAtm/AtmCard';
+
+const Smart3DBankCard: React.FC<{
+  bank: string;
+  number: string;
+  holder: string;
+  onCopy: (num: string, label: string) => void;
+}> = ({ bank, number, holder, onCopy }) => {
+  const normalizedBank = bank.toUpperCase().trim();
+
+  if (normalizedBank.includes('BNI')) {
+    return <CardBni accountNumber={number} holderName={holder} onCopy={onCopy} />;
+  }
+  if (normalizedBank.includes('BCA')) {
+    return <CardBca accountNumber={number} holderName={holder} onCopy={onCopy} />;
+  }
+  if (normalizedBank.includes('MANDIRI')) {
+    return <CardMandiri accountNumber={number} holderName={holder} onCopy={onCopy} />;
+  }
+  if (normalizedBank.includes('BSI') || normalizedBank.includes('SYARIAH INDONESIA')) {
+    return <CardBsi accountNumber={number} holderName={holder} onCopy={onCopy} />;
+  }
+  if (normalizedBank.includes('CIMB') || normalizedBank.includes('NIAGA')) {
+    return <CardCimbNiaga accountNumber={number} holderName={holder} onCopy={onCopy} />;
+  }
+  if (normalizedBank.includes('DANAMON')) {
+    return <CardDanamon accountNumber={number} holderName={holder} onCopy={onCopy} />;
+  }
+  if (normalizedBank.includes('PERMATA')) {
+    return <CardPermata accountNumber={number} holderName={holder} onCopy={onCopy} />;
+  }
+  if (normalizedBank.includes('MEGA')) {
+    return <CardMega accountNumber={number} holderName={holder} onCopy={onCopy} />;
+  }
+  if (normalizedBank.includes('OCBC')) {
+    return <CardOcbc accountNumber={number} holderName={holder} onCopy={onCopy} />;
+  }
+  if (normalizedBank.includes('SINARMAS')) {
+    return <CardSinarmas accountNumber={number} holderName={holder} onCopy={onCopy} />;
+  }
+  if (normalizedBank.includes('MAYBANK')) {
+    return <CardMaybank accountNumber={number} holderName={holder} onCopy={onCopy} />;
+  }
+  if (normalizedBank.includes('BTPN')) {
+    return <CardBtpn accountNumber={number} holderName={holder} onCopy={onCopy} />;
+  }
+  if (normalizedBank.includes('BUKOPIN')) {
+    return <CardBukopin accountNumber={number} holderName={holder} onCopy={onCopy} />;
+  }
+  if (normalizedBank.includes('STANDARD') || normalizedBank.includes('CHARTERED')) {
+    return <CardChartered accountNumber={number} holderName={holder} onCopy={onCopy} />;
+  }
+  if (normalizedBank.includes('MUAMALAT')) {
+    return <CardMuamalat accountNumber={number} holderName={holder} onCopy={onCopy} />;
+  }
+  if (normalizedBank.includes('NAGARI')) {
+    return <CardNagari accountNumber={number} holderName={holder} onCopy={onCopy} />;
+  }
+  if (normalizedBank.includes('NEO') || normalizedBank.includes('KOINWORKS')) {
+    return <CardNeo accountNumber={number} holderName={holder} onCopy={onCopy} />;
+  }
+  if (normalizedBank.includes('BTN PLATINUM')) {
+    return <CardBtnPremium accountNumber={number} holderName={holder} onCopy={onCopy} />;
+  }
+  if (normalizedBank.includes('BTN GOLD')) {
+    return <CardBtnGold accountNumber={number} holderName={holder} onCopy={onCopy} />;
+  }
+  if (normalizedBank.includes('BTN')) {
+    return <CardBtn accountNumber={number} holderName={holder} onCopy={onCopy} />;
+  }
+
+  return <AtmCard bankName={bank} accountNumber={number} holderName={holder} onCopy={onCopy} />;
+};
 
 const GiftSection: React.FC<{ onToast: (msg: string) => void }> = ({ onToast }) => {
   const [copied, setCopied] = useState<string | null>(null);
@@ -57,18 +119,23 @@ const GiftSection: React.FC<{ onToast: (msg: string) => void }> = ({ onToast }) 
         <p className="mx-auto mt-4 max-w-[330px] text-[13.5px] leading-relaxed text-white/90">{GIFT.intro}</p>
       </Reveal>
 
-      <div className="mt-8 w-full max-w-[340px] space-y-4">
+      <div className="mt-8 w-full max-w-[360px] space-y-6">
         {GIFT.accounts.map((a, i) => (
           <Reveal key={a.number} anim={i % 2 ? 'right' : 'left'} delay={200 + i * 120}>
-            <BankCard {...a} copied={copied === a.number} onCopy={(v) => copy(v, 'Nomor rekening')} />
+            <Smart3DBankCard
+              bank={a.bank}
+              number={a.number}
+              holder={a.holder}
+              onCopy={(num, label) => copy(num, label || `Nomor Rekening ${a.bank}`)}
+            />
           </Reveal>
         ))}
 
         <Reveal anim="up" delay={450}>
           <div className="rounded-2xl border border-white/40 bg-white/10 p-5 backdrop-blur-md">
-            <div className="mb-2 flex items-center justify-center gap-2">
+            <div className="mb-2 flex items-center justify-center gap-2 text-white">
               <Gift className="h-4 w-4" />
-              <p className="font-semibold">Kirim Kado</p>
+              <p className="font-semibold text-white">Kirim Kado</p>
             </div>
             <p className="text-[13px] leading-relaxed text-white/90">
               <MapPin className="mr-1 inline h-3.5 w-3.5" />
