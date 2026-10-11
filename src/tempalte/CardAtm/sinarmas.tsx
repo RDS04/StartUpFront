@@ -117,9 +117,12 @@ export const CardSinarmas: React.FC<CardSinarmasProps> = ({
                 </div>
               </div>
 
-              {/* BOTTOM ROW: EXPIRED & GPN LOGO */}
+              {/* BOTTOM ROW: HOLDER NAME, EXPIRED & GPN LOGO */}
               <div className="flex justify-between items-end">
                 <div className="flex flex-col text-left">
+                  <div className="font-mono text-[10px] font-bold text-white tracking-wider uppercase mb-0.5 truncate max-w-[150px]">
+                    {holderName}
+                  </div>
                   {/* Valid Thru */}
                   <div className="flex items-center gap-1.5 text-white">
                     <div className="text-[6px] font-bold leading-none text-rose-100/70 uppercase">

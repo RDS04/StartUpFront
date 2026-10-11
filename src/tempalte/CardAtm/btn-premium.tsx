@@ -127,8 +127,9 @@ export const CardBtnPremium: React.FC<CardBtnPremiumProps> = ({
                   {holderName}
                 </div>
                 {/* Hidden/Subtle Account Number Display */}
-                <div className="font-mono text-xs font-semibold text-slate-300 tracking-wider mt-1 opacity-80">
-                  {accountNumber}
+                <div className="font-mono text-xs font-semibold text-slate-300 tracking-wider mt-1 opacity-80 flex items-center gap-2">
+                  <span>{accountNumber}</span>
+                  {expiry && <span className="text-[10px] text-slate-400">EXP {expiry}</span>}
                 </div>
               </div>
 

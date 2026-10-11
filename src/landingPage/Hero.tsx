@@ -84,12 +84,17 @@ export const Hero = () => {
               </div>
 
               {/* Floating Badge 3: Amplop Digital */}
-              <div className="absolute top-9 sm:top-10 right-0 sm:right-6 z-30 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-full bg-white shadow-[0_8px_25px_rgba(0,0,0,0.1)] border border-slate-100 text-[10px] sm:text-xs font-semibold text-slate-800 animate-float-slow">
-                <div className="w-3.5 sm:w-4 h-3.5 sm:h-4 rounded bg-amber-100 flex items-center justify-center">
+              <a
+                href="#amplop-digital"
+                className="absolute top-9 sm:top-10 right-0 sm:right-6 z-30 flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-full bg-white shadow-[0_8px_25px_rgba(0,0,0,0.1)] border border-slate-100 hover:border-amber-400 hover:scale-105 active:scale-95 transition-all text-[10px] sm:text-xs font-bold text-slate-800 animate-float-slow cursor-pointer group"
+                title="Lihat preview kartu ATM 3D amplop digital"
+              >
+                <div className="w-3.5 sm:w-4 h-3.5 sm:h-4 rounded bg-amber-100 group-hover:bg-amber-200 flex items-center justify-center transition-colors">
                   <Mail className="w-2.5 sm:w-3 h-2.5 sm:h-3 text-amber-600" />
                 </div>
-                <span>Amplop Digital</span>
-              </div>
+                <span>Amplop Digital 3D</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              </a>
 
               {/* Floating Badge 4: Save the Date (from asset sheet!) */}
               <div className="absolute bottom-6 sm:bottom-8 -left-2 sm:left-0 z-30 -rotate-6 scale-75 sm:scale-100 origin-bottom-left animate-float-reverse">

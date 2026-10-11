@@ -28,7 +28,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAuth }) => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const navLinks = ['Beranda', 'Fitur', 'Template', 'Harga', 'Cara Buat'];
+  const navLinks = ['Beranda', 'Fitur', 'Template', 'Amplop Digital', 'Harga', 'Cara Buat'];
 
   return (
     <header 
@@ -50,7 +50,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAuth }) => {
           </div>
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden md:flex items-center space-x-9">
+          <nav className="hidden md:flex items-center space-x-7 lg:space-x-8">
             {navLinks.map((link) => {
               const isActive = activeTab === link;
               return (
@@ -58,13 +58,18 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAuth }) => {
                   key={link}
                   href={`#${link.toLowerCase().replace(/\s+/g, '-')}`}
                   onClick={() => setActiveTab(link)}
-                  className={`text-sm transition-colors relative py-1.5 ${
+                  className={`text-sm transition-colors relative py-1.5 inline-flex items-center gap-1.5 ${
                     isActive 
                       ? 'text-[#165b39] font-bold' 
                       : 'text-slate-600 hover:text-[#165b39] font-medium'
                   }`}
                 >
-                  {link}
+                  <span>{link}</span>
+                  {link === 'Amplop Digital' && (
+                    <span className="text-[10px] px-1.5 py-0.5 rounded-full font-black bg-amber-500/20 text-amber-800 border border-amber-500/40 leading-none">
+                      3D
+                    </span>
+                  )}
                   {isActive && (
                     <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-[#165b39] rounded-full" />
                   )}
@@ -117,7 +122,14 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAuth }) => {
                       : 'text-slate-700 hover:bg-slate-50 hover:text-[#165b39]'
                   }`}
                 >
-                  <span>{link}</span>
+                  <span className="flex items-center gap-2">
+                    <span>{link}</span>
+                    {link === 'Amplop Digital' && (
+                      <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-amber-100 text-amber-800 border border-amber-300">
+                        3D Kartu ATM
+                      </span>
+                    )}
+                  </span>
                   {isActive && (
                     <span className="w-2 h-2 rounded-full bg-[#165b39]" />
                   )}

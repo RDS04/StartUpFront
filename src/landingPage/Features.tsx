@@ -142,6 +142,17 @@ export const Features = () => {
                   <p className="text-sm text-slate-600 leading-relaxed font-normal">
                     {feat.desc}
                   </p>
+                  {feat.title.includes('Amplop') && (
+                    <div className="pt-2">
+                      <a
+                        href="#amplop-digital"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/15 hover:bg-amber-500/25 text-amber-900 border border-amber-500/30 text-xs font-bold transition-all shadow-2xs hover:scale-105 active:scale-95"
+                      >
+                        <span>✨ Coba Preview Kartu ATM 3D</span>
+                        <span className="text-amber-800">→</span>
+                      </a>
+                    </div>
+                  )}
                 </div>
 
                 {/* Subtle Bottom Accent Line */}

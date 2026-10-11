@@ -11,7 +11,7 @@ type PageRoute = 'landing' | 'login' | 'register' | 'template-satu' | 'template-
 export function App() {
   const [route, setRoute] = useState<PageRoute>(() => {
     const hash = window.location.hash.toLowerCase();
-    if (hash.includes('card-atm') || hash.includes('card') || hash.includes('atm')) return 'card-atm';
+    if (hash.includes('card-atm')) return 'card-atm';
     if (hash.includes('login')) return 'login';
     if (hash.includes('register')) return 'register';
     if (hash.includes('template-dua') || hash.includes('template/dua')) return 'template-dua';
@@ -24,7 +24,7 @@ export function App() {
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash.toLowerCase();
-      if (hash.includes('card-atm') || hash.includes('card') || hash.includes('atm')) {
+      if (hash.includes('card-atm')) {
         setRoute('card-atm');
       } else if (hash.includes('login')) {
         setRoute('login');
@@ -35,7 +35,7 @@ export function App() {
       } else if (hash.includes('template-satu') || hash.includes('undangan') || hash.includes('template/satu')) {
         setRoute('template-satu');
       } else if (hash === '' || hash === '#' || hash.startsWith('#/') || hash.startsWith('#')) {
-        if (!hash.includes('login') && !hash.includes('register') && !hash.includes('template-') && !hash.includes('card')) {
+        if (!hash.includes('login') && !hash.includes('register') && !hash.includes('template-') && !hash.includes('card-atm')) {
           setRoute('landing');
         }
       }
@@ -127,7 +127,10 @@ export function App() {
           </button>
         </div>
       )}
-      <LandingPage onNavigateAuth={(mode) => navigateTo(mode)} />
+      <LandingPage 
+        onNavigateAuth={(mode) => navigateTo(mode)} 
+        onNavigateCardAtm={() => navigateTo('card-atm')}
+      />
     </>
   );
 }

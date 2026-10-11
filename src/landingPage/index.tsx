@@ -4,6 +4,7 @@ import { Hero } from './Hero';
 import { TrustBar } from './TrustBar';
 import { Features } from './Features';
 import { TemplateSection, type TemplateItem } from './TemplateSection';
+import { AtmCardShowcaseSection } from './AtmCardShowcaseSection';
 import { HowItWorks } from './HowItWorks';
 import { PricingSection } from './PricingSection';
 import { PaymentInfoSection } from './PaymentInfoSection';
@@ -16,9 +17,10 @@ import { Check } from 'lucide-react';
 
 interface LandingPageProps {
   onNavigateAuth?: (mode: 'login' | 'register') => void;
+  onNavigateCardAtm?: () => void;
 }
 
-export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateAuth }) => {
+export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateAuth, onNavigateCardAtm }) => {
   const [previewTemplate, setPreviewTemplate] = useState<TemplateItem | null>(null);
   const [selectedTemplateNotice, setSelectedTemplateNotice] = useState<string | null>(null);
 
@@ -59,6 +61,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigateAuth }) => {
             onPreview={(item) => setPreviewTemplate(item)}
             onUseTemplate={handleUseTemplate}
           />
+          <AtmCardShowcaseSection onOpenFullGallery={onNavigateCardAtm} />
           <HowItWorks />
           <PricingSection />
           <PaymentInfoSection />

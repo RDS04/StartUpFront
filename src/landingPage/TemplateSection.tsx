@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Navigation, MousePointer, Calendar, MapPin, Music, Sparkles } from 'lucide-react';
+import { Search, Navigation, MousePointer, Calendar, MapPin, Music } from 'lucide-react';
 import { BotanicalLeaves } from './DecorativeBackground';
 
 export interface TemplateItem {
@@ -10,13 +10,13 @@ export interface TemplateItem {
   category: 'Pernikahan' | 'Ulang Tahun' | 'Khitanan' | 'Premium (Gold)';
   names: string;
   date?: string;
-  themeStyle: 'rustic' | 'navy-gold' | 'dusty-rose' | 'java-batik' | 'geometric-blush' | 'emerald-luxury' | 'burgundy-arch';
+  themeStyle: 'rustic' | 'dusty-rose';
 }
 
 const templates: TemplateItem[] = [
   {
     id: 't1',
-    title: 'Rustic Blossom',
+    title: 'Rustic Blossom (Template 1)',
     badge: 'GRATIS',
     category: 'Pernikahan',
     names: 'Andi & Rosna',
@@ -25,48 +25,12 @@ const templates: TemplateItem[] = [
   },
   {
     id: 't2',
-    title: 'Dusty Rose Lily',
+    title: 'Dusty Rose Lily (Template 2)',
     badge: 'BRONZE',
     category: 'Pernikahan',
     names: 'Vani & Rahmat',
     date: '10.10.2026',
     themeStyle: 'dusty-rose',
-  },
-  {
-    id: 't3',
-    title: 'Traditional Java',
-    badge: 'GOLD',
-    category: 'Pernikahan',
-    names: 'Raden & Sekar',
-    date: '08.12.2026',
-    themeStyle: 'java-batik',
-  },
-  {
-    id: 't4',
-    title: 'Geometric Blush',
-    badge: 'GRATIS',
-    category: 'Pernikahan',
-    names: 'Wardani & Nisa Hana',
-    date: '14.02.2026',
-    themeStyle: 'geometric-blush',
-  },
-  {
-    id: 't5',
-    title: 'Emerald Luxury',
-    badge: 'GOLD',
-    category: 'Premium (Gold)',
-    names: 'Deniih & Dalam',
-    date: '28.11.2026',
-    themeStyle: 'emerald-luxury',
-  },
-  {
-    id: 't6',
-    title: 'Burgundy Arch',
-    badge: 'GOLD',
-    category: 'Premium (Gold)',
-    names: 'Walidhan & Thaininda',
-    date: '15.07.2026',
-    themeStyle: 'burgundy-arch',
   },
 ];
 
@@ -211,158 +175,8 @@ const InvitationTemplateContent: React.FC<{ item: TemplateItem }> = ({ item }) =
         </div>
       );
 
-    case 'navy-gold':
-      return (
-        <div className="w-full bg-[#0b1329] text-white p-4 text-center space-y-5 border-b border-amber-500/20">
-          <div className="pt-6 space-y-1">
-            <span className="text-[8px] uppercase tracking-widest text-amber-300 font-serif-wedding">
-              The Wedding Of
-            </span>
-            <h4 className="font-serif-wedding text-2xl font-bold text-amber-100 tracking-wide">
-              {item.names}
-            </h4>
-            <p className="text-[8px] text-amber-200/70 font-mono">15.11.2026</p>
-          </div>
-
-          {/* Photo Showcase */}
-          <div className="w-20 h-24 mx-auto rounded-xl p-0.5 bg-gradient-to-tr from-amber-500 to-amber-200 shadow-lg overflow-hidden">
-            <img
-              src="https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=400&q=80"
-              alt="Dimas & Maya"
-              className="w-full h-full object-cover rounded-[10px]"
-            />
-          </div>
-
-          {/* Gold Divider Line */}
-          <div className="w-16 h-[1px] bg-gradient-to-r from-transparent via-amber-400 to-transparent mx-auto" />
-
-          {/* Schedule Card */}
-          <div className="bg-slate-900/90 p-3 rounded-xl border border-amber-400/30 text-[8px] space-y-1.5">
-            <p className="text-amber-300 font-bold uppercase tracking-wider">Acara Pernikahan</p>
-            <p className="text-slate-300">Resepsi: 11:00 - 15:00 WIB</p>
-            <p className="text-amber-200/80">Hotel Indonesia Kempinski</p>
-          </div>
-
-          {/* Digital Envelope QRIS */}
-          <div className="bg-gradient-to-r from-amber-500/20 to-amber-700/20 p-2.5 rounded-xl border border-amber-400/40 text-[8px] flex items-center justify-between">
-            <span className="font-bold text-amber-200">🎁 Amplop Digital / QRIS</span>
-            <span className="px-2 py-0.5 rounded bg-amber-400 text-slate-950 font-black text-[7px]">AKTIF</span>
-          </div>
-        </div>
-      );
-
-    case 'java-batik':
-      return (
-        <div className="w-full bg-[#2d190d] text-amber-100 p-4 text-center space-y-5 border-b border-amber-600/30">
-          <div className="pt-6 space-y-1">
-            <div className="text-amber-400 text-xs">❖ ⚜️ ❖</div>
-            <p className="text-[7px] tracking-widest uppercase text-amber-300/80">PAWIWAHAN AGENG</p>
-            <h4 className="font-serif-wedding text-2xl font-bold text-amber-200 leading-tight">
-              {item.names}
-            </h4>
-          </div>
-
-          {/* Couple Photo Frame Java */}
-          <div className="w-16 h-16 mx-auto rounded-full border-2 border-amber-500/60 p-1 bg-[#1a0c05] shadow-md">
-            <img
-              src="https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=400&q=80"
-              alt="Raden & Sekar"
-              className="w-full h-full object-cover rounded-full"
-            />
-          </div>
-
-          <div className="bg-[#1a0c05]/90 p-3 rounded-xl border border-amber-500/40 text-[8px] space-y-1">
-            <p className="font-bold text-amber-300">Nyuwun Pangestu</p>
-            <p className="text-amber-100/80">Minggu Kliwon, 08 Desember 2026</p>
-            <p className="text-amber-200/60">Gedung Kesenian Yogyakarta</p>
-          </div>
-
-          <div className="bg-amber-500/10 p-2 rounded-lg border border-amber-500/20 text-[7px] text-amber-300">
-            🎶 Gendhing Jawa Ladrang Pengantin
-          </div>
-        </div>
-      );
-
-    case 'geometric-blush':
-      return (
-        <div className="w-full bg-[#fff5f6] text-slate-800 p-4 text-center space-y-5 border-b border-rose-200">
-          <div className="pt-6 space-y-1">
-            <span className="text-rose-400 text-xs">🌸</span>
-            <p className="text-[7px] tracking-widest uppercase text-rose-600 font-bold">WE ARE GETTING MARRIED</p>
-            <h4 className="font-script-calligraphy text-2xl text-slate-900">
-              {item.names}
-            </h4>
-          </div>
-
-          <div className="w-16 h-16 mx-auto rounded-full p-1 border-2 border-rose-300 bg-white shadow-sm overflow-hidden">
-            <img
-              src="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=400&q=80"
-              alt="Wardani & Nisa Hana"
-              className="w-full h-full object-cover rounded-full"
-            />
-          </div>
-
-          <div className="bg-white p-3 rounded-xl border border-rose-200 shadow-2xs text-[8px] space-y-1">
-            <p className="font-bold text-rose-800">Save The Date</p>
-            <p className="text-slate-600">14 Februari 2026</p>
-          </div>
-        </div>
-      );
-
-    case 'emerald-luxury':
-      return (
-        <div className="w-full bg-[#063b27] text-white p-4 text-center space-y-5 border-b border-emerald-500/30">
-          <div className="pt-6 space-y-1">
-            <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-200 text-[7px] font-bold border border-emerald-400/30">
-              <Sparkles className="w-2 h-2 text-amber-300" /> LUXURY EDITION
-            </div>
-            <h4 className="font-serif-wedding text-2xl font-bold text-amber-200 pt-1">
-              {item.names}
-            </h4>
-            <p className="text-[8px] text-emerald-200/80">28 November 2026</p>
-          </div>
-
-          <div className="w-20 h-24 mx-auto rounded-xl border border-amber-400/50 p-0.5 bg-[#032417] shadow-xl overflow-hidden">
-            <img
-              src="https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=400&q=80"
-              alt="Deniih & Dalam"
-              className="w-full h-full object-cover rounded-[10px]"
-            />
-          </div>
-
-          <div className="bg-[#032417] p-3 rounded-xl border border-emerald-400/30 text-[8px] space-y-1">
-            <p className="font-bold text-amber-300">RSVP Realtime WhatsApp</p>
-            <p className="text-emerald-100/80">Konfirmasi Kehadiran Tamu</p>
-          </div>
-        </div>
-      );
-
-    case 'burgundy-arch':
     default:
-      return (
-        <div className="w-full bg-[#3b0712] text-rose-100 p-4 text-center space-y-5 border-b border-rose-800/40">
-          <div className="pt-6 space-y-1">
-            <span className="text-amber-400 text-xs">🌹</span>
-            <p className="text-[7px] tracking-widest uppercase text-rose-300 font-bold">THE WEDDING OF</p>
-            <h4 className="font-script-calligraphy text-2xl text-amber-200">
-              {item.names}
-            </h4>
-          </div>
-
-          <div className="w-16 h-20 mx-auto rounded-t-full border border-amber-400/50 p-0.5 bg-[#260309] shadow-md overflow-hidden">
-            <img
-              src="https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=400&q=80"
-              alt="Walidhan & Thaininda"
-              className="w-full h-full object-cover rounded-t-full"
-            />
-          </div>
-
-          <div className="bg-[#260309] p-3 rounded-xl border border-rose-800/50 text-[8px] space-y-1">
-            <p className="font-bold text-amber-300">Sabtu, 15 Juli 2026</p>
-            <p className="text-rose-200/80">The Ritz-Carlton, Jakarta</p>
-          </div>
-        </div>
-      );
+      return null;
   }
 };
 
@@ -373,14 +187,13 @@ export const TemplateSection: React.FC<TemplateSectionProps> = ({
   const [activeFilter, setActiveFilter] = useState('Semua');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const filterTabs = ['Semua', 'Pernikahan', 'Ulang Tahun', 'Khitanan', 'Premium (Gold)'];
+  const filterTabs = ['Semua', 'GRATIS', 'BRONZE'];
 
   const filteredTemplates = templates.filter((item) => {
     const matchSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                         item.names.toLowerCase().includes(searchQuery.toLowerCase());
     if (activeFilter === 'Semua') return matchSearch;
-    if (activeFilter === 'Premium (Gold)') return matchSearch && item.badge === 'GOLD';
-    return matchSearch && item.category === activeFilter;
+    return matchSearch && item.badge === activeFilter;
   });
 
   return (
@@ -470,8 +283,8 @@ export const TemplateSection: React.FC<TemplateSectionProps> = ({
 
         </div>
 
-        {/* Templates Grid with iPhone Frame Mockups */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
+        {/* Templates Grid with iPhone Frame Mockups (Template 1 & Template 2) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 max-w-4xl mx-auto gap-8 sm:gap-10">
           {filteredTemplates.map((item) => (
             <div
               key={item.id}

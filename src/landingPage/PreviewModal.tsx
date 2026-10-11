@@ -30,7 +30,7 @@ export const PreviewModal = ({
   const isDustyRose = template.id === 't2' || template.themeStyle === 'dusty-rose';
   // "isRustic" = template punya pratinjau asli (dipakai untuk tab & tombol layar penuh)
   const isRustic = isRusticTpl || isDustyRose;
-  const fullHref = isDustyRose ? '#/template-dua' : '#template-satu';
+  const fullHref = isDustyRose ? '#/template-dua' : '#/template-satu';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
