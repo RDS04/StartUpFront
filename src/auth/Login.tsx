@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { Mail, Lock, Eye, EyeOff, ArrowRight, ShieldCheck, Check, Sparkles } from 'lucide-react';
+import { authenticateWithGoogle, loginUser } from '../services/authService';
+import { triggerGoogleSignInPrompt } from '../services/googleAuth';
 
 interface LoginProps {
   onSwitchToRegister: () => void;
-  onSuccessLogin?: (email: string) => void;
+  onSuccessLogin?: (user: { name?: string; email: string; avatar?: string }) => void;
 }
 
 export const Login: React.FC<LoginProps> = ({ onSwitchToRegister, onSuccessLogin }) => {
@@ -30,7 +32,7 @@ export const Login: React.FC<LoginProps> = ({ onSwitchToRegister, onSuccessLogin
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage('');
 
@@ -40,25 +42,47 @@ export const Login: React.FC<LoginProps> = ({ onSwitchToRegister, onSuccessLogin
     }
 
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      const res = await loginUser({ email, password });
       setLoginSuccess(true);
       triggerConfetti();
 
       if (onSuccessLogin) {
-        setTimeout(() => onSuccessLogin(email), 1200);
+        setTimeout(() => onSuccessLogin({ name: res.user.name, email: res.user.email, avatar: res.user.avatar }), 1200);
       }
-    }, 1000);
+    } catch (err: any) {
+      setErrorMessage(err.message || 'Email atau kata sandi tidak cocok. Silakan coba lagi.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleGoogleLogin = () => {
+  const handleGoogleLogin = async () => {
+    setErrorMessage('');
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+      if (!clientId) {
+        setErrorMessage(
+          'VITE_GOOGLE_CLIENT_ID belum diatur di file .env frontend. Tambahkan Client ID Google OAuth Anda.'
+        );
+        setIsLoading(false);
+        return;
+      }
+
+      const idToken = await triggerGoogleSignInPrompt();
+      const res = await authenticateWithGoogle(idToken);
+
       setLoginSuccess(true);
       triggerConfetti();
-      if (onSuccessLogin) onSuccessLogin('google.user@gmail.com');
-    }, 800);
+      if (onSuccessLogin) {
+        setTimeout(() => onSuccessLogin({ name: res.user.name, email: res.user.email, avatar: res.user.avatar }), 1200);
+      }
+    } catch (err: any) {
+      setErrorMessage(err.message || 'Gagal masuk dengan Google.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

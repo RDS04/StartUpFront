@@ -7,7 +7,7 @@ import { Register } from './Register';
 export interface AuthPageProps {
   initialMode?: 'login' | 'register';
   onBackToHome: () => void;
-  onAuthSuccess?: (user: { name?: string; email: string }) => void;
+  onAuthSuccess?: (user: { name?: string; email: string; avatar?: string }) => void;
 }
 
 export const AuthPage: React.FC<AuthPageProps> = ({
@@ -28,9 +28,9 @@ export const AuthPage: React.FC<AuthPageProps> = ({
           <Login
             key="login-form"
             onSwitchToRegister={() => setMode('register')}
-            onSuccessLogin={(email) => {
+            onSuccessLogin={(userData) => {
               if (onAuthSuccess) {
-                onAuthSuccess({ email });
+                onAuthSuccess(userData);
               } else {
                 onBackToHome();
               }

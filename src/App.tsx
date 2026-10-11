@@ -4,7 +4,9 @@ import { AuthPage } from './auth';
 import { RusticBlossomTemplate } from './tempalte/satu/main';
 import { DustyRoseTemplate } from './tempalte/dua/main';
 import { CardAtmPreviewPage } from './tempalte/CardAtm/CardAtmPreviewPage';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { getSavedAuthUser, fetchCurrentUser, logoutAuth, type AuthUser } from './services/authService';
 
 type PageRoute = 'landing' | 'login' | 'register' | 'template-satu' | 'template-dua' | 'card-atm';
 
@@ -19,7 +21,15 @@ export function App() {
     return 'landing';
   });
 
-  const [loggedInUser, setLoggedInUser] = useState<{ name?: string; email: string } | null>(null);
+  const [loggedInUser, setLoggedInUser] = useState<AuthUser | null>(() => getSavedAuthUser());
+  const [showToast, setShowToast] = useState(false);
+
+  // Hanya sinkronkan data profil dari backend tanpa memunculkan toast notifikasi
+  useEffect(() => {
+    fetchCurrentUser().then((user) => {
+      if (user) setLoggedInUser(user);
+    });
+  }, []);
 
   useEffect(() => {
     const handleHashChange = () => {
@@ -102,6 +112,10 @@ export function App() {
         onBackToHome={() => navigateTo('landing')}
         onAuthSuccess={(user) => {
           setLoggedInUser(user);
+          setShowToast(true);
+          setTimeout(() => {
+            setShowToast(false);
+          }, 4000);
           navigateTo('landing');
         }}
       />
@@ -110,23 +124,58 @@ export function App() {
 
   return (
     <>
-      {loggedInUser && (
-        <div className="fixed bottom-6 right-6 z-50 bg-emerald-900 text-white px-5 py-3 rounded-2xl shadow-2xl border border-emerald-700/50 flex items-center gap-3 animate-in slide-in-from-bottom duration-300">
-          <div className="w-8 h-8 rounded-full bg-emerald-700 flex items-center justify-center font-bold text-xs uppercase">
-            {(loggedInUser.name || loggedInUser.email)[0]}
-          </div>
-          <div>
-            <div className="text-xs font-semibold text-emerald-200">Sedang login sebagai:</div>
-            <div className="text-sm font-bold">{loggedInUser.name || loggedInUser.email}</div>
-          </div>
-          <button
-            onClick={() => setLoggedInUser(null)}
-            className="ml-3 text-xs text-emerald-300 hover:text-white underline cursor-pointer"
+      <AnimatePresence>
+        {loggedInUser && showToast && (
+          <motion.div
+            initial={{ opacity: 0, y: 35, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 25, scale: 0.95, transition: { duration: 0.3 } }}
+            transition={{ duration: 0.35, ease: 'easeOut' }}
+            className="fixed bottom-6 right-6 z-50 bg-emerald-900/95 backdrop-blur-md text-white px-5 py-3.5 rounded-2xl shadow-2xl border border-emerald-600/40 flex items-center gap-3.5"
           >
-            Keluar
-          </button>
-        </div>
-      )}
+            <div className="w-10 h-10 rounded-full bg-emerald-700/80 border-2 border-emerald-400/40 flex items-center justify-center font-bold text-sm uppercase overflow-hidden shrink-0 shadow-inner">
+              {loggedInUser.avatar ? (
+                <img
+                  src={loggedInUser.avatar}
+                  alt={loggedInUser.name || loggedInUser.email}
+                  className="w-full h-full object-cover"
+                  referrerPolicy="no-referrer"
+                />
+              ) : (
+                <span>{(loggedInUser.name || loggedInUser.email)[0]}</span>
+              )}
+            </div>
+            <div className="max-w-[220px]">
+              <div className="text-[11px] font-semibold text-emerald-300/90 leading-tight">Sedang login sebagai:</div>
+              <div className="text-sm font-extrabold text-white truncate">
+                {loggedInUser.name || loggedInUser.email}
+              </div>
+              {loggedInUser.name && loggedInUser.email && (
+                <div className="text-[11px] text-emerald-200/70 truncate">
+                  {loggedInUser.email}
+                </div>
+              )}
+            </div>
+            <button
+              onClick={async () => {
+                await logoutAuth();
+                setLoggedInUser(null);
+                setShowToast(false);
+              }}
+              className="ml-2 px-2.5 py-1 rounded-lg bg-emerald-800/80 hover:bg-rose-600 text-xs text-emerald-100 hover:text-white transition-colors cursor-pointer border border-emerald-700/60 font-semibold"
+            >
+              Keluar
+            </button>
+            <button
+              onClick={() => setShowToast(false)}
+              className="p-1 rounded-md text-emerald-300/80 hover:text-white hover:bg-emerald-800/60 transition-colors cursor-pointer"
+              title="Tutup notifikasi"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
       <LandingPage 
         onNavigateAuth={(mode) => navigateTo(mode)} 
         onNavigateCardAtm={() => navigateTo('card-atm')}

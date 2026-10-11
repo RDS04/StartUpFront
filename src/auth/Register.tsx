@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { User, Mail, Phone, Lock, Eye, EyeOff, ArrowRight, ShieldCheck, Check, Sparkles } from 'lucide-react';
+import { authenticateWithGoogle, registerUser } from '../services/authService';
+import { triggerGoogleSignInPrompt } from '../services/googleAuth';
 
 interface RegisterProps {
   onSwitchToLogin: () => void;
@@ -63,7 +65,7 @@ export const Register: React.FC<RegisterProps> = ({ onSwitchToLogin, onSuccessRe
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage('');
 
@@ -88,25 +90,47 @@ export const Register: React.FC<RegisterProps> = ({ onSwitchToLogin, onSuccessRe
     }
 
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      const res = await registerUser({ name, email, phone, password });
       setRegisterSuccess(true);
       triggerConfetti();
 
       if (onSuccessRegister) {
-        setTimeout(() => onSuccessRegister({ name, email }), 1200);
+        setTimeout(() => onSuccessRegister({ name: res.user.name || name, email: res.user.email }), 1200);
       }
-    }, 1200);
+    } catch (err: any) {
+      setErrorMessage(err.message || 'Gagal mendaftar akun. Silakan coba lagi.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleGoogleRegister = () => {
+  const handleGoogleRegister = async () => {
+    setErrorMessage('');
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+      if (!clientId) {
+        setErrorMessage(
+          'VITE_GOOGLE_CLIENT_ID belum diatur di file .env frontend. Tambahkan Client ID Google OAuth Anda.'
+        );
+        setIsLoading(false);
+        return;
+      }
+
+      const idToken = await triggerGoogleSignInPrompt();
+      const res = await authenticateWithGoogle(idToken);
+
       setRegisterSuccess(true);
       triggerConfetti();
-      if (onSuccessRegister) onSuccessRegister({ name: 'Pengguna Google', email: 'user@gmail.com' });
-    }, 800);
+      if (onSuccessRegister) {
+        setTimeout(() => onSuccessRegister({ name: res.user.name || 'Pengguna Google', email: res.user.email }), 1200);
+      }
+    } catch (err: any) {
+      setErrorMessage(err.message || 'Gagal mendaftar dengan Google.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
