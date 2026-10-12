@@ -25,6 +25,7 @@ import { CardBukopin } from '../tempalte/CardAtm/bukopin';
 
 interface AtmCardShowcaseSectionProps {
   onOpenFullGallery?: () => void;
+  onUseAtmCard?: () => void;
 }
 
 type BankKey = 
@@ -63,7 +64,8 @@ const banks: BankOption[] = [
 ];
 
 export const AtmCardShowcaseSection: React.FC<AtmCardShowcaseSectionProps> = ({ 
-  onOpenFullGallery 
+  onOpenFullGallery,
+  onUseAtmCard,
 }) => {
   const [selectedBank, setSelectedBank] = useState<BankKey>('bca');
   const [customHolderName, setCustomHolderName] = useState('ANDI IRAWAN & ROSNA');
@@ -363,6 +365,17 @@ export const AtmCardShowcaseSection: React.FC<AtmCardShowcaseSectionProps> = ({
                 <span>Buka Galeri Penuh 20+ Desain Kartu</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
+
+              {onUseAtmCard && (
+                <button
+                  type="button"
+                  onClick={onUseAtmCard}
+                  className="w-full sm:w-auto px-5 py-3.5 rounded-2xl bg-emerald-700/80 hover:bg-emerald-600/90 border border-emerald-500/50 text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer text-center shadow-lg"
+                >
+                  <Sparkles className="w-4 h-4 text-amber-300" />
+                  <span>Gunakan Desain Kartu ATM</span>
+                </button>
+              )}
 
               <a
                 href="#pilihan-template"

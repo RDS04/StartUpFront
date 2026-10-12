@@ -119,7 +119,7 @@ export const Register: React.FC<RegisterProps> = ({ onSwitchToLogin, onSuccessRe
       }
 
       const idToken = await triggerGoogleSignInPrompt();
-      const res = await authenticateWithGoogle(idToken);
+      const res = await authenticateWithGoogle(idToken, 'register');
 
       setRegisterSuccess(true);
       triggerConfetti();
@@ -189,9 +189,24 @@ export const Register: React.FC<RegisterProps> = ({ onSwitchToLogin, onSuccessRe
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="mb-5 p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium flex items-center gap-2"
+            className="mb-5 p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium flex flex-col gap-2.5 shadow-sm"
           >
-            <span>⚠️ {errorMessage}</span>
+            <div className="flex items-start gap-2">
+              <span className="shrink-0 mt-0.5 text-sm">⚠️</span>
+              <span className="leading-relaxed font-semibold">{errorMessage}</span>
+            </div>
+            {errorMessage.toLowerCase().includes('sudah terdaftar') && (
+              <div className="pt-2 border-t border-rose-200 flex items-center justify-between">
+                <span className="text-[11px] text-rose-600">Sudah memiliki akun?</span>
+                <button
+                  type="button"
+                  onClick={onSwitchToLogin}
+                  className="px-3 py-1 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition-colors cursor-pointer shadow-sm"
+                >
+                  Masuk Sekarang &rarr;
+                </button>
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

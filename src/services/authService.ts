@@ -90,14 +90,20 @@ export async function loginUser(payload: LoginPayload): Promise<AuthResponse> {
 /**
  * Mengirim ID Token Google ke backend Laravel untuk login / register
  */
-export async function authenticateWithGoogle(idToken: string): Promise<AuthResponse> {
+export async function authenticateWithGoogle(
+  idToken: string, 
+  mode: 'login' | 'register' = 'login'
+): Promise<AuthResponse> {
   const response = await fetch(`${API_BASE_URL}/auth/google`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
     },
-    body: JSON.stringify({ id_token: idToken }),
+    body: JSON.stringify({ 
+      id_token: idToken,
+      mode: mode,
+    }),
   });
 
   const data = await response.json();

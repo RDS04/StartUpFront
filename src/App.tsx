@@ -4,15 +4,32 @@ import { AuthPage } from './auth';
 import { RusticBlossomTemplate } from './tempalte/satu/main';
 import { DustyRoseTemplate } from './tempalte/dua/main';
 import { CardAtmPreviewPage } from './tempalte/CardAtm/CardAtmPreviewPage';
+import { OrderFlowPage } from './order/OrderFlowPage';
+import { DashboardPage } from './dashboard/DashboardPage';
 import { ArrowLeft, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getSavedAuthUser, fetchCurrentUser, logoutAuth, type AuthUser } from './services/authService';
 
-type PageRoute = 'landing' | 'login' | 'register' | 'template-satu' | 'template-dua' | 'card-atm';
+type PageRoute = 
+  | 'landing' 
+  | 'login' 
+  | 'register' 
+  | 'dashboard'
+  | 'pilih-paket' 
+  | 'pilih-template' 
+  | 'pembayaran' 
+  | 'order-flow' 
+  | 'template-satu' 
+  | 'template-dua' 
+  | 'card-atm';
 
 export function App() {
   const [route, setRoute] = useState<PageRoute>(() => {
     const hash = window.location.hash.toLowerCase();
+    const search = window.location.search.toLowerCase();
+    if (search.includes('order_id') || search.includes('payment_finish') || search.includes('transaction_status')) return 'pembayaran';
+    if (hash.includes('dashboard')) return 'dashboard';
+    if (hash.includes('pembayaran') || hash.includes('bayar') || hash.includes('checkout') || hash.includes('rincian-biaya')) return 'pembayaran';
     if (hash.includes('card-atm')) return 'card-atm';
     if (hash.includes('login')) return 'login';
     if (hash.includes('register')) return 'register';
@@ -34,7 +51,23 @@ export function App() {
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash.toLowerCase();
-      if (hash.includes('card-atm')) {
+      if (hash.includes('dashboard')) {
+        setRoute('dashboard');
+      } else if (hash.includes('pembayaran') || hash.includes('bayar') || hash.includes('checkout') || hash.includes('rincian-biaya')) {
+        setRoute('pembayaran');
+      } else if (hash.includes('pilih-template') || hash.includes('template-select') || hash.includes('pilihan-template') || hash.includes('desain-template')) {
+        setRoute('landing');
+        setTimeout(() => {
+          const el = document.getElementById('template');
+          if (el) el.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
+      } else if (hash.includes('pilih-paket') || hash.includes('harga') || hash.includes('pricing') || hash.includes('order-flow')) {
+        setRoute('landing');
+        setTimeout(() => {
+          const el = document.getElementById('harga');
+          if (el) el.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
+      } else if (hash.includes('card-atm')) {
         setRoute('card-atm');
       } else if (hash.includes('login')) {
         setRoute('login');
@@ -45,7 +78,7 @@ export function App() {
       } else if (hash.includes('template-satu') || hash.includes('undangan') || hash.includes('template/satu')) {
         setRoute('template-satu');
       } else if (hash === '' || hash === '#' || hash.startsWith('#/') || hash.startsWith('#')) {
-        if (!hash.includes('login') && !hash.includes('register') && !hash.includes('template-') && !hash.includes('card-atm')) {
+        if (!hash.includes('login') && !hash.includes('register') && !hash.includes('template-') && !hash.includes('card-atm') && !hash.includes('pembayaran')) {
           setRoute('landing');
         }
       }
@@ -55,7 +88,47 @@ export function App() {
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
+  // Sinkronkan hash awal jika mengarah ke harga atau template
+  useEffect(() => {
+    const hash = window.location.hash.toLowerCase();
+    if (hash.includes('pilih-paket') || hash.includes('harga') || hash.includes('pricing') || hash.includes('order-flow')) {
+      setTimeout(() => {
+        const el = document.getElementById('harga');
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+      }, 250);
+    } else if (hash.includes('pilih-template') || hash.includes('template-select') || hash.includes('pilihan-template') || hash.includes('desain-template')) {
+      setTimeout(() => {
+        const el = document.getElementById('template');
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+      }, 250);
+    }
+  }, []);
+
   const navigateTo = (newRoute: PageRoute) => {
+    if (newRoute === 'pilih-paket' || newRoute === 'order-flow') {
+      setRoute('landing');
+      window.location.hash = '#harga';
+      setTimeout(() => {
+        const el = document.getElementById('harga');
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100);
+      return;
+    }
+
+    if (newRoute === 'pilih-template') {
+      setRoute('landing');
+      window.location.hash = '#template';
+      setTimeout(() => {
+        const el = document.getElementById('template');
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100);
+      return;
+    }
+
     setRoute(newRoute);
     if (newRoute === 'landing') {
       window.location.hash = '#/';
@@ -65,6 +138,24 @@ export function App() {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
+
+  if (route === 'dashboard') {
+    return (
+      <DashboardPage
+        currentUser={loggedInUser}
+        onLogout={async () => {
+          await logoutAuth();
+          setLoggedInUser(null);
+          navigateTo('landing');
+        }}
+        onBackToHome={() => navigateTo('landing')}
+        onNavigatePricing={() => navigateTo('pilih-paket')}
+        onNavigateTemplates={() => navigateTo('pilih-template')}
+        onNavigatePayment={() => navigateTo('pembayaran')}
+        onPreviewTemplate={(previewRoute) => navigateTo(previewRoute as PageRoute)}
+      />
+    );
+  }
 
   if (route === 'card-atm') {
     return <CardAtmPreviewPage onBack={() => navigateTo('landing')} />;
@@ -105,6 +196,24 @@ export function App() {
     );
   }
 
+  if (route === 'pembayaran') {
+    return (
+      <OrderFlowPage
+        currentUser={loggedInUser}
+        activeStep={3}
+        onStepChange={(newStep) => {
+          if (newStep === 1) navigateTo('pilih-paket');
+          else if (newStep === 2) navigateTo('pilih-template');
+          else if (newStep === 3) navigateTo('pembayaran');
+        }}
+        onChangePlan={() => navigateTo('pilih-paket')}
+        onChangeTemplate={() => navigateTo('pilih-template')}
+        onBackToHome={() => navigateTo('landing')}
+        onPreviewTemplate={(previewRoute) => navigateTo(previewRoute)}
+      />
+    );
+  }
+
   if (route === 'login' || route === 'register') {
     return (
       <AuthPage
@@ -116,7 +225,20 @@ export function App() {
           setTimeout(() => {
             setShowToast(false);
           }, 4000);
+          // Set transaksi aktif karena setelah registrasi diarahkan untuk memilih paket
+          try {
+            sessionStorage.setItem('ij_transaction_active', 'true');
+          } catch {}
+          // Arahkan ke tampilan price di luar (landing page section #harga)
           navigateTo('landing');
+          setTimeout(() => {
+            const el = document.getElementById('harga');
+            if (el) {
+              el.scrollIntoView({ behavior: 'smooth' });
+            } else {
+              window.location.hash = '#harga';
+            }
+          }, 150);
         }}
       />
     );
@@ -161,6 +283,11 @@ export function App() {
                 await logoutAuth();
                 setLoggedInUser(null);
                 setShowToast(false);
+                try {
+                  sessionStorage.removeItem('ij_transaction_active');
+                  sessionStorage.removeItem('ij_selected_plan');
+                  sessionStorage.removeItem('ij_selected_template');
+                } catch {}
               }}
               className="ml-2 px-2.5 py-1 rounded-lg bg-emerald-800/80 hover:bg-rose-600 text-xs text-emerald-100 hover:text-white transition-colors cursor-pointer border border-emerald-700/60 font-semibold"
             >
@@ -177,8 +304,39 @@ export function App() {
         )}
       </AnimatePresence>
       <LandingPage 
+        currentUser={loggedInUser}
+        onLogout={async () => {
+          await logoutAuth();
+          setLoggedInUser(null);
+          try {
+            sessionStorage.removeItem('ij_transaction_active');
+            sessionStorage.removeItem('ij_selected_plan');
+            sessionStorage.removeItem('ij_selected_template');
+          } catch {}
+        }}
+        onNavigateDashboard={() => {
+          // Ketika user membuka dashboard, mode wizard transaksi dinonaktifkan
+          try {
+            sessionStorage.removeItem('ij_transaction_active');
+          } catch {}
+          navigateTo('dashboard');
+        }}
         onNavigateAuth={(mode) => navigateTo(mode)} 
         onNavigateCardAtm={() => navigateTo('card-atm')}
+        onSelectPlan={(_planId) => {
+          try {
+            sessionStorage.setItem('ij_transaction_active', 'true');
+          } catch {}
+          const el = document.getElementById('template');
+          if (el) el.scrollIntoView({ behavior: 'smooth' });
+          else window.location.hash = '#template';
+        }}
+        onSelectTemplate={(_templateId) => {
+          try {
+            sessionStorage.setItem('ij_transaction_active', 'true');
+          } catch {}
+          navigateTo('pembayaran');
+        }}
       />
     </>
   );

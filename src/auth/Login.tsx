@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
-import { Mail, Lock, Eye, EyeOff, ArrowRight, ShieldCheck, Check, Sparkles } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, ArrowRight, ShieldCheck, Check, Sparkles, AlertCircle, X } from 'lucide-react';
 import { authenticateWithGoogle, loginUser } from '../services/authService';
 import { triggerGoogleSignInPrompt } from '../services/googleAuth';
 
@@ -18,6 +18,7 @@ export const Login: React.FC<LoginProps> = ({ onSwitchToRegister, onSuccessLogin
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [loginSuccess, setLoginSuccess] = useState(false);
+  const [showNotRegisteredPopup, setShowNotRegisteredPopup] = useState(false);
 
   const triggerConfetti = () => {
     try {
@@ -57,8 +58,18 @@ export const Login: React.FC<LoginProps> = ({ onSwitchToRegister, onSuccessLogin
     }
   };
 
+  React.useEffect(() => {
+    if (showNotRegisteredPopup) {
+      const timer = setTimeout(() => {
+        setShowNotRegisteredPopup(false);
+      }, 6000);
+      return () => clearTimeout(timer);
+    }
+  }, [showNotRegisteredPopup]);
+
   const handleGoogleLogin = async () => {
     setErrorMessage('');
+    setShowNotRegisteredPopup(false);
     setIsLoading(true);
     try {
       const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
@@ -71,7 +82,7 @@ export const Login: React.FC<LoginProps> = ({ onSwitchToRegister, onSuccessLogin
       }
 
       const idToken = await triggerGoogleSignInPrompt();
-      const res = await authenticateWithGoogle(idToken);
+      const res = await authenticateWithGoogle(idToken, 'login');
 
       setLoginSuccess(true);
       triggerConfetti();
@@ -79,7 +90,13 @@ export const Login: React.FC<LoginProps> = ({ onSwitchToRegister, onSuccessLogin
         setTimeout(() => onSuccessLogin({ name: res.user.name, email: res.user.email, avatar: res.user.avatar }), 1200);
       }
     } catch (err: any) {
-      setErrorMessage(err.message || 'Gagal masuk dengan Google.');
+      const msg = err.message || '';
+      if (msg.toLowerCase().includes('belum terdaftar')) {
+        setShowNotRegisteredPopup(true);
+        setErrorMessage('');
+      } else {
+        setErrorMessage(msg || 'Gagal masuk dengan Google.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -91,8 +108,53 @@ export const Login: React.FC<LoginProps> = ({ onSwitchToRegister, onSuccessLogin
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -15 }}
       transition={{ duration: 0.35, ease: 'easeOut' }}
-      className="w-full max-w-md mx-auto"
+      className="w-full max-w-md mx-auto relative"
     >
+      {/* Small Popup Alert: Anda Belum Terdaftar */}
+      <AnimatePresence>
+        {showNotRegisteredPopup && (
+          <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[100] w-[92%] max-w-sm pointer-events-auto">
+            <motion.div
+              initial={{ opacity: 0, y: -25, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -15, scale: 0.95 }}
+              transition={{ duration: 0.25, ease: 'easeOut' }}
+              className="bg-slate-900/95 text-white backdrop-blur-md px-4 py-3 rounded-2xl shadow-[0_12px_40px_rgba(0,0,0,0.45)] border border-rose-500/40 flex items-center justify-between gap-3"
+            >
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-8 h-8 rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/40 flex items-center justify-center shrink-0">
+                  <AlertCircle className="w-4 h-4" />
+                </div>
+                <div className="min-w-0 text-left">
+                  <p className="text-xs font-bold text-white leading-tight">Anda Belum Terdaftar</p>
+                  <p className="text-[11px] text-slate-300 truncate">Silakan daftar akun terlebih dahulu</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-1.5 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowNotRegisteredPopup(false);
+                    onSwitchToRegister();
+                  }}
+                  className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-rose-600 to-rose-500 hover:from-rose-500 hover:to-rose-400 text-white text-[11px] font-bold shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer whitespace-nowrap"
+                >
+                  Daftar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowNotRegisteredPopup(false)}
+                  className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                  title="Tutup"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
       
       {/* Header Form */}
       <div className="mb-7 text-center sm:text-left">
@@ -102,7 +164,7 @@ export const Login: React.FC<LoginProps> = ({ onSwitchToRegister, onSuccessLogin
           transition={{ delay: 0.1 }}
           className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200/80 text-emerald-800 text-[11px] font-bold uppercase tracking-wider mb-2.5 shadow-2xs"
         >
-          <Sparkles className="w-3 h-3 text-amber-500 animate-pulse" />
+          <Sparkles className="w-3.5 h-3.5 text-amber-500 animate-pulse" />
           <span>Selamat Datang Kembali</span>
         </motion.div>
         
@@ -134,16 +196,17 @@ export const Login: React.FC<LoginProps> = ({ onSwitchToRegister, onSuccessLogin
         )}
       </AnimatePresence>
 
-      {/* Error Message */}
+      {/* Error Message Biasa */}
       <AnimatePresence>
         {errorMessage && (
           <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            className="mb-6 p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium flex items-center gap-2"
+            initial={{ opacity: 0, y: -5 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -5 }}
+            className="mb-5 px-3.5 py-2.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium flex items-center gap-2 shadow-xs"
           >
-            <span>⚠️ {errorMessage}</span>
+            <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
+            <span className="leading-snug">{errorMessage}</span>
           </motion.div>
         )}
       </AnimatePresence>

@@ -1,9 +1,14 @@
 import { useState, useEffect, useRef } from 'react';
-import { Check, Sparkles, ShieldCheck, Zap, MessageCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Check, Sparkles, ShieldCheck, Zap, ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
 
-export const PricingSection = () => {
+export interface PricingSectionProps {
+  onSelectPlan?: (planId: 'silver' | 'gold' | 'platinum') => void;
+}
+
+export const PricingSection: React.FC<PricingSectionProps> = ({ onSelectPlan }) => {
   const plans = [
     {
+      id: 'silver' as const,
       name: 'Paket Silver',
       subtitle: 'Hemat untuk Acara Intim & Sederhana',
       popular: false,
@@ -27,6 +32,7 @@ export const PricingSection = () => {
       waMsg: 'Halo%20Admin%20i%20say%20yes,%20saya%20tertarik%20pesan%20Paket%20Silver%20(Rp%2049.000)',
     },
     {
+      id: 'gold' as const,
       name: 'Paket Gold',
       subtitle: 'Fitur Lengkap Pilihan Favorit 90% Calon Pengantin',
       popular: true,
@@ -52,6 +58,7 @@ export const PricingSection = () => {
       waMsg: 'Halo%20Admin%20i%20say%20yes,%20saya%20mau%20pesan%20Paket%20Gold%20Best%20Seller%20(Rp%2089.000)',
     },
     {
+      id: 'platinum' as const,
       name: 'Paket Platinum VIP',
       subtitle: 'Eksklusif Domain Custom & Layanan Siap Terima Beres',
       popular: false,
@@ -226,16 +233,21 @@ export const PricingSection = () => {
                       </div>
 
                       {/* Order Button */}
-                      <div className="pt-4 border-t border-slate-100">
-                        <a
-                          href={`https://wa.me/6281234567890?text=${plan.waMsg}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className={`w-full py-3.5 sm:py-4 rounded-full text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all duration-200 active:scale-95 cursor-pointer ${plan.ctaStyle}`}
+                      <div className="pt-4 border-t border-slate-100 flex flex-col gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (onSelectPlan) {
+                              onSelectPlan(plan.id);
+                            } else {
+                              window.location.hash = `#/pilih-template`;
+                            }
+                          }}
+                          className={`w-full py-3.5 sm:py-4 rounded-full text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all duration-200 active:scale-95 cursor-pointer shadow-md ${plan.ctaStyle}`}
                         >
-                          <MessageCircle className="w-4 h-4" />
                           <span>{plan.ctaText}</span>
-                        </a>
+                          <ArrowRight className="w-4 h-4" />
+                        </button>
                       </div>
 
                     </div>
@@ -343,16 +355,21 @@ export const PricingSection = () => {
               </div>
 
               {/* Order Button */}
-              <div className="pt-4 border-t border-slate-100">
-                <a
-                  href={`https://wa.me/6281234567890?text=${plan.waMsg}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`w-full py-3.5 rounded-full text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all duration-200 active:scale-95 cursor-pointer ${plan.ctaStyle}`}
+              <div className="pt-4 border-t border-slate-100 flex flex-col gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onSelectPlan) {
+                      onSelectPlan(plan.id);
+                    } else {
+                      window.location.hash = `#/pilih-template`;
+                    }
+                  }}
+                  className={`w-full py-3.5 rounded-full text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all duration-200 active:scale-95 cursor-pointer shadow-md ${plan.ctaStyle}`}
                 >
-                  <MessageCircle className="w-4 h-4" />
                   <span>{plan.ctaText}</span>
-                </a>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
               </div>
 
             </div>
