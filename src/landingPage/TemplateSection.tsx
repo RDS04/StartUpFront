@@ -10,7 +10,7 @@ export interface TemplateItem {
   category: 'Pernikahan' | 'Ulang Tahun' | 'Khitanan' | 'Premium (Gold)';
   names: string;
   date?: string;
-  themeStyle: 'rustic' | 'dusty-rose' | 'minang-maroon';
+  themeStyle: 'rustic' | 'dusty-rose' | 'minang-maroon' | 'sage-garden';
 }
 
 const templates: TemplateItem[] = [
@@ -40,6 +40,15 @@ const templates: TemplateItem[] = [
     names: 'Yusron & Putri',
     date: '19.09.2026',
     themeStyle: 'minang-maroon',
+  },
+  {
+    id: 't4',
+    title: 'Sage Garden Blossom (Template 4)',
+    badge: 'GOLD',
+    category: 'Premium (Gold)',
+    names: 'Eza & Islammy',
+    date: '17.12.2023',
+    themeStyle: 'sage-garden',
   },
 ];
 
@@ -242,6 +251,46 @@ const InvitationTemplateContent: React.FC<{ item: TemplateItem }> = ({ item }) =
               alt="Songket Bottom"
               className="w-full h-8 object-cover"
             />
+          </div>
+        </div>
+      );
+
+    case 'sage-garden':
+      return (
+        <div className="w-full bg-[#fafbf7] text-[#2c3d2f] text-center border-b border-[#8f9e7b]/30">
+          {/* Leaf Ornaments Header */}
+          <div className="relative pt-4 pb-2 px-3 flex flex-col items-center">
+            <div className="w-20 h-28 rounded-t-full rounded-b-xl border-2 border-[#8f9e7b] p-0.5 overflow-hidden shadow-md">
+              <img
+                src="https://undangandigitalhbkomp.com/wp-content/uploads/2023/11/WhatsApp-Image-2023-11-14-at-09.11.57.jpeg"
+                alt="Eza & Islammy"
+                className="w-full h-full object-cover rounded-t-full rounded-b-lg"
+              />
+            </div>
+
+            <p className="text-[7px] uppercase tracking-[0.25em] text-[#718569] font-bold mt-2">The Wedding Of</p>
+            <h4 className="text-2xl text-[#2b3b2d]" style={{ fontFamily: "'Alex Brush', cursive" }}>
+              {item.names}
+            </h4>
+            <p className="text-[8px] font-serif text-[#60745b] font-medium tracking-wider">
+              {item.date || '17.12.2023'}
+            </p>
+
+            {/* Countdown mini */}
+            <div className="grid grid-cols-4 gap-1 w-full max-w-[170px] pt-2">
+              {['00', '00', '00', '00'].map((val, idx) => (
+                <div key={idx} className="bg-[#2f4031] text-[#f5f8f1] p-1 rounded font-bold text-[8px]">
+                  {val}
+                  <span className="block text-[5px] font-normal text-[#c4d2bc]">
+                    {['Hari', 'Jam', 'Min', 'Det'][idx]}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-3 px-3 py-1 rounded-full bg-[#8f9e7b]/15 text-[#3b4e3a] text-[8px] font-serif font-bold">
+              Akad &bull; 16 Des | Resepsi &bull; 17 Des
+            </div>
           </div>
         </div>
       );

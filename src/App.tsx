@@ -4,6 +4,7 @@ import { AuthPage } from './auth';
 import { RusticBlossomTemplate } from './tempalte/satu/main';
 import { DustyRoseTemplate } from './tempalte/dua/main';
 import { MinangMaroonTemplate } from './tempalte/tiga/main';
+import { SageBlossomTemplate } from './tempalte/empat/main';
 import { CardAtmPreviewPage } from './tempalte/CardAtm/CardAtmPreviewPage';
 import { OrderFlowPage } from './order/OrderFlowPage';
 import { DashboardPage } from './dashboard/DashboardPage';
@@ -23,6 +24,7 @@ type PageRoute =
   | 'template-satu' 
   | 'template-dua' 
   | 'template-tiga' 
+  | 'template-empat' 
   | 'card-atm';
 
 export function App() {
@@ -35,6 +37,7 @@ export function App() {
     if (hash.includes('card-atm')) return 'card-atm';
     if (hash.includes('login')) return 'login';
     if (hash.includes('register')) return 'register';
+    if (hash.includes('template-empat') || hash.includes('template/empat') || hash.includes('sage')) return 'template-empat';
     if (hash.includes('template-tiga') || hash.includes('template/tiga')) return 'template-tiga';
     if (hash.includes('template-dua') || hash.includes('template/dua')) return 'template-dua';
     if (hash.includes('template-satu') || hash.includes('undangan') || hash.includes('template/satu')) return 'template-satu';
@@ -76,6 +79,8 @@ export function App() {
         setRoute('login');
       } else if (hash.includes('register')) {
         setRoute('register');
+      } else if (hash.includes('template-empat') || hash.includes('template/empat') || hash.includes('sage')) {
+        setRoute('template-empat');
       } else if (hash.includes('template-tiga') || hash.includes('template/tiga')) {
         setRoute('template-tiga');
       } else if (hash.includes('template-dua') || hash.includes('template/dua')) {
@@ -197,6 +202,24 @@ export function App() {
           </button>
         </div>
         <MinangMaroonTemplate />
+      </div>
+    );
+  }
+
+  if (route === 'template-empat') {
+    return (
+      <div className="relative min-h-screen bg-[#1e2a20]">
+        {/* Floating Top Back Banner */}
+        <div className="fixed top-4 left-4 z-[60]">
+          <button
+            onClick={() => navigateTo('landing')}
+            className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#2f4031]/90 text-[#f5f8f1] border border-[#8f9e7b]/50 shadow-[0_4px_25px_rgba(0,0,0,0.6)] hover:bg-[#243326] hover:scale-105 transition-all text-xs font-semibold backdrop-blur-md cursor-pointer group"
+          >
+            <ArrowLeft className="w-4 h-4 text-[#c5a454] group-hover:-translate-x-1 transition-transform" />
+            <span>Kembali ke Platform</span>
+          </button>
+        </div>
+        <SageBlossomTemplate />
       </div>
     );
   }

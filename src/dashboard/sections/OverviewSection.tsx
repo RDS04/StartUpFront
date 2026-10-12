@@ -1,0 +1,221 @@
+import React from 'react';
+import {
+  Heart,
+  Users,
+  Calendar,
+  MessageSquare,
+  Share2,
+  Copy,
+  Check,
+  X,
+  QrCode,
+  ArrowRight,
+} from 'lucide-react';
+import type { DashboardData, GuestItem, WishItem, TierConfig, DashboardTab } from '../types';
+
+interface OverviewSectionProps {
+  data: DashboardData;
+  guests: GuestItem[];
+  wishes: WishItem[];
+  tierConfig: TierConfig;
+  stats: {
+    hadir: number;
+    tidak: number;
+    menunggu: number;
+    totalWishes: number;
+  };
+  onCopyLink: (text: string, label?: string) => void;
+  onOpenQrModal: () => void;
+  onNavigateTab: (tab: DashboardTab) => void;
+}
+
+export const OverviewSection: React.FC<OverviewSectionProps> = ({
+  data,
+  guests,
+  wishes,
+  tierConfig,
+  stats,
+  onCopyLink,
+  onOpenQrModal,
+  onNavigateTab,
+}) => {
+  const publicLink = `https://isayyes.com/${data.slug}`;
+
+  return (
+    <div className="space-y-6 animate-in fade-in">
+      {/* Header Banner Publikasi Live */}
+      <div className="bg-gradient-to-r from-stone-900 via-stone-800 to-[#1B4332] text-white rounded-3xl p-6 sm:p-8 relative overflow-hidden shadow-lg border border-stone-800">
+        <div className="relative z-10 max-w-xl">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 mb-3">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            Undangan Telah Dipublikasikan (Live)
+          </span>
+
+          <h1 className="font-serif text-2xl sm:text-3xl font-bold tracking-tight text-white mb-2">
+            {data.groom.nickName} & {data.bride.nickName}
+          </h1>
+
+          <p className="text-stone-300 text-xs sm:text-sm mb-5 leading-relaxed">
+            Tautan undangan Anda siap disebarkan kepada sanak saudara dan kerabat melalui WhatsApp atau media sosial.
+          </p>
+
+          {/* Public Link Bar */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 bg-stone-800/90 p-2 rounded-2xl border border-stone-700">
+            <div className="flex items-center px-3 text-xs text-stone-200 font-mono flex-1 overflow-x-auto select-all">
+              isayyes.com/{data.slug}
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => onCopyLink(publicLink, 'Tautan undangan berhasil disalin!')}
+                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3.5 py-2 bg-[#D4AF37] hover:bg-[#c49f2e] text-stone-950 rounded-xl text-xs font-bold transition cursor-pointer shadow-xs"
+              >
+                <Copy className="w-3.5 h-3.5" /> Salin Link
+              </button>
+              <button
+                onClick={onOpenQrModal}
+                className="px-3.5 py-2 bg-stone-700/80 hover:bg-stone-600 text-white rounded-xl text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 border border-stone-600"
+              >
+                <QrCode className="w-3.5 h-3.5 text-stone-300" /> QR Code
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Decorative Background Heart */}
+        <div className="absolute -right-6 -bottom-10 opacity-10 pointer-events-none">
+          <Heart className="w-80 h-80 text-white" />
+        </div>
+      </div>
+
+      {/* Statistics Metric Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Total Tamu */}
+        <div className="bg-[#FAF7F2] p-4.5 rounded-2xl border border-stone-200 shadow-xs hover:border-stone-300 transition">
+          <div className="flex items-center justify-between text-stone-500 mb-2">
+            <span className="text-xs font-medium">Total Tamu</span>
+            <Users className="w-4 h-4 text-stone-400" />
+          </div>
+          <p className="text-2xl font-bold text-stone-900">{guests.length}</p>
+          <p className="text-[11px] text-stone-500 mt-1">
+            Batas kuota: {tierConfig.maxGuests === 9999 ? 'Unlimited' : `${tierConfig.maxGuests} tamu`}
+          </p>
+        </div>
+
+        {/* Hadir */}
+        <div className="bg-emerald-50/70 p-4.5 rounded-2xl border border-emerald-200/70 shadow-xs hover:border-emerald-300 transition">
+          <div className="flex items-center justify-between text-emerald-700 mb-2">
+            <span className="text-xs font-medium">Konfirmasi Hadir</span>
+            <Check className="w-4 h-4 text-emerald-600" />
+          </div>
+          <p className="text-2xl font-bold text-emerald-950">
+            {stats.hadir} <span className="text-xs font-normal text-emerald-700">pax kursi</span>
+          </p>
+          <p className="text-[11px] text-emerald-700 mt-1 font-medium">Estimasi katering aktif</p>
+        </div>
+
+        {/* Berhalangan */}
+        <div className="bg-rose-50/70 p-4.5 rounded-2xl border border-rose-200/70 shadow-xs hover:border-rose-300 transition">
+          <div className="flex items-center justify-between text-rose-700 mb-2">
+            <span className="text-xs font-medium">Berhalangan</span>
+            <X className="w-4 h-4 text-rose-500" />
+          </div>
+          <p className="text-2xl font-bold text-rose-950">{stats.tidak}</p>
+          <p className="text-[11px] text-rose-700 mt-1">Telah konfirmasi izin</p>
+        </div>
+
+        {/* Ucapan & Doa */}
+        <div className="bg-amber-50/70 p-4.5 rounded-2xl border border-amber-200/70 shadow-xs hover:border-amber-300 transition">
+          <div className="flex items-center justify-between text-amber-700 mb-2">
+            <span className="text-xs font-medium">Buku Tamu / Doa</span>
+            <MessageSquare className="w-4 h-4 text-amber-600" />
+          </div>
+          <p className="text-2xl font-bold text-amber-950">{stats.totalWishes}</p>
+          <p className="text-[11px] text-amber-700 mt-1">Ucapan & doa restu</p>
+        </div>
+      </div>
+
+      {/* Quick Actions & Recent Wishes */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-2">
+        {/* Quick Action Buttons */}
+        <div className="lg:col-span-2 space-y-4">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-stone-500">Aksi Cepat Undangan</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            <button
+              onClick={() => onNavigateTab('guests')}
+              className="p-4.5 rounded-2xl border border-stone-200 hover:border-emerald-600 bg-stone-50/50 hover:bg-emerald-50/30 text-left transition group cursor-pointer"
+            >
+              <div className="w-9 h-9 rounded-xl bg-emerald-100 text-[#2D6A4F] flex items-center justify-center mb-2.5 group-hover:scale-110 transition">
+                <Share2 className="w-4 h-4" />
+              </div>
+              <h3 className="font-bold text-stone-900 text-sm flex items-center justify-between">
+                <span>Sebar Undangan WhatsApp</span>
+                <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity text-emerald-700" />
+              </h3>
+              <p className="text-xs text-stone-500 mt-0.5">Kirim pesan personal otomatis kepada tamu terdaftar</p>
+            </button>
+
+            <button
+              onClick={() => onNavigateTab('bride_event')}
+              className="p-4.5 rounded-2xl border border-stone-200 hover:border-stone-400 bg-stone-50/50 hover:bg-white text-left transition group cursor-pointer"
+            >
+              <div className="w-9 h-9 rounded-xl bg-stone-100 text-stone-700 flex items-center justify-center mb-2.5 group-hover:scale-110 transition">
+                <Calendar className="w-4 h-4" />
+              </div>
+              <h3 className="font-bold text-stone-900 text-sm flex items-center justify-between">
+                <span>Perbarui Jadwal Acara</span>
+                <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity text-stone-600" />
+              </h3>
+              <p className="text-xs text-stone-500 mt-0.5">Edit jam akad, resepsi, atau link Google Maps</p>
+            </button>
+          </div>
+
+          {/* Schedule Mini Card */}
+          <div className="p-4.5 rounded-2xl border border-stone-200 bg-[#FAF7F2] flex items-center justify-between shadow-xs">
+            <div className="flex items-center space-x-3.5">
+              <div className="w-11 h-11 rounded-2xl bg-white border border-stone-200 flex flex-col items-center justify-center text-stone-800 shadow-xs">
+                <span className="text-[10px] uppercase font-bold text-stone-400 leading-none">OKT</span>
+                <span className="text-base font-bold leading-tight">24</span>
+              </div>
+              <div>
+                <p className="text-[11px] text-stone-500 font-medium">Hari Pelaksanaan:</p>
+                <p className="font-bold text-stone-900 text-sm">{data.event.dateDisplay}</p>
+              </div>
+            </div>
+            <div className="text-right">
+              <span className="text-xs px-3 py-1.5 bg-white border border-stone-200 rounded-xl text-stone-700 font-semibold shadow-xs">
+                Akad: {data.event.akadTime}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Latest Wishes */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-stone-500">Doa Terbaru Masuk</h2>
+            <button
+              onClick={() => onNavigateTab('rsvps')}
+              className="text-xs text-[#2D6A4F] font-bold hover:underline cursor-pointer"
+            >
+              Lihat Semua
+            </button>
+          </div>
+          <div className="space-y-2.5">
+            {wishes.slice(0, 3).map((w) => (
+              <div
+                key={w.id}
+                className="p-3.5 bg-stone-50 rounded-2xl border border-stone-200/80 text-xs space-y-1.5 hover:bg-stone-100/60 transition"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-stone-900">{w.name}</span>
+                  <span className="text-[10px] text-stone-400">{w.time}</span>
+                </div>
+                <p className="text-stone-600 line-clamp-2 italic leading-relaxed">"{w.text}"</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};

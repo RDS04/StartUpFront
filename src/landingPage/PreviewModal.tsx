@@ -4,6 +4,7 @@ import type { TemplateItem } from './TemplateSection';
 import { RusticBlossomTemplate } from '../tempalte/satu/main';
 import { DustyRoseTemplate } from '../tempalte/dua/main';
 import { MinangMaroonTemplate } from '../tempalte/tiga/main';
+import { SageBlossomTemplate } from '../tempalte/empat/main';
 
 interface PreviewModalProps {
   template: TemplateItem | null;
@@ -30,9 +31,12 @@ export const PreviewModal = ({
     template.title.toLowerCase().includes('rustic');
   const isDustyRose = template.id === 't2' || template.themeStyle === 'dusty-rose';
   const isMinangMaroon = template.id === 't3' || template.themeStyle === 'minang-maroon';
+  const isSageGarden = template.id === 't4' || template.themeStyle === 'sage-garden';
   // "isRustic" = template punya pratinjau asli (dipakai untuk tab & tombol layar penuh)
-  const isRustic = isRusticTpl || isDustyRose || isMinangMaroon;
-  const fullHref = isMinangMaroon
+  const isRustic = isRusticTpl || isDustyRose || isMinangMaroon || isSageGarden;
+  const fullHref = isSageGarden
+    ? '#/template-empat'
+    : isMinangMaroon
     ? '#/template-tiga'
     : isDustyRose
     ? '#/template-dua'
@@ -104,7 +108,11 @@ export const PreviewModal = ({
         </div>
 
         {/* Modal Scrollable Content: REAL TEMPLATE PREVIEW */}
-        {isMinangMaroon ? (
+        {isSageGarden ? (
+          <div className="flex-1 overflow-y-auto relative bg-[#1e2a20] min-h-[580px] max-h-[78vh] no-scrollbar">
+            <SageBlossomTemplate key={activeTab} isEmbedded={true} defaultOpen={activeTab === 'content'} />
+          </div>
+        ) : isMinangMaroon ? (
           <div className="flex-1 overflow-y-auto relative bg-[#200306] min-h-[580px] max-h-[78vh] no-scrollbar">
             <MinangMaroonTemplate key={activeTab} isEmbedded={true} defaultOpen={activeTab === 'content'} />
           </div>

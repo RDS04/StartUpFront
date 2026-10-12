@@ -1,0 +1,165 @@
+@import url('https://fonts.googleapis.com/css2?family=Alex+Brush&family=Cinzel:wght@400;600;700;800&family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+
+/* Font Variables & Typography Classes */
+.font-sage-serif {
+  font-family: 'Cinzel', 'Playfair Display', serif;
+}
+
+.font-sage-script {
+  font-family: 'Alex Brush', cursive;
+}
+
+.font-sage-arabic {
+  font-family: 'Amiri', 'Traditional Arabic', serif;
+}
+
+.font-sage-body {
+  font-family: 'Plus Jakarta Sans', 'Outfit', sans-serif;
+}
+
+/* Animations: Dedaunan Bergoyang Lembut (Sesuai Link Asli) */
+@keyframes goyang-kiri {
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+  25% {
+    transform: rotate(-7deg) scale(1.08);
+  }
+  75% {
+    transform: rotate(7deg) scale(1);
+  }
+  100% {
+    transform: rotate(0deg) scale(1);
+  }
+}
+
+@keyframes goyang-kanan {
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+  25% {
+    transform: rotate(7deg) scale(1.08);
+  }
+  75% {
+    transform: rotate(-7deg) scale(1);
+  }
+  100% {
+    transform: rotate(0deg) scale(1);
+  }
+}
+
+.animate-goyang-kiri {
+  animation: goyang-kiri 6s ease-in-out infinite;
+  transform-origin: top left;
+}
+
+.animate-goyang-kanan {
+  animation: goyang-kanan 6s ease-in-out infinite;
+  transform-origin: top right;
+}
+
+/* Floating Particles & Sparkles Animation */
+@keyframes float-particle {
+  0% {
+    transform: translateY(0px) rotate(0deg);
+    opacity: 0.3;
+  }
+  50% {
+    transform: translateY(-25px) rotate(180deg);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(0px) rotate(360deg);
+    opacity: 0.3;
+  }
+}
+
+.animate-float-slow {
+  animation: float-particle 8s ease-in-out infinite;
+}
+
+/* Ken Burns Subtle Zoom for Background Photos */
+@keyframes ken-burns {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.08);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.animate-ken-burns {
+  animation: ken-burns 20s ease-in-out infinite alternate;
+}
+
+/* Vinyl Music Disc Rotate */
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 8s linear infinite;
+}
+
+/* Custom Scrollbar */
+.sage-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+.sage-scroll::-webkit-scrollbar-track {
+  background: rgba(244, 246, 240, 0.4);
+}
+.sage-scroll::-webkit-scrollbar-thumb {
+  background: #a0ad80;
+  border-radius: 9999px;
+}
+.sage-scroll::-webkit-scrollbar-thumb:hover {
+  background: #7a8a5b;
+}
+
+/* Desktop Split Layout Support (mirip CSS asli) */
+@media (min-width: 900px) {
+  .empat-desktop-container {
+    display: flex;
+    width: 100%;
+    min-height: 100vh;
+  }
+
+  .empat-desktop-cover {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: calc(100% - 480px);
+    height: 100vh;
+    overflow: hidden;
+    z-index: 10;
+  }
+
+  .empat-desktop-content {
+    margin-left: calc(100% - 480px);
+    width: 480px;
+    min-height: 100vh;
+    position: relative;
+    z-index: 20;
+    box-shadow: -15px 0 35px rgba(0, 0, 0, 0.15);
+  }
+}
+
+@media (max-width: 899px) {
+  .empat-desktop-cover {
+    display: none !important;
+  }
+  .empat-desktop-content {
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+    max-width: 480px;
+  }
+}
