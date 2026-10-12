@@ -3,6 +3,7 @@ import { X, Play, Pause, MapPin, Mail, Calendar, Heart, Send, Check, ExternalLin
 import type { TemplateItem } from './TemplateSection';
 import { RusticBlossomTemplate } from '../tempalte/satu/main';
 import { DustyRoseTemplate } from '../tempalte/dua/main';
+import { MinangMaroonTemplate } from '../tempalte/tiga/main';
 
 interface PreviewModalProps {
   template: TemplateItem | null;
@@ -28,9 +29,14 @@ export const PreviewModal = ({
     template.themeStyle === 'rustic' ||
     template.title.toLowerCase().includes('rustic');
   const isDustyRose = template.id === 't2' || template.themeStyle === 'dusty-rose';
+  const isMinangMaroon = template.id === 't3' || template.themeStyle === 'minang-maroon';
   // "isRustic" = template punya pratinjau asli (dipakai untuk tab & tombol layar penuh)
-  const isRustic = isRusticTpl || isDustyRose;
-  const fullHref = isDustyRose ? '#/template-dua' : '#/template-satu';
+  const isRustic = isRusticTpl || isDustyRose || isMinangMaroon;
+  const fullHref = isMinangMaroon
+    ? '#/template-tiga'
+    : isDustyRose
+    ? '#/template-dua'
+    : '#/template-satu';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
@@ -97,8 +103,12 @@ export const PreviewModal = ({
           </div>
         </div>
 
-        {/* Modal Scrollable Content: REAL TEMPLATE PREVIEW for Rustic Blossom */}
-        {isDustyRose ? (
+        {/* Modal Scrollable Content: REAL TEMPLATE PREVIEW */}
+        {isMinangMaroon ? (
+          <div className="flex-1 overflow-y-auto relative bg-[#200306] min-h-[580px] max-h-[78vh] no-scrollbar">
+            <MinangMaroonTemplate key={activeTab} isEmbedded={true} defaultOpen={activeTab === 'content'} />
+          </div>
+        ) : isDustyRose ? (
           <div className="flex-1 overflow-y-auto relative bg-[#967678] min-h-[580px] max-h-[78vh] no-scrollbar">
             <DustyRoseTemplate key={activeTab} isEmbedded={true} defaultOpen={activeTab === 'content'} />
           </div>

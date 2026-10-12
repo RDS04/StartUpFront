@@ -3,6 +3,7 @@ import { LandingPage } from './landingPage';
 import { AuthPage } from './auth';
 import { RusticBlossomTemplate } from './tempalte/satu/main';
 import { DustyRoseTemplate } from './tempalte/dua/main';
+import { MinangMaroonTemplate } from './tempalte/tiga/main';
 import { CardAtmPreviewPage } from './tempalte/CardAtm/CardAtmPreviewPage';
 import { OrderFlowPage } from './order/OrderFlowPage';
 import { DashboardPage } from './dashboard/DashboardPage';
@@ -21,6 +22,7 @@ type PageRoute =
   | 'order-flow' 
   | 'template-satu' 
   | 'template-dua' 
+  | 'template-tiga' 
   | 'card-atm';
 
 export function App() {
@@ -33,6 +35,7 @@ export function App() {
     if (hash.includes('card-atm')) return 'card-atm';
     if (hash.includes('login')) return 'login';
     if (hash.includes('register')) return 'register';
+    if (hash.includes('template-tiga') || hash.includes('template/tiga')) return 'template-tiga';
     if (hash.includes('template-dua') || hash.includes('template/dua')) return 'template-dua';
     if (hash.includes('template-satu') || hash.includes('undangan') || hash.includes('template/satu')) return 'template-satu';
     return 'landing';
@@ -73,6 +76,8 @@ export function App() {
         setRoute('login');
       } else if (hash.includes('register')) {
         setRoute('register');
+      } else if (hash.includes('template-tiga') || hash.includes('template/tiga')) {
+        setRoute('template-tiga');
       } else if (hash.includes('template-dua') || hash.includes('template/dua')) {
         setRoute('template-dua');
       } else if (hash.includes('template-satu') || hash.includes('undangan') || hash.includes('template/satu')) {
@@ -174,6 +179,24 @@ export function App() {
           </button>
         </div>
         <DustyRoseTemplate />
+      </div>
+    );
+  }
+
+  if (route === 'template-tiga') {
+    return (
+      <div className="relative min-h-screen bg-[#200306]">
+        {/* Floating Top Back Banner */}
+        <div className="fixed top-4 left-4 z-[60]">
+          <button
+            onClick={() => navigateTo('landing')}
+            className="flex items-center gap-2 px-4 py-2 rounded-full bg-[#4a0910]/90 text-[#f5ecd2] border border-[#cfa84a]/50 shadow-[0_4px_25px_rgba(0,0,0,0.6)] hover:bg-[#36050b] hover:scale-105 transition-all text-xs font-semibold backdrop-blur-md cursor-pointer group"
+          >
+            <ArrowLeft className="w-4 h-4 text-[#cfa84a] group-hover:-translate-x-1 transition-transform" />
+            <span>Kembali ke Platform</span>
+          </button>
+        </div>
+        <MinangMaroonTemplate />
       </div>
     );
   }

@@ -10,7 +10,7 @@ export interface TemplateItem {
   category: 'Pernikahan' | 'Ulang Tahun' | 'Khitanan' | 'Premium (Gold)';
   names: string;
   date?: string;
-  themeStyle: 'rustic' | 'dusty-rose';
+  themeStyle: 'rustic' | 'dusty-rose' | 'minang-maroon';
 }
 
 const templates: TemplateItem[] = [
@@ -31,6 +31,15 @@ const templates: TemplateItem[] = [
     names: 'Vani & Rahmat',
     date: '10.10.2026',
     themeStyle: 'dusty-rose',
+  },
+  {
+    id: 't3',
+    title: 'Minang Maroon Gold (Template 3)',
+    badge: 'GOLD',
+    category: 'Premium (Gold)',
+    names: 'Yusron & Putri',
+    date: '19.09.2026',
+    themeStyle: 'minang-maroon',
   },
 ];
 
@@ -175,6 +184,68 @@ const InvitationTemplateContent: React.FC<{ item: TemplateItem }> = ({ item }) =
         </div>
       );
 
+    case 'minang-maroon':
+      return (
+        <div className="w-full bg-[#4a0910] text-[#f0e6d2] text-center border-b border-[#cfa84a]/30">
+          {/* Songket Header Banner */}
+          <div className="w-full overflow-hidden">
+            <img
+              src="https://digitalinviting.com/wp-content/uploads/2023/12/backg-png-1.png"
+              alt="Songket"
+              className="w-full h-8 object-cover"
+            />
+          </div>
+
+          {/* Couple Photo Arch */}
+          <div className="p-4 space-y-2 flex flex-col items-center">
+            <div className="w-20 h-28 rounded-t-full rounded-b-full border-2 border-[#cfa84a] p-0.5 overflow-hidden shadow-md">
+              <img
+                src="https://digitalinviting.com/wp-content/uploads/2026/08/WhatsApp-Image-2026-08-05-at-17.18.24.jpeg"
+                alt="Yusron & Putri"
+                className="w-full h-full object-cover rounded-t-full rounded-b-full"
+              />
+            </div>
+
+            <p className="text-[7px] uppercase tracking-[0.25em] text-[#ded0b4]">The Wedding Of</p>
+            <h4 className="text-2xl text-[#f5df9a]" style={{ fontFamily: "'Great Vibes', cursive" }}>
+              {item.names}
+            </h4>
+            <p className="text-[7px] text-[#ded0b4] max-w-[180px] leading-tight">
+              Kami akan menikah, kami ingin anda menjadi bagian dari hari bahagia kami
+            </p>
+
+            {/* Countdown mini */}
+            <div className="grid grid-cols-4 gap-1 w-full max-w-[170px] pt-1">
+              {['00', '00', '00', '00'].map((val, idx) => (
+                <div key={idx} className="bg-[#ded0b4] text-[#4a0910] p-1 rounded font-bold text-[8px]">
+                  {val}
+                  <span className="block text-[5px] font-normal">{['Hari', 'Jam', 'Min', 'Det'][idx]}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Rumah Gadang Sketch Mini */}
+            <div className="w-24 mx-auto pt-2">
+              <img
+                src="https://digitalinviting.com/wp-content/uploads/2023/12/Makan-Khas-Nusantara-Padang-Minangkabau-e1670778860199-1.png"
+                alt="Rumah Gadang"
+                className="w-full h-auto"
+              />
+            </div>
+            <p className="text-[8px] font-serif italic text-[#f3df95]">Ar-Rum : 21</p>
+          </div>
+
+          {/* Songket Footer Banner */}
+          <div className="w-full overflow-hidden">
+            <img
+              src="https://digitalinviting.com/wp-content/uploads/2023/12/backg-png-1-e1670777116300-1.png"
+              alt="Songket Bottom"
+              className="w-full h-8 object-cover"
+            />
+          </div>
+        </div>
+      );
+
     default:
       return null;
   }
@@ -187,7 +258,7 @@ export const TemplateSection: React.FC<TemplateSectionProps> = ({
   const [activeFilter, setActiveFilter] = useState('Semua');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const filterTabs = ['Semua', 'GRATIS', 'BRONZE'];
+  const filterTabs = ['Semua', 'GRATIS', 'BRONZE', 'GOLD'];
 
   const filteredTemplates = templates.filter((item) => {
     const matchSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
