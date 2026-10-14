@@ -1,16 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Navigation, MousePointer, Calendar, MapPin, Music } from 'lucide-react';
+import {
+  Search,
+  Navigation,
+  MousePointer,
+  Calendar,
+  MapPin,
+  Music,
+  Sparkles,
+  ChevronDown
+} from 'lucide-react';
 import { BotanicalLeaves } from './DecorativeBackground';
+import karinWisudaImg from '../assets/templateWisuda/karin-wisuda.jpg';
+import wisudaMockupImg from '../tempalte/Wisuda/satu/image.png';
+import wisudaDuaMockupImg from '../tempalte/Wisuda/dua/image.png';
 
 export interface TemplateItem {
   id: string;
   title: string;
   badge: 'GRATIS' | 'BRONZE' | 'GOLD';
-  category: 'Pernikahan' | 'Ulang Tahun' | 'Khitanan' | 'Premium (Gold)';
+  category: 'Undangan Wedding' | 'Undangan Wisuda' | 'Pernikahan' | 'Wisuda' | 'Ulang Tahun' | 'Khitanan' | 'Premium (Gold)';
   names: string;
   date?: string;
-  themeStyle: 'rustic' | 'dusty-rose' | 'minang-maroon' | 'sage-garden';
+  themeStyle: 'rustic' | 'dusty-rose' | 'minang-maroon' | 'sage-garden' | 'wisuda-karin' | 'wisuda-yolanda';
 }
 
 const templates: TemplateItem[] = [
@@ -18,7 +30,7 @@ const templates: TemplateItem[] = [
     id: 't1',
     title: 'Rustic Blossom (Template 1)',
     badge: 'GRATIS',
-    category: 'Pernikahan',
+    category: 'Undangan Wedding',
     names: 'Andi & Rosna',
     date: '24.10.2026',
     themeStyle: 'rustic',
@@ -27,7 +39,7 @@ const templates: TemplateItem[] = [
     id: 't2',
     title: 'Dusty Rose Lily (Template 2)',
     badge: 'BRONZE',
-    category: 'Pernikahan',
+    category: 'Undangan Wedding',
     names: 'Vani & Rahmat',
     date: '10.10.2026',
     themeStyle: 'dusty-rose',
@@ -36,7 +48,7 @@ const templates: TemplateItem[] = [
     id: 't3',
     title: 'Minang Maroon Gold (Template 3)',
     badge: 'GOLD',
-    category: 'Premium (Gold)',
+    category: 'Undangan Wedding',
     names: 'Yusron & Putri',
     date: '19.09.2026',
     themeStyle: 'minang-maroon',
@@ -45,10 +57,28 @@ const templates: TemplateItem[] = [
     id: 't4',
     title: 'Sage Garden Blossom (Template 4)',
     badge: 'GOLD',
-    category: 'Premium (Gold)',
+    category: 'Undangan Wedding',
     names: 'Eza & Islammy',
     date: '17.12.2023',
     themeStyle: 'sage-garden',
+  },
+  {
+    id: 't-wisuda-1',
+    title: 'Wisuda Karin (Template Wisuda 1)',
+    badge: 'BRONZE',
+    category: 'Undangan Wisuda',
+    names: 'Karin Wijaya, S.E',
+    date: '06.06.2029',
+    themeStyle: 'wisuda-karin',
+  },
+  {
+    id: 't-wisuda-2',
+    title: 'Wisuda Black Gold (Template Wisuda 2)',
+    badge: 'GOLD',
+    category: 'Undangan Wisuda',
+    names: 'Yolanda Putri',
+    date: '02.07.2024',
+    themeStyle: 'wisuda-yolanda',
   },
 ];
 
@@ -295,6 +325,69 @@ const InvitationTemplateContent: React.FC<{ item: TemplateItem }> = ({ item }) =
         </div>
       );
 
+    case 'wisuda-karin':
+      return (
+        <div className="w-full bg-[#EDE8E1] text-stone-800 text-center p-3.5 space-y-3 relative overflow-hidden select-none border-b border-stone-300">
+          {/* Floating mini ornaments matching the original design */}
+          <div className="absolute top-2 left-3 opacity-60 text-xs">✦</div>
+          <div className="absolute top-2 right-4 text-[#C5A059] text-xs">✦</div>
+          <div className="absolute top-3.5 right-2 text-stone-900 text-sm -rotate-12">🎓</div>
+          <div className="absolute top-1/2 left-2 text-[#C5A059] text-xs">✤</div>
+          <div className="absolute top-1/2 right-2 text-stone-900 text-sm rotate-12">🎓</div>
+          <div className="absolute bottom-7 left-2 text-stone-900 text-sm -rotate-12">🎓</div>
+          <div className="absolute bottom-3 right-3 text-[#C5A059] text-xs">✦</div>
+
+          {/* Header */}
+          <div className="pt-3 space-y-0.5">
+            <p className="text-[7.5px] uppercase tracking-[0.24em] font-semibold text-stone-600">
+              KAMU DIUNDANG KE ACARA
+            </p>
+            <h4
+              className="text-2xl text-[#A97943] leading-tight"
+              style={{ fontFamily: "'Pinyon Script', 'Alex Brush', cursive" }}
+            >
+              Pesta Kelulusan
+            </h4>
+            <h3 className="font-serif text-sm font-semibold text-stone-900 tracking-wide">
+              {item.names}
+            </h3>
+          </div>
+
+          {/* Center Framed Polaroid Photo */}
+          <div className="mx-auto w-24 p-1 bg-white shadow-md rounded-[2px] border border-stone-200">
+            <div className="aspect-[4/3] w-full overflow-hidden bg-stone-200">
+              <img
+                src={karinWisudaImg}
+                alt={item.names}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          </div>
+
+          {/* 3-Column Date Divider */}
+          <div className="flex items-center justify-center gap-2 text-[#A97943] font-serif text-[10px]">
+            <span className="tracking-widest uppercase font-bold text-[8px]">JUNI</span>
+            <span className="w-[1px] h-3 bg-[#A97943]/60" />
+            <span className="text-base font-normal leading-none">6</span>
+            <span className="w-[1px] h-3 bg-[#A97943]/60" />
+            <span className="tracking-widest font-bold text-[8px]">2029</span>
+          </div>
+
+          {/* Schedule & Address */}
+          <div className="text-[7px] text-stone-700 tracking-wider uppercase space-y-0.5 font-medium">
+            <p>PKL 11.00 – 13.00 WIB</p>
+            <p>JL. HANG MERAH 79, BANTUL</p>
+          </div>
+
+          {/* RSVP Contact */}
+          <div className="pt-0.5">
+            <span className="text-[7px] text-stone-500 tracking-widest uppercase bg-white/70 px-2 py-0.5 rounded-full border border-stone-200">
+              RSVP: 0819-9977-3020
+            </span>
+          </div>
+        </div>
+      );
+
     default:
       return null;
   }
@@ -304,207 +397,468 @@ export const TemplateSection: React.FC<TemplateSectionProps> = ({
   onPreview,
   onUseTemplate,
 }) => {
-  const [activeFilter, setActiveFilter] = useState('Semua');
+  const [activeFilter, setActiveFilter] = useState('Undangan Wedding');
   const [searchQuery, setSearchQuery] = useState('');
+  const [isExpanded, setIsExpanded] = useState(false);
+  const gridContainerRef = useRef<HTMLDivElement>(null);
 
-  const filterTabs = ['Semua', 'GRATIS', 'BRONZE', 'GOLD'];
+  const filterTabs = [
+    { label: 'Undangan Wedding', icon: '💍', count: templates.filter(t => t.category === 'Undangan Wedding' || t.category === 'Pernikahan').length },
+    { label: 'Undangan Wisuda', icon: '🎓', count: templates.filter(t => t.category === 'Undangan Wisuda' || t.category === 'Wisuda').length },
+    { label: 'GRATIS', count: templates.filter(t => t.badge === 'GRATIS').length },
+    { label: 'BRONZE', count: templates.filter(t => t.badge === 'BRONZE').length },
+    { label: 'GOLD', count: templates.filter(t => t.badge === 'GOLD').length },
+  ];
 
   const filteredTemplates = templates.filter((item) => {
-    const matchSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                        item.names.toLowerCase().includes(searchQuery.toLowerCase());
-    if (activeFilter === 'Semua') return matchSearch;
+    const matchSearch =
+      item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.names.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.category.toLowerCase().includes(searchQuery.toLowerCase());
+
+    if (activeFilter === 'Undangan Wedding') {
+      return matchSearch && (item.category === 'Undangan Wedding' || item.category === 'Pernikahan');
+    }
+    if (activeFilter === 'Undangan Wisuda') {
+      return matchSearch && (item.category === 'Undangan Wisuda' || item.category === 'Wisuda');
+    }
     return matchSearch && item.badge === activeFilter;
   });
 
+  // Tampilkan 6 item di awal (3 ke kanan x 2 ke bawah = 6). Jika expand atau item <= 6, tampilkan semua
+  const displayedTemplates = isExpanded ? filteredTemplates : filteredTemplates.slice(0, 6);
+
   return (
-    <section id="template" className="relative pt-12 pb-24 scroll-mt-20">
+    <section id="template" className="relative pt-10 sm:pt-14 pb-24 scroll-mt-20 overflow-hidden">
       <span id="pilihan-template" className="absolute -top-24" />
       
+      {/* Decorative background glows */}
+      <div className="absolute top-1/4 left-0 w-96 h-96 bg-emerald-100/40 rounded-full blur-3xl pointer-events-none -z-10" />
+      <div className="absolute bottom-1/3 right-0 w-96 h-96 bg-amber-100/30 rounded-full blur-3xl pointer-events-none -z-10" />
+
       {/* Floating cursors decor */}
-      <div className="hidden lg:block absolute left-8 top-1/2 -translate-y-12 z-20 pointer-events-none opacity-80">
-        <MousePointer className="w-5 h-5 text-slate-800 fill-slate-800 -rotate-12" />
+      <div className="hidden xl:block absolute left-4 top-1/3 z-20 pointer-events-none opacity-60">
+        <MousePointer className="w-5 h-5 text-emerald-800 fill-emerald-800 -rotate-12" />
       </div>
-      <div className="hidden lg:block absolute right-8 top-1/3 z-20 pointer-events-none opacity-80">
-        <MousePointer className="w-5 h-5 text-slate-800 fill-slate-800 rotate-45" />
-      </div>
-      <div className="hidden lg:block absolute right-1/4 bottom-24 z-20 pointer-events-none opacity-80">
-        <MousePointer className="w-5 h-5 text-slate-800 fill-slate-800 rotate-12" />
+      <div className="hidden xl:block absolute right-6 top-1/4 z-20 pointer-events-none opacity-60">
+        <MousePointer className="w-5 h-5 text-amber-700 fill-amber-700 rotate-45" />
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-[1360px] mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* Section Header */}
-        <div className="text-center max-w-2xl mx-auto mb-10 space-y-2">
-          <span className="text-xs font-bold uppercase tracking-wider text-[#216a49]">
-            PILIHAN TEMPLATE
-          </span>
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 tracking-tight">
-            Pilihan Template Desain Terbaik
-          </h2>
-          <p className="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-lg mx-auto">
-            Pilih tema yang sesuai dengan konsep acaramu. Tampilan realistik iPhone dengan animasi otomatis saat dilihat.
-          </p>
-        </div>
-
-        {/* Search and Filter Bar */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mb-10 w-full max-w-3xl mx-auto">
+        {/* Main Grid: Left Section (Copywriting & Filters) + Right Section (3 Columns Grid) */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start">
           
-          {/* Search Input */}
-          <div className="relative w-full sm:w-64">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              placeholder="Cari Tema..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-full border border-slate-300 bg-white text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-emerald-600 shadow-sm"
-            />
+          {/* =============================================================== */}
+          {/* SECTION BAGIAN KIRI (Kata-Kata Pilih Template Terbaikmu)       */}
+          {/* =============================================================== */}
+          <div className="lg:col-span-4 xl:col-span-4 flex flex-col justify-start space-y-6 lg:sticky lg:top-24">
+            
+            {/* Eyebrow Pill */}
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-50 border border-emerald-200/90 text-emerald-900 w-fit shadow-xs">
+              <Sparkles className="w-3.5 h-3.5 text-emerald-600 animate-pulse" />
+              <span className="text-[11px] font-bold tracking-wider uppercase">
+                Koleksi Desain Terfavorit 2026
+              </span>
+            </div>
+
+            {/* Main Heading with Eye-Catching Typography */}
+            <div className="space-y-2">
+              <p
+                className="text-2xl sm:text-3xl text-emerald-800 leading-tight"
+                style={{ fontFamily: "'Alex Brush', 'Pinyon Script', cursive" }}
+              >
+                Rayakan Momen Terindah
+              </p>
+              <h2 className="text-3xl sm:text-4xl xl:text-5xl font-black text-slate-900 tracking-tight leading-[1.15]">
+                Pilih Template <br />
+                <span className="font-serif italic font-normal text-transparent bg-clip-text bg-gradient-to-r from-emerald-800 via-teal-700 to-amber-700">
+                  Terbaikmu
+                </span>
+              </h2>
+            </div>
+
+            {/* Engaging & Persuasive Copywriting */}
+            <div className="space-y-3 text-slate-600 text-xs sm:text-sm leading-relaxed">
+              <p className="font-semibold text-slate-800">
+                Setiap janji suci dan kebanggaan kelulusan pantas dirayakan dengan sentuhan yang istimewa.
+              </p>
+              <p>
+                Temukan desain undangan digital interaktif yang siap membuat para tamu terpesona sejak detik pertama. Dari kehangatan nuansa floral modern, kemegahan adat Nusantara, hingga kartu wisuda eksklusif—semuanya dirancang presisi untuk menyempurnakan hari bahagiamu.
+              </p>
+              <div className="flex items-center gap-2 text-emerald-900 font-semibold text-xs pt-1">
+                <span className="flex h-2 w-2 relative">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-600" />
+                </span>
+                <span>Siap pakai dalam 5 menit, bagikan instan ke seluruh tamu undangan!</span>
+              </div>
+            </div>
+
+            {/* Selling Points & Trust Stats */}
+            <div className="grid grid-cols-2 gap-2.5 pt-1">
+              <div className="p-3.5 rounded-2xl bg-white/90 backdrop-blur-sm border border-slate-200/90 shadow-xs flex flex-col">
+                <span className="text-xl sm:text-2xl font-black text-slate-900">50K+</span>
+                <span className="text-[11px] text-slate-500 font-medium">Pasangan & Wisudawan</span>
+              </div>
+              <div className="p-3.5 rounded-2xl bg-white/90 backdrop-blur-sm border border-slate-200/90 shadow-xs flex flex-col">
+                <span className="text-xl sm:text-2xl font-black text-emerald-800">4.9 ★</span>
+                <span className="text-[11px] text-slate-500 font-medium">Tingkat Kepuasan</span>
+              </div>
+            </div>
+
+            {/* Search Input Bar */}
+            <div className="relative w-full pt-1">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                placeholder="Cari tema, nama pasangan / wisuda..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2.5 rounded-2xl border border-slate-300 bg-white text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/20 shadow-xs transition-all"
+              />
+            </div>
+
+            {/* Custom Consultation CTA Card */}
+            <div className="p-4 rounded-2xl bg-gradient-to-br from-emerald-900 to-[#123e28] text-white shadow-lg shadow-emerald-950/20 space-y-2 relative overflow-hidden">
+              <div className="absolute right-0 bottom-0 opacity-10 pointer-events-none text-6xl">
+                💍
+              </div>
+              <p className="text-xs font-bold tracking-wide text-emerald-200 uppercase">
+                Ingin Desain Kustom Khusus?
+              </p>
+              <p className="text-xs text-emerald-100/90 leading-relaxed">
+                Konsultasikan konsep tema impianmu langsung dengan tim desainer kami.
+              </p>
+              <a
+                href="https://wa.me/6281999773020?text=Halo%20Admin,%20saya%20ingin%20konsultasi%20desain%20undangan%20kustom"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-white/20 hover:bg-white/30 px-3.5 py-1.5 rounded-full transition-all border border-white/30"
+              >
+                <span>Konsultasi Desain WhatsApp</span>
+                <span>→</span>
+              </a>
+            </div>
+
           </div>
 
-          {/* Filter Pills */}
-          <div className="w-full sm:w-auto overflow-x-auto no-scrollbar py-1">
-            <div className="flex items-center gap-2 min-w-max px-1 justify-start sm:justify-center">
-              {filterTabs.map((tab) => {
-                const isActive = activeFilter === tab;
-                const isGold = tab === 'Premium (Gold)';
+          {/* =============================================================== */}
+          {/* SECTION BAGIAN KANAN (Grid 3 ke Kanan & 3 ke Bawah, Scroll, Show More) */}
+          {/* =============================================================== */}
+          <div className="lg:col-span-8 xl:col-span-8 flex flex-col space-y-4">
+            
+            {/* Category Filter Pills / Selection (Dipindahkan ke bagian atas katalog) */}
+            <div className="p-3.5 sm:p-4 rounded-2xl bg-white/90 backdrop-blur-sm border border-slate-200/90 shadow-xs space-y-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                    Kategori Undangan:
+                  </span>
+                  <span className="text-xs font-bold text-slate-800">
+                    Menampilkan {displayedTemplates.length} dari {filteredTemplates.length} Desain
+                  </span>
+                </div>
+                <span className="text-[11px] text-slate-500 hidden sm:inline-flex items-center gap-1">
+                  <span>Scroll untuk melihat lebih banyak</span>
+                  <span>↓</span>
+                </span>
+              </div>
 
-                if (isGold) {
+              {/* Filter Pills */}
+              <div className="flex flex-wrap gap-1.5 sm:gap-2">
+                {filterTabs.map((tab) => {
+                  const isActive = activeFilter === tab.label;
+                  const isWedding = tab.label === 'Undangan Wedding';
+                  const isWisuda = tab.label === 'Undangan Wisuda';
+                  const isGold = tab.label === 'GOLD';
+
+                  if (isWedding) {
+                    return (
+                      <button
+                        key={tab.label}
+                        type="button"
+                        onClick={() => setActiveFilter(tab.label)}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer border select-none active:scale-95 flex items-center gap-1.5 ${
+                          isActive
+                            ? 'bg-[#195b3d] text-white border-[#195b3d] shadow-md shadow-emerald-950/20 font-bold ring-2 ring-emerald-500/30'
+                            : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                        }`}
+                      >
+                        <span>💍</span>
+                        <span>Undangan Wedding</span>
+                        <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${isActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'}`}>
+                          {tab.count}
+                        </span>
+                      </button>
+                    );
+                  }
+
+                  if (isWisuda) {
+                    return (
+                      <button
+                        key={tab.label}
+                        type="button"
+                        onClick={() => setActiveFilter(tab.label)}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer border select-none active:scale-95 flex items-center gap-1.5 ${
+                          isActive
+                            ? 'bg-gradient-to-r from-amber-600 to-amber-700 text-white border-amber-600 shadow-md shadow-amber-600/25 ring-2 ring-amber-400/40 font-bold'
+                            : 'bg-white text-amber-900 border-amber-300 hover:bg-amber-50 hover:border-amber-400'
+                        }`}
+                      >
+                        <span>🎓</span>
+                        <span>Undangan Wisuda</span>
+                        <span className="text-[9px] px-1 py-0.2 rounded-full bg-amber-500/20 text-amber-900 font-extrabold">BARU</span>
+                        <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${isActive ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-800'}`}>
+                          {tab.count}
+                        </span>
+                      </button>
+                    );
+                  }
+
+                  if (isGold) {
+                    return (
+                      <button
+                        key={tab.label}
+                        type="button"
+                        onClick={() => setActiveFilter(tab.label)}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border select-none active:scale-95 flex items-center gap-1 ${
+                          isActive
+                            ? 'bg-amber-500 text-white border-amber-500 shadow-md shadow-amber-500/20'
+                            : 'bg-white text-amber-700 border-amber-300 hover:bg-amber-50'
+                        }`}
+                      >
+                        <span>{tab.label}</span>
+                        <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${isActive ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-800'}`}>
+                          {tab.count}
+                        </span>
+                      </button>
+                    );
+                  }
+
                   return (
                     <button
-                      key={tab}
-                      onClick={() => setActiveFilter(tab)}
-                      className={`px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer border select-none active:scale-95 ${
+                      key={tab.label}
+                      type="button"
+                      onClick={() => setActiveFilter(tab.label)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer border select-none active:scale-95 flex items-center gap-1 ${
                         isActive
-                          ? 'bg-amber-500 text-white border-amber-500 shadow-md shadow-amber-500/20'
-                          : 'bg-white text-amber-700 border-amber-300 hover:bg-amber-50'
+                          ? 'bg-[#195b3d] text-white border-[#195b3d] shadow-md shadow-emerald-950/20 font-bold'
+                          : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
                       }`}
                     >
-                      {tab}
+                      <span>{tab.label}</span>
+                      <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${isActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'}`}>
+                        {tab.count}
+                      </span>
                     </button>
                   );
-                }
-
-                return (
-                  <button
-                    key={tab}
-                    onClick={() => setActiveFilter(tab)}
-                    className={`px-4 py-2 rounded-full text-xs font-semibold transition-all cursor-pointer border select-none active:scale-95 ${
-                      isActive
-                        ? 'bg-[#195b3d] text-white border-[#195b3d] shadow-md shadow-emerald-950/20 font-bold'
-                        : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
-                    }`}
-                  >
-                    {tab}
-                  </button>
-                );
-              })}
+                })}
+              </div>
             </div>
-          </div>
 
-        </div>
-
-        {/* Templates Grid with iPhone Frame Mockups (Template 1 & Template 2) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 max-w-4xl mx-auto gap-8 sm:gap-10">
-          {filteredTemplates.map((item) => (
+            {/* Scrollable Grid Container */}
             <div
-              key={item.id}
-              className="group rounded-3xl bg-white/90 backdrop-blur-sm border border-slate-200/80 shadow-[0_12px_30px_-5px_rgba(0,0,0,0.06)] hover:shadow-[0_25px_60px_-10px_rgba(20,77,49,0.15)] hover:-translate-y-2 transition-all duration-300 p-5 flex flex-col justify-between relative overflow-hidden"
+              ref={gridContainerRef}
+              className="overflow-y-auto max-h-[850px] pr-1 sm:pr-2.5 pb-2 scroll-smooth rounded-2xl"
+              style={{
+                scrollbarWidth: 'thin',
+                scrollbarColor: '#10b981 #f1f5f9'
+              }}
             >
-              
-              {/* REALISTIC IPHONE FRAME MOCKUP CONTAINER */}
-              <div className="relative w-full py-2 flex items-center justify-center">
-                
-                <div className="relative w-[240px] sm:w-[250px] h-[430px] sm:h-[450px] bg-slate-950 rounded-[42px] p-2.5 shadow-2xl border-[5px] border-slate-800 ring-1 ring-slate-900/60 flex flex-col items-center select-none group/phone hover:scale-[1.02] transition-transform duration-300">
-                  
-                  {/* Side Buttons (Volume & Power Button Accents) */}
-                  <div className="absolute -left-[7px] top-20 w-[3px] h-6 bg-slate-700 rounded-l-sm" />
-                  <div className="absolute -left-[7px] top-30 w-[3px] h-9 bg-slate-700 rounded-l-sm" />
-                  <div className="absolute -left-[7px] top-42 w-[3px] h-9 bg-slate-700 rounded-l-sm" />
-                  <div className="absolute -right-[7px] top-28 w-[3px] h-12 bg-slate-700 rounded-r-sm" />
-
-                  {/* Inner iPhone Screen Viewport */}
-                  <div className="w-full h-full rounded-[34px] overflow-hidden bg-white relative flex flex-col shadow-inner border border-slate-900/40">
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 sm:gap-6">
+                {displayedTemplates.map((item) => (
+                  <div
+                    key={item.id}
+                    className="group rounded-3xl bg-white/90 backdrop-blur-sm border border-slate-200/80 shadow-[0_12px_30px_-5px_rgba(0,0,0,0.06)] hover:shadow-[0_25px_60px_-10px_rgba(20,77,49,0.15)] hover:-translate-y-2 transition-all duration-300 p-4 sm:p-5 flex flex-col justify-between relative overflow-hidden"
+                  >
                     
-                    {/* Dynamic Island / iPhone Notch */}
-                    <div className="absolute top-2 left-1/2 -translate-x-1/2 w-20 h-4 bg-slate-950 rounded-full z-30 flex items-center justify-between px-2 shadow-sm pointer-events-none">
-                      <div className="w-2 h-2 rounded-full bg-slate-800" />
-                      <div className="w-1.5 h-1.5 rounded-full bg-blue-900/90 ring-1 ring-blue-500/40" />
+                    {/* CARD MOCKUP for Wisuda, or IPHONE FRAME MOCKUP for other templates */}
+                    <div className="relative w-full py-2 flex items-center justify-center min-h-[390px] sm:min-h-[410px]">
+                      {item.themeStyle === 'wisuda-yolanda' || item.id === 't-wisuda-2' ? (
+                        /* ========================================================= */
+                        /* WISUDA 2 (Black & Gold Yolanda Putri 3D Mockup Card)      */
+                        /* ========================================================= */
+                        <div
+                          className="relative w-full max-w-[235px] sm:max-w-[255px] aspect-[4/3] rounded-2xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.25)] border-[3px] border-white ring-1 ring-slate-900/10 flex items-center justify-center bg-[#0A0A0C] group/card hover:scale-[1.03] transition-all duration-300 select-none"
+                        >
+                          {/* Badge Overlay */}
+                          <div className="absolute top-3 right-3 z-20 pointer-events-none">
+                            <span className="px-2.5 py-0.5 rounded-full text-[9px] font-bold text-white bg-[#c98e29] shadow-md tracking-wide">
+                              {item.badge}
+                            </span>
+                          </div>
+
+                          <img
+                            src={wisudaDuaMockupImg}
+                            alt={item.title}
+                            className="w-full h-full object-cover object-center group-hover/card:scale-105 transition-transform duration-500 select-none"
+                          />
+
+                          {/* Subtle Category Pill Overlay */}
+                          <div className="absolute bottom-2.5 inset-x-3 z-20 pointer-events-none">
+                            <div className="bg-black/85 backdrop-blur-md px-3 py-1 rounded-xl border border-amber-500/30 shadow-xs flex items-center justify-between">
+                              <span className="text-[10px] font-semibold text-white">Undangan Wisuda</span>
+                              <span className="text-[9px] text-[#E2BA65] font-bold">Black & Gold</span>
+                            </div>
+                          </div>
+                        </div>
+                      ) : item.category === 'Undangan Wisuda' || item.category === 'Wisuda' ? (
+                        /* ========================================================= */
+                        /* WISUDA CARD (Card Persegi 4 Sesuai Gambar)                 */
+                        /* ========================================================= */
+                        <div
+                          className="relative w-full max-w-[235px] sm:max-w-[255px] aspect-[4/3] rounded-2xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.15)] border-[3px] border-white ring-1 ring-slate-900/10 flex items-center justify-center bg-[#EDE8E1] group/card hover:scale-[1.03] transition-all duration-300 select-none"
+                        >
+                          {/* Badge Overlay */}
+                          <div className="absolute top-3 right-3 z-20 pointer-events-none">
+                            <span className="px-2.5 py-0.5 rounded-full text-[9px] font-bold text-white bg-[#a35e2e] shadow-md tracking-wide">
+                              {item.badge}
+                            </span>
+                          </div>
+
+                          <img
+                            src={wisudaMockupImg}
+                            alt={item.title}
+                            className="w-full h-full object-cover object-center group-hover/card:scale-105 transition-transform duration-500 select-none"
+                          />
+
+                          {/* Subtle Category Pill Overlay */}
+                          <div className="absolute bottom-2.5 inset-x-3 z-20 pointer-events-none">
+                            <div className="bg-white/90 backdrop-blur-md px-3 py-1 rounded-xl border border-white/60 shadow-xs flex items-center justify-between">
+                              <span className="text-[10px] font-semibold text-slate-800">Undangan Wisuda</span>
+                              <span className="text-[9px] text-[#A97943] font-bold">1 Section Card</span>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        /* ========================================================= */
+                        /* IPHONE FRAME MOCKUP (For Wedding Templates)               */
+                        /* ========================================================= */
+                        <div className="relative w-[215px] sm:w-[225px] h-[390px] sm:h-[410px] bg-slate-950 rounded-[38px] p-2 shadow-2xl border-[4px] border-slate-800 ring-1 ring-slate-900/60 flex flex-col items-center select-none group/phone hover:scale-[1.02] transition-transform duration-300">
+                          
+                          {/* Side Buttons (Volume & Power Button Accents) */}
+                          <div className="absolute -left-[6px] top-18 w-[2.5px] h-5 bg-slate-700 rounded-l-sm" />
+                          <div className="absolute -left-[6px] top-26 w-[2.5px] h-8 bg-slate-700 rounded-l-sm" />
+                          <div className="absolute -left-[6px] top-36 w-[2.5px] h-8 bg-slate-700 rounded-l-sm" />
+                          <div className="absolute -right-[6px] top-24 w-[2.5px] h-10 bg-slate-700 rounded-r-sm" />
+
+                          {/* Inner iPhone Screen Viewport */}
+                          <div className="w-full h-full rounded-[30px] overflow-hidden bg-white relative flex flex-col shadow-inner border border-slate-900/40">
+                            
+                            {/* Dynamic Island / iPhone Notch */}
+                            <div className="absolute top-1.5 left-1/2 -translate-x-1/2 w-16 h-3.5 bg-slate-950 rounded-full z-30 flex items-center justify-between px-2 shadow-sm pointer-events-none">
+                              <div className="w-1.5 h-1.5 rounded-full bg-slate-800" />
+                              <div className="w-1 h-1 rounded-full bg-blue-900/90 ring-1 ring-blue-500/40" />
+                            </div>
+
+                            {/* Badge Overlay (Top Right inside Phone Screen) */}
+                            <div className="absolute top-6 right-2 z-30 pointer-events-none">
+                              {item.badge === 'GRATIS' && (
+                                <span className="px-2 py-0.5 rounded-full text-[8.5px] font-bold text-white bg-[#168a44] shadow-md tracking-wide">
+                                  GRATIS
+                                </span>
+                              )}
+                              {item.badge === 'BRONZE' && (
+                                <span className="px-2 py-0.5 rounded-full text-[8.5px] font-bold text-white bg-[#a35e2e] shadow-md tracking-wide">
+                                  BRONZE
+                                </span>
+                              )}
+                              {item.badge === 'GOLD' && (
+                                <span className="px-2 py-0.5 rounded-full text-[8.5px] font-bold text-white bg-[#c98e29] shadow-md tracking-wide">
+                                  GOLD
+                                </span>
+                              )}
+                            </div>
+
+                            {/* Auto-Scrolling Digital Invitation Canvas */}
+                            <div className="w-full h-full overflow-hidden relative">
+                              <motion.div
+                                animate={{ y: ['0%', '-50%'] }}
+                                transition={{
+                                  duration: 15,
+                                  repeat: Infinity,
+                                  ease: 'linear',
+                                }}
+                                className="w-full flex flex-col"
+                              >
+                                <InvitationTemplateContent item={item} />
+                                <InvitationTemplateContent item={item} />
+                              </motion.div>
+                            </div>
+
+                            {/* Bottom Home Indicator Bar */}
+                            <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 w-16 h-1 bg-slate-400/80 rounded-full z-30 pointer-events-none" />
+
+                          </div>
+
+                        </div>
+                      )}
                     </div>
 
-                    {/* Badge Overlay (Top Right inside Phone Screen) */}
-                    <div className="absolute top-7 right-2.5 z-30 pointer-events-none">
-                      {item.badge === 'GRATIS' && (
-                        <span className="px-2.5 py-0.5 rounded-full text-[9px] font-bold text-white bg-[#168a44] shadow-md tracking-wide">
-                          GRATIS
-                        </span>
-                      )}
-                      {item.badge === 'BRONZE' && (
-                        <span className="px-2.5 py-0.5 rounded-full text-[9px] font-bold text-white bg-[#a35e2e] shadow-md tracking-wide">
-                          BRONZE
-                        </span>
-                      )}
-                      {item.badge === 'GOLD' && (
-                        <span className="px-2.5 py-0.5 rounded-full text-[9px] font-bold text-white bg-[#c98e29] shadow-md tracking-wide">
-                          GOLD
-                        </span>
-                      )}
+                    {/* Card Footer: Title & Action Buttons */}
+                    <div className="space-y-3 pt-3">
+                      <div className="text-center">
+                        <h3 className="font-bold text-slate-900 text-sm sm:text-base leading-snug line-clamp-1">
+                          {item.title}
+                        </h3>
+                        <p className="text-[11px] text-slate-500 font-medium">
+                          {item.names}
+                        </p>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          type="button"
+                          onClick={() => onPreview(item)}
+                          className="py-2 px-2 rounded-full text-xs font-semibold text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 active:scale-95 transition-all cursor-pointer text-center flex items-center justify-center gap-1 shadow-xs"
+                        >
+                          <span>Pratinjau</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => onUseTemplate(item)}
+                          className="py-2 px-2 rounded-full text-xs font-bold text-white bg-[#195b3d] hover:bg-[#134930] active:scale-95 transition-all cursor-pointer text-center flex items-center justify-center shadow-md shadow-emerald-950/20"
+                        >
+                          <span>Gunakan</span>
+                        </button>
+                      </div>
                     </div>
-
-                    {/* Auto-Scrolling Digital Invitation Canvas */}
-                    <div className="w-full h-full overflow-hidden relative">
-                      <motion.div
-                        animate={{ y: ['0%', '-50%'] }}
-                        transition={{
-                          duration: 15,
-                          repeat: Infinity,
-                          ease: 'linear',
-                        }}
-                        className="w-full flex flex-col"
-                      >
-                        {/* Repeated 2 times for seamless infinite vertical scroll */}
-                        <InvitationTemplateContent item={item} />
-                        <InvitationTemplateContent item={item} />
-                      </motion.div>
-                    </div>
-
-                    {/* Bottom Home Indicator Bar */}
-                    <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 w-20 h-1 bg-slate-400/80 rounded-full z-30 pointer-events-none" />
 
                   </div>
-
-                </div>
-
+                ))}
               </div>
-
-              {/* Card Footer: Title & Action Buttons */}
-              <div className="space-y-3 pt-4">
-                <div className="text-center">
-                  <h3 className="font-bold text-slate-900 text-base">
-                    {item.title}
-                  </h3>
-                  <p className="text-[11px] text-slate-500 font-medium">
-                    {item.names}
-                  </p>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    onClick={() => onPreview(item)}
-                    className="py-2.5 sm:py-2 px-2 rounded-full text-xs font-semibold text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 active:scale-95 transition-all cursor-pointer text-center flex items-center justify-center gap-1 shadow-xs"
-                  >
-                    <span>Pratinjau</span>
-                  </button>
-                  <button
-                    onClick={() => onUseTemplate(item)}
-                    className="py-2.5 sm:py-2 px-2 rounded-full text-xs font-bold text-white bg-[#195b3d] hover:bg-[#134930] active:scale-95 transition-all cursor-pointer text-center flex items-center justify-center shadow-md shadow-emerald-950/20"
-                  >
-                    <span>Gunakan</span>
-                  </button>
-                </div>
-              </div>
-
             </div>
-          ))}
+
+            {/* Show More / Show Less Toggle Button */}
+            {filteredTemplates.length > 6 && (
+              <div className="mt-6 pt-2 flex flex-col items-center justify-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsExpanded(!isExpanded)}
+                  className="px-6 py-2.5 rounded-full bg-white hover:bg-slate-50 border border-slate-300 text-slate-800 font-bold text-xs sm:text-sm shadow-md hover:shadow-lg transition-all duration-300 flex items-center gap-2 active:scale-95 cursor-pointer"
+                >
+                  <span>
+                    {isExpanded
+                      ? 'Tampilkan Lebih Sedikit'
+                      : `Tampilkan Lebih Banyak (${filteredTemplates.length - 6} Desain Lainnya)`}
+                  </span>
+                  <ChevronDown
+                    className={`w-4 h-4 text-slate-600 transform transition-transform duration-300 ${
+                      isExpanded ? 'rotate-180' : ''
+                    }`}
+                  />
+                </button>
+                <p className="text-[11px] text-slate-500 font-medium text-center">
+                  {isExpanded
+                    ? 'Semua template telah ditampilkan. Anda dapat scroll pada katalog.'
+                    : `Menampilkan 6 desain awal (3 kolom x 2 baris). Klik tombol untuk melihat ${filteredTemplates.length - 6} desain lainnya.`}
+                </p>
+              </div>
+            )}
+
+          </div>
+
         </div>
 
         {/* Bottom Section: 50,000+ Pasangan */}
@@ -539,7 +893,7 @@ export const TemplateSection: React.FC<TemplateSectionProps> = ({
             50,000+
           </p>
           <p className="text-xs text-slate-500 font-medium">
-            pasangan
+            pasangan & wisudawan bahagia
           </p>
 
           <BotanicalLeaves.BottomRight />

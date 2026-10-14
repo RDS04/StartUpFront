@@ -5,6 +5,7 @@ import { RusticBlossomTemplate } from '../tempalte/satu/main';
 import { DustyRoseTemplate } from '../tempalte/dua/main';
 import { MinangMaroonTemplate } from '../tempalte/tiga/main';
 import { SageBlossomTemplate } from '../tempalte/empat/main';
+import { WisudaSatuTemplate, WisudaDuaTemplate } from '../tempalte/Wisuda';
 
 interface PreviewModalProps {
   template: TemplateItem | null;
@@ -25,6 +26,17 @@ export const PreviewModal = ({
 
   if (!template) return null;
 
+  const isWisudaDua =
+    template.id === 't-wisuda-2' ||
+    template.themeStyle === 'wisuda-yolanda' ||
+    template.title.toLowerCase().includes('yolanda') ||
+    template.title.toLowerCase().includes('black gold');
+  const isWisudaSatu =
+    (template.id === 't-wisuda-1' ||
+    template.themeStyle === 'wisuda-karin' ||
+    template.category === 'Undangan Wisuda' ||
+    template.category === 'Wisuda') && !isWisudaDua;
+  const isWisuda = isWisudaSatu || isWisudaDua;
   const isRusticTpl =
     template.id === 't1' ||
     template.themeStyle === 'rustic' ||
@@ -32,9 +44,13 @@ export const PreviewModal = ({
   const isDustyRose = template.id === 't2' || template.themeStyle === 'dusty-rose';
   const isMinangMaroon = template.id === 't3' || template.themeStyle === 'minang-maroon';
   const isSageGarden = template.id === 't4' || template.themeStyle === 'sage-garden';
-  // "isRustic" = template punya pratinjau asli (dipakai untuk tab & tombol layar penuh)
-  const isRustic = isRusticTpl || isDustyRose || isMinangMaroon || isSageGarden;
-  const fullHref = isSageGarden
+  // "isRustic" = template punya pratinjau asli multi-section (dipakai untuk tab Sampul/Isi Acara)
+  const isRustic = (isRusticTpl || isDustyRose || isMinangMaroon || isSageGarden) && !isWisuda;
+  const fullHref = isWisudaDua
+    ? '#/wisuda-dua'
+    : isWisudaSatu
+    ? '#/wisuda'
+    : isSageGarden
     ? '#/template-empat'
     : isMinangMaroon
     ? '#/template-tiga'
@@ -86,7 +102,7 @@ export const PreviewModal = ({
               </div>
             )}
 
-            {isRustic && (
+            {(isRustic || isWisuda) && (
               <a
                 href={fullHref}
                 onClick={onClose}
@@ -108,7 +124,15 @@ export const PreviewModal = ({
         </div>
 
         {/* Modal Scrollable Content: REAL TEMPLATE PREVIEW */}
-        {isSageGarden ? (
+        {isWisudaDua ? (
+          <div className="flex-1 overflow-y-auto relative bg-[#070709] min-h-[580px] max-h-[78vh] no-scrollbar">
+            <WisudaDuaTemplate isEmbedded={true} onBack={onClose} />
+          </div>
+        ) : isWisudaSatu ? (
+          <div className="flex-1 overflow-y-auto relative bg-[#332e2b] min-h-[580px] max-h-[78vh] no-scrollbar">
+            <WisudaSatuTemplate isEmbedded={true} onBack={onClose} />
+          </div>
+        ) : isSageGarden ? (
           <div className="flex-1 overflow-y-auto relative bg-[#1e2a20] min-h-[580px] max-h-[78vh] no-scrollbar">
             <SageBlossomTemplate key={activeTab} isEmbedded={true} defaultOpen={activeTab === 'content'} />
           </div>

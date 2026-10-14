@@ -212,22 +212,22 @@ export const OrderFlowPage: React.FC<OrderFlowPageProps> = ({
     }
   };
 
-  // Jika step 1 atau 2 diakses, arahkan ke landing page section yang sesuai
+  // Jika step 1 atau 2 diakses, arahkan ke landing page section yang sesuai (1: Template, 2: Paket Harga)
   useEffect(() => {
     if (step === 1) {
-      handleChangePlan();
-    } else if (step === 2) {
       handleChangeTemplate();
+    } else if (step === 2) {
+      handleChangePlan();
     }
   }, [step]);
 
   const goToStep = (newStep: 1 | 2 | 3) => {
     if (newStep === 1) {
-      handleChangePlan();
+      handleChangeTemplate();
       return;
     }
     if (newStep === 2) {
-      handleChangeTemplate();
+      handleChangePlan();
       return;
     }
     setInternalStep(newStep);
@@ -330,6 +330,16 @@ export const OrderFlowPage: React.FC<OrderFlowPageProps> = ({
       setIsSuccessModalOpen(true);
       triggerConfetti();
 
+      // Pastikan state transaksi dibersihkan karena pesanan telah dibayar
+      try {
+        sessionStorage.removeItem('ij_transaction_active');
+        sessionStorage.removeItem('ij_selected_plan');
+        sessionStorage.removeItem('ij_selected_template');
+        sessionStorage.setItem('ij_order_paid', 'true');
+        window.dispatchEvent(new Event('storage'));
+        window.dispatchEvent(new CustomEvent('ij_order_state_change', { detail: { isPaid: true } }));
+      } catch {}
+
       // Bersihkan search params agar URL kembali bersih
       try {
         const cleanUrl = window.location.pathname + window.location.hash;
@@ -397,6 +407,9 @@ export const OrderFlowPage: React.FC<OrderFlowPageProps> = ({
       sessionStorage.removeItem('ij_transaction_active');
       sessionStorage.removeItem('ij_selected_plan');
       sessionStorage.removeItem('ij_selected_template');
+      sessionStorage.setItem('ij_order_paid', 'true');
+      window.dispatchEvent(new Event('storage'));
+      window.dispatchEvent(new CustomEvent('ij_order_state_change', { detail: { isPaid: true } }));
     } catch {}
   };
 
@@ -502,27 +515,9 @@ export const OrderFlowPage: React.FC<OrderFlowPageProps> = ({
           Periksa rincian pesanan dan selesaikan transaksi dengan aman melalui sistem pembayaran instan.
         </p>
 
-        {/* Stepper Capsule Persis Sesuai Gambar Referensi */}
+        {/* Stepper Capsule Persis Sesuai Gambar Referensi (Step 1: Desain Template -> Step 2: Paket Harga -> Step 3: Pembayaran) */}
         <div className="flex items-center justify-center gap-3 sm:gap-5 mt-6 max-w-xl mx-auto px-5 py-2.5 rounded-full bg-[#072418]/90 border border-emerald-500/40 backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.18)]">
-          {/* STEP 1: PAKET HARGA (HIJAU CENTANG DENGAN TEKS 2 BARIS) */}
-          <div 
-            onClick={handleChangePlan}
-            className="flex items-center gap-2 cursor-pointer group"
-            title="Klik untuk ubah pilihan Paket Harga di Landing Page"
-          >
-            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#00c078] flex items-center justify-center text-white shadow-md shadow-emerald-950/30 group-hover:scale-110 transition-transform shrink-0">
-              <Check className="w-4 h-4 stroke-[3]" />
-            </div>
-            <div className="text-[11px] sm:text-xs font-bold text-[#00d68f] leading-tight text-left">
-              <div>Paket</div>
-              <div>Harga</div>
-            </div>
-          </div>
-
-          {/* CONNECTOR LINE 1 */}
-          <div className="h-[2px] w-8 sm:w-14 bg-[#00d68f] rounded-full shrink-0" />
-
-          {/* STEP 2: DESAIN TEMPLATE (HIJAU CENTANG DENGAN TEKS 2 BARIS) */}
+          {/* STEP 1: DESAIN TEMPLATE (HIJAU CENTANG DENGAN TEKS 2 BARIS) */}
           <div 
             onClick={handleChangeTemplate}
             className="flex items-center gap-2 cursor-pointer group"
@@ -534,6 +529,24 @@ export const OrderFlowPage: React.FC<OrderFlowPageProps> = ({
             <div className="text-[11px] sm:text-xs font-bold text-[#00d68f] leading-tight text-left">
               <div>Desain</div>
               <div>Template</div>
+            </div>
+          </div>
+
+          {/* CONNECTOR LINE 1 */}
+          <div className="h-[2px] w-8 sm:w-14 bg-[#00d68f] rounded-full shrink-0" />
+
+          {/* STEP 2: PAKET HARGA (HIJAU CENTANG DENGAN TEKS 2 BARIS) */}
+          <div 
+            onClick={handleChangePlan}
+            className="flex items-center gap-2 cursor-pointer group"
+            title="Klik untuk ubah pilihan Paket Harga di Landing Page"
+          >
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#00c078] flex items-center justify-center text-white shadow-md shadow-emerald-950/30 group-hover:scale-110 transition-transform shrink-0">
+              <Check className="w-4 h-4 stroke-[3]" />
+            </div>
+            <div className="text-[11px] sm:text-xs font-bold text-[#00d68f] leading-tight text-left">
+              <div>Paket</div>
+              <div>Harga</div>
             </div>
           </div>
 
@@ -552,28 +565,8 @@ export const OrderFlowPage: React.FC<OrderFlowPageProps> = ({
         </div>
       </div>
 
-      {/* STEP 1: JIKA TERBUKA, REDIRECT KE LANDING PAGE SECTION #HARGA */}
+      {/* STEP 1: JIKA TERBUKA, REDIRECT KE LANDING PAGE SECTION #TEMPLATE */}
       {step === 1 && (
-        <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="max-w-md mx-auto text-center py-16 bg-white/80 rounded-3xl border border-white/95 p-8 relative z-10 shadow-2xl backdrop-blur-2xl"
-        >
-          <div className="w-12 h-12 rounded-full border-4 border-emerald-500 border-t-transparent animate-spin mx-auto mb-4" />
-          <h3 className="text-lg font-black text-emerald-950 mb-2">Mengarahkan ke Pilihan Paket Harga...</h3>
-          <p className="text-xs text-slate-600 mb-6">Pilihan paket harga tersedia lengkap pada beranda landing page kami.</p>
-          <button
-            onClick={handleChangePlan}
-            className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:brightness-105 text-white text-xs font-black cursor-pointer shadow-lg inline-flex items-center gap-2"
-          >
-            <span>Buka Pilihan Paket di Beranda</span>
-            <ArrowRight className="w-4 h-4" />
-          </button>
-        </motion.div>
-      )}
-
-      {/* STEP 2: JIKA TERBUKA, REDIRECT KE LANDING PAGE SECTION #TEMPLATE */}
-      {step === 2 && (
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
@@ -587,6 +580,26 @@ export const OrderFlowPage: React.FC<OrderFlowPageProps> = ({
             className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:brightness-105 text-slate-950 text-xs font-black cursor-pointer shadow-lg inline-flex items-center gap-2"
           >
             <span>Buka Pilihan Desain di Beranda</span>
+            <ArrowRight className="w-4 h-4" />
+          </button>
+        </motion.div>
+      )}
+
+      {/* STEP 2: JIKA TERBUKA, REDIRECT KE LANDING PAGE SECTION #HARGA */}
+      {step === 2 && (
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="max-w-md mx-auto text-center py-16 bg-white/80 rounded-3xl border border-white/95 p-8 relative z-10 shadow-2xl backdrop-blur-2xl"
+        >
+          <div className="w-12 h-12 rounded-full border-4 border-emerald-500 border-t-transparent animate-spin mx-auto mb-4" />
+          <h3 className="text-lg font-black text-emerald-950 mb-2">Mengarahkan ke Pilihan Paket Harga...</h3>
+          <p className="text-xs text-slate-600 mb-6">Pilihan paket harga tersedia lengkap pada beranda landing page kami.</p>
+          <button
+            onClick={handleChangePlan}
+            className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:brightness-105 text-white text-xs font-black cursor-pointer shadow-lg inline-flex items-center gap-2"
+          >
+            <span>Buka Pilihan Paket di Beranda</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </motion.div>
@@ -836,13 +849,20 @@ export const OrderFlowPage: React.FC<OrderFlowPageProps> = ({
 
           </div>
 
-          <div className="mt-8 flex items-center justify-between">
+          <div className="mt-8 flex flex-wrap items-center justify-between gap-4">
+            <button
+              onClick={handleChangePlan}
+              className="px-6 py-3 rounded-2xl font-bold text-xs sm:text-sm bg-white/80 hover:bg-white border border-emerald-200 text-emerald-950 flex items-center gap-2 cursor-pointer transition-all shadow-sm"
+            >
+              <ArrowLeft className="w-4 h-4 text-emerald-700" />
+              <span>Kembali ke Langkah 2: Paket Harga</span>
+            </button>
             <button
               onClick={handleChangeTemplate}
               className="px-6 py-3 rounded-2xl font-bold text-xs sm:text-sm bg-white/80 hover:bg-white border border-emerald-200 text-emerald-950 flex items-center gap-2 cursor-pointer transition-all shadow-sm"
             >
-              <ArrowLeft className="w-4 h-4 text-emerald-700" />
-              <span>Kembali: Pilih Template (Landing Page)</span>
+              <span>Ubah Desain Template (Langkah 1)</span>
+              <ArrowRight className="w-4 h-4 text-emerald-700" />
             </button>
           </div>
         </motion.div>
@@ -904,6 +924,14 @@ export const OrderFlowPage: React.FC<OrderFlowPageProps> = ({
                 <button
                   onClick={() => {
                     setIsSuccessModalOpen(false);
+                    try {
+                      sessionStorage.removeItem('ij_transaction_active');
+                      sessionStorage.removeItem('ij_selected_plan');
+                      sessionStorage.removeItem('ij_selected_template');
+                      sessionStorage.setItem('ij_order_paid', 'true');
+                      window.dispatchEvent(new Event('storage'));
+                      window.dispatchEvent(new CustomEvent('ij_order_state_change', { detail: { isPaid: true } }));
+                    } catch {}
                     onBackToHome();
                   }}
                   className="w-full py-3 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 cursor-pointer transition-colors"

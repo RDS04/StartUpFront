@@ -69,20 +69,20 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   const navLinks = ['Beranda', 'Fitur', 'Template', 'Amplop Digital', 'Harga', 'Cara Buat'];
 
-  // Stepper Visual Component (Persis seperti gambar referensi yang diupload)
+  // Stepper Visual Component (Step 1: Desain Template -> Step 2: Paket Harga -> Step 3: Pembayaran)
   const renderStepper = (isMobile = false) => {
     if (!orderState || !orderState.isTransacting) return null;
 
     return (
       <div className={`flex items-center justify-center ${isMobile ? 'py-2 px-3 w-full bg-[#072418]/95 rounded-2xl border border-emerald-500/30' : 'px-5 py-2 rounded-full bg-[#072418]/90 backdrop-blur-md border border-emerald-500/30 shadow-[0_4px_20px_rgba(0,0,0,0.3)]'}`}>
         <div className="flex items-center gap-2.5 sm:gap-4 md:gap-5">
-          {/* STEP 1: PAKET HARGA */}
+          {/* STEP 1: DESAIN TEMPLATE */}
           <div 
             onClick={() => onNavigateStep?.(1)}
             className="flex items-center gap-2 cursor-pointer group"
-            title="Langkah 1: Pilihan Paket Harga"
+            title="Langkah 1: Pilih Desain Template"
           >
-            {orderState.hasPlan ? (
+            {orderState.hasTemplate ? (
               <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-[#00c078] flex items-center justify-center text-white shadow-md shadow-emerald-950/30 group-hover:scale-110 transition-transform shrink-0">
                 <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[3]" />
               </div>
@@ -92,31 +92,31 @@ export const Navbar: React.FC<NavbarProps> = ({
               </div>
             )}
             <div className={`text-[10px] sm:text-xs font-bold leading-tight text-left ${
-              orderState.hasPlan ? 'text-[#00d68f]' : 'text-[#ffb800]'
+              orderState.hasTemplate ? 'text-[#00d68f]' : 'text-[#ffb800]'
             }`}>
-              <div>Paket</div>
-              <div>Harga</div>
+              <div>Desain</div>
+              <div>Template</div>
             </div>
           </div>
 
           {/* CONNECTOR LINE 1 */}
           <div className={`h-[2px] w-6 sm:w-9 md:w-12 rounded-full shrink-0 transition-colors ${
-            orderState.hasPlan ? 'bg-[#00d68f]' : 'bg-emerald-900/60'
+            orderState.hasTemplate ? 'bg-[#00d68f]' : 'bg-emerald-900/60'
           }`} />
 
-          {/* STEP 2: DESAIN TEMPLATE */}
+          {/* STEP 2: PAKET HARGA */}
           <div 
             onClick={() => {
-              if (orderState.hasPlan) onNavigateStep?.(2);
+              if (orderState.hasTemplate) onNavigateStep?.(2);
             }}
-            className={`flex items-center gap-2 ${orderState.hasPlan ? 'cursor-pointer group' : 'opacity-65 cursor-not-allowed'}`}
-            title={orderState.hasPlan ? 'Langkah 2: Pilih Desain Template' : 'Pilih paket harga terlebih dahulu'}
+            className={`flex items-center gap-2 ${orderState.hasTemplate ? 'cursor-pointer group' : 'opacity-65 cursor-not-allowed'}`}
+            title={orderState.hasTemplate ? 'Langkah 2: Pilih Paket Harga' : 'Pilih desain template terlebih dahulu'}
           >
-            {orderState.hasTemplate ? (
+            {orderState.hasPlan ? (
               <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-[#00c078] flex items-center justify-center text-white shadow-md shadow-emerald-950/30 group-hover:scale-110 transition-transform shrink-0">
                 <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[3]" />
               </div>
-            ) : orderState.hasPlan ? (
+            ) : orderState.hasTemplate ? (
               <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-[#ffb800] ring-4 ring-amber-400/25 flex items-center justify-center text-slate-950 font-black text-[11px] sm:text-xs shadow-md shadow-amber-950/20 group-hover:scale-110 transition-transform shrink-0 animate-pulse">
                 2
               </div>
@@ -126,35 +126,35 @@ export const Navbar: React.FC<NavbarProps> = ({
               </div>
             )}
             <div className={`text-[10px] sm:text-xs font-bold leading-tight text-left ${
-              orderState.hasTemplate ? 'text-[#00d68f]' : orderState.hasPlan ? 'text-[#ffb800]' : 'text-emerald-500/60'
+              orderState.hasPlan ? 'text-[#00d68f]' : orderState.hasTemplate ? 'text-[#ffb800]' : 'text-emerald-500/60'
             }`}>
-              <div>Desain</div>
-              <div>Template</div>
+              <div>Paket</div>
+              <div>Harga</div>
             </div>
           </div>
 
           {/* CONNECTOR LINE 2 */}
           <div className={`h-[2px] w-6 sm:w-9 md:w-12 rounded-full shrink-0 transition-colors ${
-            orderState.hasTemplate ? 'bg-[#00d68f]' : 'bg-emerald-900/60'
+            orderState.hasPlan ? 'bg-[#00d68f]' : 'bg-emerald-900/60'
           }`} />
 
           {/* STEP 3: PEMBAYARAN */}
           <div 
             onClick={() => {
-              if (orderState.hasTemplate) onNavigateStep?.(3);
+              if (orderState.hasTemplate && orderState.hasPlan) onNavigateStep?.(3);
             }}
-            className={`flex items-center gap-2 ${orderState.hasTemplate ? 'cursor-pointer group' : 'opacity-65 cursor-not-allowed'}`}
-            title={orderState.hasTemplate ? 'Langkah 3: Rincian Pembayaran' : 'Pilih template terlebih dahulu'}
+            className={`flex items-center gap-2 ${(orderState.hasTemplate && orderState.hasPlan) ? 'cursor-pointer group' : 'opacity-65 cursor-not-allowed'}`}
+            title={(orderState.hasTemplate && orderState.hasPlan) ? 'Langkah 3: Rincian Pembayaran' : 'Pilih template dan paket harga terlebih dahulu'}
           >
             <div className={`w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center font-black text-[11px] sm:text-xs shadow-md transition-transform shrink-0 ${
-              orderState.step === 3 || orderState.hasTemplate
+              orderState.step === 3 || (orderState.hasTemplate && orderState.hasPlan)
                 ? 'bg-[#ffb800] text-slate-950 ring-4 ring-amber-400/25 shadow-amber-950/30 group-hover:scale-110'
                 : 'bg-emerald-950 text-emerald-500/60 border border-emerald-800/80'
             }`}>
               3
             </div>
             <div className={`text-[10px] sm:text-xs font-bold leading-tight text-left ${
-              orderState.step === 3 || orderState.hasTemplate ? 'text-[#ffb800]' : 'text-emerald-500/60'
+              orderState.step === 3 || (orderState.hasTemplate && orderState.hasPlan) ? 'text-[#ffb800]' : 'text-emerald-500/60'
             }`}>
               <div>Pembayaran</div>
             </div>

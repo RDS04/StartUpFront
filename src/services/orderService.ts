@@ -91,3 +91,24 @@ export async function markOrderPaid(orderId: number): Promise<{ status: boolean;
   const data = await response.json();
   return data;
 }
+
+export async function getMyOrders(): Promise<OrderItem[]> {
+  const token = getAuthToken();
+  if (!token) return [];
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/orders/my-orders`, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) return [];
+    const data = await response.json();
+    return data.status && Array.isArray(data.orders) ? data.orders : [];
+  } catch {
+    return [];
+  }
+}

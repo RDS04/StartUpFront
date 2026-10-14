@@ -5,6 +5,7 @@ import { RusticBlossomTemplate } from './tempalte/satu/main';
 import { DustyRoseTemplate } from './tempalte/dua/main';
 import { MinangMaroonTemplate } from './tempalte/tiga/main';
 import { SageBlossomTemplate } from './tempalte/empat/main';
+import { WisudaSatuTemplate, WisudaDuaTemplate } from './tempalte/Wisuda';
 import { CardAtmPreviewPage } from './tempalte/CardAtm/CardAtmPreviewPage';
 import { OrderFlowPage } from './order/OrderFlowPage';
 import { DashboardPage } from './dashboard/DashboardPage';
@@ -25,7 +26,9 @@ type PageRoute =
   | 'template-dua' 
   | 'template-tiga' 
   | 'template-empat' 
-  | 'card-atm';
+  | 'card-atm'
+  | 'wisuda-satu'
+  | 'wisuda-dua';
 
 export function App() {
   const [route, setRoute] = useState<PageRoute>(() => {
@@ -35,6 +38,8 @@ export function App() {
     if (hash.includes('dashboard')) return 'dashboard';
     if (hash.includes('pembayaran') || hash.includes('bayar') || hash.includes('checkout') || hash.includes('rincian-biaya')) return 'pembayaran';
     if (hash.includes('card-atm')) return 'card-atm';
+    if (hash.includes('wisuda-dua') || hash.includes('wisuda-2') || hash.includes('yolanda')) return 'wisuda-dua';
+    if (hash.includes('wisuda') || hash.includes('template-wisuda')) return 'wisuda-satu';
     if (hash.includes('login')) return 'login';
     if (hash.includes('register')) return 'register';
     if (hash.includes('template-empat') || hash.includes('template/empat') || hash.includes('sage')) return 'template-empat';
@@ -75,6 +80,10 @@ export function App() {
         }, 100);
       } else if (hash.includes('card-atm')) {
         setRoute('card-atm');
+      } else if (hash.includes('wisuda-dua') || hash.includes('wisuda-2') || hash.includes('yolanda')) {
+        setRoute('wisuda-dua');
+      } else if (hash.includes('wisuda') || hash.includes('template-wisuda')) {
+        setRoute('wisuda-satu');
       } else if (hash.includes('login')) {
         setRoute('login');
       } else if (hash.includes('register')) {
@@ -242,14 +251,26 @@ export function App() {
     );
   }
 
+  if (route === 'wisuda-satu') {
+    return (
+      <WisudaSatuTemplate onBack={() => navigateTo('landing')} />
+    );
+  }
+
+  if (route === 'wisuda-dua') {
+    return (
+      <WisudaDuaTemplate onBack={() => navigateTo('landing')} />
+    );
+  }
+
   if (route === 'pembayaran') {
     return (
       <OrderFlowPage
         currentUser={loggedInUser}
         activeStep={3}
         onStepChange={(newStep) => {
-          if (newStep === 1) navigateTo('pilih-paket');
-          else if (newStep === 2) navigateTo('pilih-template');
+          if (newStep === 1) navigateTo('pilih-template');
+          else if (newStep === 2) navigateTo('pilih-paket');
           else if (newStep === 3) navigateTo('pembayaran');
         }}
         onChangePlan={() => navigateTo('pilih-paket')}
@@ -271,18 +292,18 @@ export function App() {
           setTimeout(() => {
             setShowToast(false);
           }, 4000);
-          // Set transaksi aktif karena setelah registrasi diarahkan untuk memilih paket
+          // Set transaksi aktif karena setelah registrasi diarahkan untuk memilih template terlebih dahulu
           try {
             sessionStorage.setItem('ij_transaction_active', 'true');
           } catch {}
-          // Arahkan ke tampilan price di luar (landing page section #harga)
+          // Arahkan ke Langkah 1: Pilihan Template di Landing Page
           navigateTo('landing');
           setTimeout(() => {
-            const el = document.getElementById('harga');
+            const el = document.getElementById('template');
             if (el) {
               el.scrollIntoView({ behavior: 'smooth' });
             } else {
-              window.location.hash = '#harga';
+              window.location.hash = '#template';
             }
           }, 150);
         }}
@@ -373,15 +394,27 @@ export function App() {
           try {
             sessionStorage.setItem('ij_transaction_active', 'true');
           } catch {}
-          const el = document.getElementById('template');
-          if (el) el.scrollIntoView({ behavior: 'smooth' });
-          else window.location.hash = '#template';
+          const rawTmpl = sessionStorage.getItem('ij_selected_template');
+          if (rawTmpl) {
+            navigateTo('pembayaran');
+          } else {
+            const el = document.getElementById('template');
+            if (el) el.scrollIntoView({ behavior: 'smooth' });
+            else window.location.hash = '#template';
+          }
         }}
         onSelectTemplate={(_templateId) => {
           try {
             sessionStorage.setItem('ij_transaction_active', 'true');
           } catch {}
-          navigateTo('pembayaran');
+          const rawPlan = sessionStorage.getItem('ij_selected_plan');
+          if (rawPlan) {
+            navigateTo('pembayaran');
+          } else {
+            const el = document.getElementById('harga');
+            if (el) el.scrollIntoView({ behavior: 'smooth' });
+            else window.location.hash = '#harga';
+          }
         }}
       />
     </>

@@ -16,6 +16,7 @@ import { DynamicConfettiAndShadows, BotanicalLeaves } from './DecorativeBackgrou
 import { PreviewModal } from './PreviewModal';
 import { Check, AlertCircle } from 'lucide-react';
 import type { AuthUser } from '../services/authService';
+import { getMyOrders } from '../services/orderService';
 
 interface LandingPageProps {
   currentUser?: AuthUser | null;
@@ -38,17 +39,29 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 }) => {
   const [previewTemplate, setPreviewTemplate] = useState<TemplateItem | null>(null);
   const [selectedTemplateNotice, setSelectedTemplateNotice] = useState<{ message: string; type?: 'success' | 'warning' } | null>(null);
+
+  // Status apakah pesanan sudah dibayar
+  const [isOrderPaid, setIsOrderPaid] = useState<boolean>(() => {
+    try {
+      return sessionStorage.getItem('ij_order_paid') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
   const [isTransactionActive, setIsTransactionActive] = useState<boolean>(() => {
     try {
+      if (sessionStorage.getItem('ij_order_paid') === 'true') return false;
       return sessionStorage.getItem('ij_transaction_active') === 'true';
     } catch {
       return false;
     }
   });
 
-  // Sinkronkan pilihan paket dan template dari sessionStorage
+  // Sinkronkan pilihan paket dan template dari sessionStorage (hanya jika belum dibayar)
   const [currentPlan, setCurrentPlan] = useState<any>(() => {
     try {
+      if (sessionStorage.getItem('ij_order_paid') === 'true') return null;
       const raw = sessionStorage.getItem('ij_selected_plan');
       return raw ? JSON.parse(raw) : null;
     } catch {
@@ -58,6 +71,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
   const [currentTemplate, setCurrentTemplate] = useState<any>(() => {
     try {
+      if (sessionStorage.getItem('ij_order_paid') === 'true') return null;
       const raw = sessionStorage.getItem('ij_selected_template');
       return raw ? JSON.parse(raw) : null;
     } catch {
@@ -65,44 +79,84 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     }
   });
 
+  // Periksa apakah user yang sedang login sudah memiliki pesanan yang berhasil dibayar di backend
+  useEffect(() => {
+    if (currentUser) {
+      getMyOrders()
+        .then((orders) => {
+          const hasPaid = orders.some((o) => o.status === 'paid');
+          const isUserActivelyOrdering = sessionStorage.getItem('ij_transaction_active') === 'true';
+          // Jika user sudah bayar dan sedang tidak sengaja membuat order baru, kembalikan navbar ke menu awal
+          if (hasPaid && !isUserActivelyOrdering) {
+            setIsOrderPaid(true);
+            setIsTransactionActive(false);
+            setCurrentPlan(null);
+            setCurrentTemplate(null);
+            try {
+              sessionStorage.setItem('ij_order_paid', 'true');
+              sessionStorage.removeItem('ij_transaction_active');
+              sessionStorage.removeItem('ij_selected_plan');
+              sessionStorage.removeItem('ij_selected_template');
+            } catch {}
+          }
+        })
+        .catch(() => {});
+    }
+  }, [currentUser]);
+
   useEffect(() => {
     const handleStorageChange = () => {
       try {
+        const isPaid = sessionStorage.getItem('ij_order_paid') === 'true';
+        setIsOrderPaid(isPaid);
+        if (isPaid) {
+          setIsTransactionActive(false);
+          setCurrentPlan(null);
+          setCurrentTemplate(null);
+          return;
+        }
+
+        const active = sessionStorage.getItem('ij_transaction_active') === 'true';
+        setIsTransactionActive(active);
         const rawPlan = sessionStorage.getItem('ij_selected_plan');
-        setCurrentPlan(rawPlan ? JSON.parse(rawPlan) : null);
+        setCurrentPlan(active && rawPlan ? JSON.parse(rawPlan) : null);
         const rawTmpl = sessionStorage.getItem('ij_selected_template');
-        setCurrentTemplate(rawTmpl ? JSON.parse(rawTmpl) : null);
-        setIsTransactionActive(sessionStorage.getItem('ij_transaction_active') === 'true');
+        setCurrentTemplate(active && rawTmpl ? JSON.parse(rawTmpl) : null);
       } catch {}
     };
+
     window.addEventListener('storage', handleStorageChange);
     window.addEventListener('hashchange', handleStorageChange);
+    window.addEventListener('ij_order_state_change', handleStorageChange);
+
     return () => {
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('hashchange', handleStorageChange);
+      window.removeEventListener('ij_order_state_change', handleStorageChange);
     };
   }, []);
 
   const orderState: OrderState = {
-    isTransacting: Boolean(isTransactionActive || currentPlan || currentTemplate),
+    // Stepper navbar HANYA aktif jika belum dibayar DAN user sedang aktif dalam alur pemesanan
+    isTransacting: Boolean(!isOrderPaid && isTransactionActive && (currentPlan || currentTemplate)),
     hasPlan: Boolean(currentPlan),
     planName: currentPlan?.name,
     hasTemplate: Boolean(currentTemplate),
     templateName: currentTemplate?.name,
-    step: (currentPlan && currentTemplate) ? 3 : currentPlan ? 2 : 1,
+    step: (currentTemplate && currentPlan) ? 3 : currentTemplate ? 2 : 1,
   };
 
   const handleNavigateStep = (step: 1 | 2 | 3) => {
     if (step === 1) {
-      const el = document.getElementById('harga');
-      if (el) el.scrollIntoView({ behavior: 'smooth' });
-      else window.location.hash = '#harga';
-    } else if (step === 2) {
       const el = document.getElementById('template');
       if (el) el.scrollIntoView({ behavior: 'smooth' });
       else window.location.hash = '#template';
+    } else if (step === 2) {
+      const el = document.getElementById('harga');
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+      else window.location.hash = '#harga';
     } else if (step === 3) {
-      if (currentPlan && currentTemplate) {
+      if (currentTemplate && currentPlan) {
         if (onSelectTemplate) {
           onSelectTemplate(currentTemplate.id);
         } else {
@@ -142,13 +196,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
     const selectedObj = planMap[planId];
     try {
+      sessionStorage.removeItem('ij_order_paid');
       sessionStorage.setItem('ij_selected_plan', JSON.stringify(selectedObj));
       sessionStorage.setItem('ij_transaction_active', 'true');
     } catch {}
+    setIsOrderPaid(false);
     setCurrentPlan(selectedObj);
     setIsTransactionActive(true);
 
-    // Jika template sudah dipilih sebelumnya, langsung lanjutkan ke pembayaran
+    // Jika template sudah dipilih sebelumnya (alur normal: Step 1: Template -> Step 2: Paket), langsung lanjut ke Step 3: Pembayaran
     if (currentTemplate) {
       setSelectedTemplateNotice({
         message: `${selectedObj.name} dipilih! Menuju formulir rincian pembayaran...`,
@@ -156,102 +212,131 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       });
       setTimeout(() => {
         setSelectedTemplateNotice(null);
-        if (onSelectTemplate) {
-          onSelectTemplate(currentTemplate.id);
+        if (onSelectPlan) {
+          onSelectPlan(planId);
         } else {
           window.location.hash = '#/pembayaran';
         }
       }, 700);
     } else {
-      // Jika template belum dipilih, arahkan ke section template di Landing Page
+      // Jika template belum dipilih, arahkan ke section template di Landing Page (Step 1)
       setSelectedTemplateNotice({
-        message: `${selectedObj.name} berhasil dipilih! Silakan pilih desain template undangan di bawah ini.`,
+        message: `${selectedObj.name} berhasil dipilih! Silakan pilih desain template undangan terlebih dahulu.`,
         type: 'success',
       });
       setTimeout(() => {
         setSelectedTemplateNotice(null);
-        if (onSelectPlan) {
-          onSelectPlan(planId);
-        } else {
-          const el = document.getElementById('template');
-          if (el) el.scrollIntoView({ behavior: 'smooth' });
-          else window.location.hash = '#template';
-        }
+        const el = document.getElementById('template');
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+        else window.location.hash = '#template';
       }, 800);
     }
   };
 
   const handleUseTemplate = (template: TemplateItem) => {
-    // ATURAN WAJIB: User harus memilih paket harga terlebih dahulu
-    const hasPlan = sessionStorage.getItem('ij_selected_plan');
-    if (!hasPlan) {
-      setSelectedTemplateNotice({
-        message: 'Silakan pilih Paket Harga terlebih dahulu sebelum menentukan template!',
-        type: 'warning',
-      });
-      setTimeout(() => {
-        setSelectedTemplateNotice(null);
-        const el = document.getElementById('harga');
-        if (el) {
-          el.scrollIntoView({ behavior: 'smooth' });
-        } else {
-          window.location.hash = '#harga';
-        }
-      }, 900);
-      return;
+    // LANGKAH 1: Pilih Desain Template
+    let targetTmplId = 'rustic-blossom';
+    let tmplObj = {
+      id: 'rustic-blossom',
+      name: 'Rustic Blossom (Template 1)',
+      category: 'Elegan & Mewah',
+      tag: 'Burgundy & Gold',
+      previewRoute: 'template-satu',
+      image: 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=600&q=80',
+      desc: 'Desain anggun dengan ornamen botani berkelas, perpaduan warna burgundy mewah dan sentuhan emas.',
+      badgeText: 'FAVORIT',
+    };
+
+    if (template.id === 't2' || template.themeStyle === 'dusty-rose') {
+      targetTmplId = 'dusty-rose';
+      tmplObj = {
+        id: 'dusty-rose',
+        name: 'Dusty Rose Lily (Template 2)',
+        category: 'Romantis & Manis',
+        tag: 'Soft Pastel Floral',
+        previewRoute: 'template-dua',
+        image: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=600&q=80',
+        desc: 'Nuansa bunga lily merah muda dan sentuhan modern minimalis yang memancarkan kehangatan cinta.',
+        badgeText: 'ROMANTIS',
+      };
+    } else if (template.id === 't3' || template.themeStyle === 'minang-maroon') {
+      targetTmplId = 'minang-maroon';
+      tmplObj = {
+        id: 'minang-maroon',
+        name: 'Minang Maroon Gold (Template 3)',
+        category: 'Tradisional & Megah',
+        tag: 'Adat Minang & Gold',
+        previewRoute: 'template-tiga',
+        image: 'https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=600&q=80',
+        desc: 'Perpaduan megah nuansa adat Minang dengan sentuhan warna maroon mewah dan detail emas berkelas.',
+        badgeText: 'GOLD',
+      };
+    } else if (template.id === 't4' || template.themeStyle === 'sage-garden') {
+      targetTmplId = 'sage-garden';
+      tmplObj = {
+        id: 'sage-garden',
+        name: 'Sage Garden Blossom (Template 4)',
+        category: 'Botanical & Natural',
+        tag: 'Sage Green & White',
+        previewRoute: 'template-empat',
+        image: 'https://images.unsplash.com/photo-1545232979-8bf68ee9b1af?auto=format&fit=crop&w=600&q=80',
+        desc: 'Nuansa alam botanical sage green yang asri, tenang, dan memikat untuk pernikahan impian.',
+        badgeText: 'GOLD',
+      };
+    } else if (template.id === 't-wisuda-1' || template.themeStyle === 'wisuda-karin') {
+      targetTmplId = 'wisuda-satu';
+      tmplObj = {
+        id: 'wisuda-satu',
+        name: 'Wisuda Karin (Template Wisuda 1)',
+        category: 'Undangan Wisuda',
+        tag: 'Wisuda & Kelulusan',
+        previewRoute: 'wisuda',
+        image: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=600&q=80',
+        desc: 'Perayaan kelulusan istimewa dengan desain modern, foto wisudawan dan detail acara.',
+        badgeText: 'BRONZE',
+      };
+    } else if (template.id === 't-wisuda-2' || template.themeStyle === 'wisuda-yolanda') {
+      targetTmplId = 'wisuda-dua';
+      tmplObj = {
+        id: 'wisuda-dua',
+        name: 'Wisuda Black Gold (Template Wisuda 2)',
+        category: 'Undangan Wisuda',
+        tag: 'Black Gold Luxury',
+        previewRoute: 'wisuda-dua',
+        image: 'https://images.unsplash.com/photo-1627556704290-2b1f5853ff78?auto=format&fit=crop&w=600&q=80',
+        desc: 'Tema Black & Gold mewah dan prestisius dengan countdown, live stream, galeri dan amplop ucapan selamat.',
+        badgeText: 'GOLD',
+      };
     }
 
-    const targetTmplId = template.id === 't1' ? 'rustic-blossom' : 'dusty-rose';
-    const tmplObj = targetTmplId === 'rustic-blossom'
-      ? {
-          id: 'rustic-blossom',
-          name: 'Rustic Blossom (Template 1)',
-          category: 'Elegan & Mewah',
-          tag: 'Burgundy & Gold',
-          previewRoute: 'template-satu',
-          image: 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=600&q=80',
-          desc: 'Desain anggun dengan ornamen botani berkelas, perpaduan warna burgundy mewah dan sentuhan emas.',
-          badgeText: 'FAVORIT',
-        }
-      : {
-          id: 'dusty-rose',
-          name: 'Dusty Rose Lily (Template 2)',
-          category: 'Romantis & Manis',
-          tag: 'Soft Pastel Floral',
-          previewRoute: 'template-dua',
-          image: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=600&q=80',
-          desc: 'Nuansa bunga lily merah muda dan sentuhan modern minimalis yang memancarkan kehangatan cinta.',
-          badgeText: 'ROMANTIS',
-        };
-
     try {
+      sessionStorage.removeItem('ij_order_paid');
       sessionStorage.setItem('ij_selected_template', JSON.stringify(tmplObj));
       sessionStorage.setItem('ij_transaction_active', 'true');
     } catch {}
+    setIsOrderPaid(false);
     setCurrentTemplate(tmplObj);
     setIsTransactionActive(true);
 
-    setSelectedTemplateNotice({
-      message: `Desain "${template.title}" dipilih! Menuju formulir rincian pembayaran...`,
-      type: 'success',
-    });
-    setTimeout(() => {
-      setSelectedTemplateNotice(null);
-      if (onSelectTemplate) {
-        onSelectTemplate(targetTmplId);
-      } else {
-        window.location.hash = '#/pembayaran';
-      }
-    }, 600);
-  };
-
-  const handleUseAtmCard = () => {
-    // ATURAN WAJIB: User harus memilih paket harga terlebih dahulu
-    const hasPlan = sessionStorage.getItem('ij_selected_plan');
-    if (!hasPlan) {
+    // Jika Paket Harga sudah dipilih sebelumnya, langsung lanjutkan ke pembayaran
+    if (currentPlan) {
       setSelectedTemplateNotice({
-        message: 'Silakan pilih Paket Harga terlebih dahulu sebelum menentukan template!',
-        type: 'warning',
+        message: `Desain "${template.title}" dipilih! Menuju formulir rincian pembayaran...`,
+        type: 'success',
+      });
+      setTimeout(() => {
+        setSelectedTemplateNotice(null);
+        if (onSelectTemplate) {
+          onSelectTemplate(targetTmplId);
+        } else {
+          window.location.hash = '#/pembayaran';
+        }
+      }, 600);
+    } else {
+      // Alur Utama Step 1 -> Step 2: Arahkan ke Section Paket Harga
+      setSelectedTemplateNotice({
+        message: `Desain "${template.title}" berhasil dipilih! Silakan tentukan Paket Harga di bawah ini.`,
+        type: 'success',
       });
       setTimeout(() => {
         setSelectedTemplateNotice(null);
@@ -261,10 +346,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         } else {
           window.location.hash = '#harga';
         }
-      }, 900);
-      return;
+      }, 700);
     }
+  };
 
+  const handleUseAtmCard = () => {
     const atmObj = {
       id: 'card-atm',
       name: 'Royal ATM Card Invitation',
@@ -277,24 +363,42 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     };
 
     try {
+      sessionStorage.removeItem('ij_order_paid');
       sessionStorage.setItem('ij_selected_template', JSON.stringify(atmObj));
       sessionStorage.setItem('ij_transaction_active', 'true');
     } catch {}
+    setIsOrderPaid(false);
     setCurrentTemplate(atmObj);
     setIsTransactionActive(true);
 
-    setSelectedTemplateNotice({
-      message: `Desain "${atmObj.name}" dipilih! Menuju formulir rincian pembayaran...`,
-      type: 'success',
-    });
-    setTimeout(() => {
-      setSelectedTemplateNotice(null);
-      if (onSelectTemplate) {
-        onSelectTemplate('card-atm');
-      } else {
-        window.location.hash = '#/pembayaran';
-      }
-    }, 600);
+    if (currentPlan) {
+      setSelectedTemplateNotice({
+        message: `Desain "${atmObj.name}" dipilih! Menuju formulir rincian pembayaran...`,
+        type: 'success',
+      });
+      setTimeout(() => {
+        setSelectedTemplateNotice(null);
+        if (onSelectTemplate) {
+          onSelectTemplate('card-atm');
+        } else {
+          window.location.hash = '#/pembayaran';
+        }
+      }, 600);
+    } else {
+      setSelectedTemplateNotice({
+        message: `Desain "${atmObj.name}" berhasil dipilih! Silakan tentukan Paket Harga di bawah ini.`,
+        type: 'success',
+      });
+      setTimeout(() => {
+        setSelectedTemplateNotice(null);
+        const el = document.getElementById('harga');
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth' });
+        } else {
+          window.location.hash = '#harga';
+        }
+      }, 700);
+    }
   };
 
   return (
