@@ -4,6 +4,7 @@ import confetti from 'canvas-confetti';
 import { User, Mail, Phone, Lock, Eye, EyeOff, ArrowRight, ShieldCheck, Check, Sparkles, AlertCircle, X } from 'lucide-react';
 import { authenticateWithGoogle, registerUser } from '../services/authService';
 import { triggerGoogleSignInPrompt } from '../services/googleAuth';
+import { triggerLoading } from '../components/common/LottieLoader';
 
 interface RegisterProps {
   onSwitchToLogin: () => void;
@@ -91,6 +92,7 @@ export const Register: React.FC<RegisterProps> = ({ onSwitchToLogin, onSuccessRe
     }
 
     setIsLoading(true);
+    triggerLoading(true, 'Mendaftarkan Akun...', 'Menyiapkan akun & paket layanan Anda...');
     try {
       const res = await registerUser({ name, email, phone, password });
       setRegisterSuccess(true);
@@ -107,12 +109,14 @@ export const Register: React.FC<RegisterProps> = ({ onSwitchToLogin, onSuccessRe
       }
     } finally {
       setIsLoading(false);
+      triggerLoading(false);
     }
   };
 
   const handleGoogleRegister = async () => {
     setErrorMessage('');
     setIsLoading(true);
+    triggerLoading(true, 'Menghubungkan Akun Google...', 'Mendaftarkan profil Google Anda...');
     try {
       const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
       if (!clientId) {
@@ -120,6 +124,7 @@ export const Register: React.FC<RegisterProps> = ({ onSwitchToLogin, onSuccessRe
           'VITE_GOOGLE_CLIENT_ID belum diatur di file .env frontend. Tambahkan Client ID Google OAuth Anda.'
         );
         setIsLoading(false);
+        triggerLoading(false);
         return;
       }
 
@@ -139,6 +144,7 @@ export const Register: React.FC<RegisterProps> = ({ onSwitchToLogin, onSuccessRe
       }
     } finally {
       setIsLoading(false);
+      triggerLoading(false);
     }
   };
 

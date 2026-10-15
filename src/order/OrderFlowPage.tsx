@@ -17,8 +17,10 @@ import {
   Clock
 } from 'lucide-react';
 import { createOrder, markOrderPaid } from '../services/orderService';
+import { getPricingPlans } from '../services/pricingService';
 import type { AuthUser } from '../services/authService';
 import { BotanicalLeaves } from '../landingPage/DecorativeBackground';
+import { triggerLoading } from '../components/common/LottieLoader';
 
 declare global {
   interface Window {
@@ -246,6 +248,24 @@ export const OrderFlowPage: React.FC<OrderFlowPageProps> = ({
     return PLANS[1]; // Default Gold
   });
 
+  // Sync selected plan price & features with backend Master changes
+  useEffect(() => {
+    getPricingPlans().then((serverPlans) => {
+      if (!serverPlans || serverPlans.length === 0) return;
+      const matched = serverPlans.find((sp) => sp.id === localPlan.id);
+      if (matched && (matched.price !== localPlan.price || matched.name !== localPlan.name)) {
+        setLocalPlan((prev) => ({
+          ...prev,
+          name: matched.name,
+          price: matched.price,
+          originalPrice: matched.originalPrice || prev.originalPrice,
+          badge: matched.badge || prev.badge,
+          features: matched.features && matched.features.length > 0 ? matched.features : prev.features,
+        }));
+      }
+    });
+  }, [localPlan.id]);
+
   const [localTemplate, setLocalTemplate] = useState<TemplateOption>(() => {
     try {
       const saved = sessionStorage.getItem('ij_selected_template');
@@ -393,6 +413,7 @@ export const OrderFlowPage: React.FC<OrderFlowPageProps> = ({
   };
 
   const handleMarkPaymentSuccess = async (orderId?: number | null) => {
+    triggerLoading(true, 'Memverifikasi Pembayaran...', 'Mengonfirmasi status transaksi & mengaktifkan pesanan...');
     const targetId = orderId || activeCreatedOrderId;
     if (targetId) {
       try {
@@ -401,6 +422,7 @@ export const OrderFlowPage: React.FC<OrderFlowPageProps> = ({
         console.error('Mark paid err:', err);
       }
     }
+    triggerLoading(false);
     setIsSuccessModalOpen(true);
     triggerConfetti();
     try {
@@ -416,6 +438,8 @@ export const OrderFlowPage: React.FC<OrderFlowPageProps> = ({
   const handleConfirmPayment = async () => {
     setIsSubmitting(true);
     setPaymentNotice(null);
+    triggerLoading(true, 'Menyiapkan Pembayaran...', 'Menghubungkan ke gerbang pembayaran Midtrans QRIS...');
+
     try {
       const res = await createOrder({
         plan_name: selectedPlan.name,
@@ -440,23 +464,27 @@ export const OrderFlowPage: React.FC<OrderFlowPageProps> = ({
 
       // LANGSUNG MEMUNCULKAN POPUP RESMI MIDTRANS SNAP
       if (res.snap_token && typeof window !== 'undefined' && window.snap) {
+        triggerLoading(false);
         window.snap.pay(res.snap_token, {
           onSuccess: async () => {
             await handleMarkPaymentSuccess(orderId);
           },
           onPending: () => {
+            triggerLoading(false);
             setPaymentNotice({
               type: 'pending',
               message: 'Transaksi sedang menunggu penyelesaian pembayaran di Midtrans.'
             });
           },
           onError: () => {
+            triggerLoading(false);
             setPaymentNotice({
               type: 'error',
               message: 'Pembayaran Midtrans dibatalkan atau terjadi kesalahan.'
             });
           },
           onClose: () => {
+            triggerLoading(false);
             setPaymentNotice({
               type: 'info',
               message: 'Jendela pembayaran Midtrans ditutup. Silakan tekan tombol "Bayar Sekarang" kembali jika ingin melanjutkan.'
@@ -464,11 +492,14 @@ export const OrderFlowPage: React.FC<OrderFlowPageProps> = ({
           }
         });
       } else if (res.redirect_url) {
+        triggerLoading(true, 'Mengalihkan ke Pembayaran...', 'Membuka portal pembayaran Midtrans...');
         window.location.href = res.redirect_url;
       } else {
+        triggerLoading(false);
         alert('Gagal mendapatkan token pembayaran Midtrans. Silakan periksa koneksi atau coba beberapa saat lagi.');
       }
     } catch (err: any) {
+      triggerLoading(false);
       alert(err.message || 'Gagal memproses pembayaran. Silakan coba kembali.');
     } finally {
       setIsSubmitting(false);

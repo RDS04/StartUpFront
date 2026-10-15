@@ -1,87 +1,138 @@
 import { useState, useEffect, useRef } from 'react';
 import { Check, Sparkles, ShieldCheck, Zap, ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
+import { getPricingPlans } from '../services/pricingService';
 
 export interface PricingSectionProps {
   onSelectPlan?: (planId: 'silver' | 'gold' | 'platinum') => void;
 }
 
+const DEFAULT_PLANS = [
+  {
+    id: 'silver' as const,
+    name: 'Paket Silver',
+    subtitle: 'Hemat untuk Acara Intim & Sederhana',
+    popular: false,
+    price: '49.000',
+    originalPrice: '99.000',
+    accentColor: 'border-slate-200 bg-white hover:border-slate-300',
+    badge: 'Paling Hemat',
+    badgeStyle: 'bg-slate-100 text-slate-700',
+    features: [
+      'Masa Aktif 6 Bulan',
+      '1 Sesi Acara (Akad atau Resepsi)',
+      'Maksimal 5 Foto Galeri',
+      'Background Musik (Pilihan Tema)',
+      'Navigasi Google Maps Presisi',
+      'Amplop Digital (1 No. Rekening)',
+      'RSVP & Buku Tamu Standar',
+      'Sebar Tamu Tanpa Batas (Unlimited)',
+    ],
+    ctaText: 'Pilih Paket Silver',
+    ctaStyle: 'bg-slate-900 hover:bg-slate-800 text-white',
+    waMsg: 'Halo%20Admin%20i%20say%20yes,%20saya%20tertarik%20pesan%20Paket%20Silver%20(Rp%2049.000)',
+  },
+  {
+    id: 'gold' as const,
+    name: 'Paket Gold',
+    subtitle: 'Fitur Lengkap Pilihan Favorit 90% Calon Pengantin',
+    popular: true,
+    price: '89.000',
+    originalPrice: '179.000',
+    accentColor: 'border-emerald-500/80 bg-gradient-to-b from-white to-emerald-50/30 shadow-[0_20px_50px_rgba(22,91,57,0.15)] ring-2 ring-emerald-600',
+    badge: 'BEST SELLER 🔥',
+    badgeStyle: 'bg-[#165b39] text-white shadow-sm',
+    features: [
+      'Masa Aktif SELAMANYA (Lifetime)',
+      'Multi Acara (Akad, Resepsi, & Syukuran)',
+      'Galeri 15 Foto HD + 1 Video YouTube',
+      'Custom Musik Sendiri (Upload MP3 Bebas)',
+      'Amplop Digital Multi Rekening & QRIS',
+      'RSVP Realtime + Notifikasi WhatsApp',
+      'Countdown Timer & Add to Google Calendar',
+      'Generator Nama Tamu Otomatis Tanpa Batas',
+      'Kolom Doa & Ucapan Tamu Interaktif',
+      'Bebas Revisi Data Kapan Saja',
+    ],
+    ctaText: 'Pilih Paket Gold (Rekomendasi)',
+    ctaStyle: 'bg-gradient-to-r from-[#175b39] via-[#1f6e47] to-[#b38b38] hover:brightness-105 text-white shadow-md',
+    waMsg: 'Halo%20Admin%20i%20say%20yes,%20saya%20mau%20pesan%20Paket%20Gold%20Best%20Seller%20(Rp%2089.000)',
+  },
+  {
+    id: 'platinum' as const,
+    name: 'Paket Platinum VIP',
+    subtitle: 'Eksklusif Domain Custom & Layanan Siap Terima Beres',
+    popular: false,
+    price: '149.000',
+    originalPrice: '299.000',
+    accentColor: 'border-amber-300 bg-white hover:border-amber-400 shadow-lg shadow-amber-950/5',
+    badge: 'Full VIP & Domain',
+    badgeStyle: 'bg-amber-100 text-amber-900 border border-amber-300',
+    features: [
+      'Semua Fitur di Paket Gold',
+      'Custom Domain Pribadi (namakamu.com)',
+      'Input Data Dibantu Tim Desainer (Terima Beres)',
+      'Fitur Cerita Cinta (Love Story Timeline)',
+      'Integrasi Live Streaming YouTube / Zoom',
+      'QR Code Presensi Meja Resepsi (Buku Tamu QR)',
+      'Filter Instagram Wedding Custom (Opsional)',
+      'Prioritas Bantuan Teknis 24 Jam Nonstop',
+    ],
+    ctaText: 'Pilih Paket Platinum',
+    ctaStyle: 'bg-[#113a25] hover:bg-[#0c2a1a] text-white',
+    waMsg: 'Halo%20Admin%20i%20say%20yes,%20saya%20tertarik%20pesan%20Paket%20Platinum%20VIP%20(Rp%20149.000)',
+  },
+];
+
 export const PricingSection: React.FC<PricingSectionProps> = ({ onSelectPlan }) => {
-  const plans = [
-    {
-      id: 'silver' as const,
-      name: 'Paket Silver',
-      subtitle: 'Hemat untuk Acara Intim & Sederhana',
-      popular: false,
-      price: '49.000',
-      originalPrice: '99.000',
-      accentColor: 'border-slate-200 bg-white hover:border-slate-300',
-      badge: 'Paling Hemat',
-      badgeStyle: 'bg-slate-100 text-slate-700',
-      features: [
-        'Masa Aktif 6 Bulan',
-        '1 Sesi Acara (Akad atau Resepsi)',
-        'Maksimal 5 Foto Galeri',
-        'Background Musik (Pilihan Tema)',
-        'Navigasi Google Maps Presisi',
-        'Amplop Digital (1 No. Rekening)',
-        'RSVP & Buku Tamu Standar',
-        'Sebar Tamu Tanpa Batas (Unlimited)',
-      ],
-      ctaText: 'Pilih Paket Silver',
-      ctaStyle: 'bg-slate-900 hover:bg-slate-800 text-white',
-      waMsg: 'Halo%20Admin%20i%20say%20yes,%20saya%20tertarik%20pesan%20Paket%20Silver%20(Rp%2049.000)',
-    },
-    {
-      id: 'gold' as const,
-      name: 'Paket Gold',
-      subtitle: 'Fitur Lengkap Pilihan Favorit 90% Calon Pengantin',
-      popular: true,
-      price: '89.000',
-      originalPrice: '179.000',
-      accentColor: 'border-emerald-500/80 bg-gradient-to-b from-white to-emerald-50/30 shadow-[0_20px_50px_rgba(22,91,57,0.15)] ring-2 ring-emerald-600',
-      badge: 'BEST SELLER 🔥',
-      badgeStyle: 'bg-[#165b39] text-white shadow-sm',
-      features: [
-        'Masa Aktif SELAMANYA (Lifetime)',
-        'Multi Acara (Akad, Resepsi, & Syukuran)',
-        'Galeri 15 Foto HD + 1 Video YouTube',
-        'Custom Musik Sendiri (Upload MP3 Bebas)',
-        'Amplop Digital Multi Rekening & QRIS',
-        'RSVP Realtime + Notifikasi WhatsApp',
-        'Countdown Timer & Add to Google Calendar',
-        'Generator Nama Tamu Otomatis Tanpa Batas',
-        'Kolom Doa & Ucapan Tamu Interaktif',
-        'Bebas Revisi Data Kapan Saja',
-      ],
-      ctaText: 'Pilih Paket Gold (Rekomendasi)',
-      ctaStyle: 'bg-gradient-to-r from-[#175b39] via-[#1f6e47] to-[#b38b38] hover:brightness-105 text-white shadow-md',
-      waMsg: 'Halo%20Admin%20i%20say%20yes,%20saya%20mau%20pesan%20Paket%20Gold%20Best%20Seller%20(Rp%2089.000)',
-    },
-    {
-      id: 'platinum' as const,
-      name: 'Paket Platinum VIP',
-      subtitle: 'Eksklusif Domain Custom & Layanan Siap Terima Beres',
-      popular: false,
-      price: '149.000',
-      originalPrice: '299.000',
-      accentColor: 'border-amber-300 bg-white hover:border-amber-400 shadow-lg shadow-amber-950/5',
-      badge: 'Full VIP & Domain',
-      badgeStyle: 'bg-amber-100 text-amber-900 border border-amber-300',
-      features: [
-        'Semua Fitur di Paket Gold',
-        'Custom Domain Pribadi (namakamu.com)',
-        'Input Data Dibantu Tim Desainer (Terima Beres)',
-        'Fitur Cerita Cinta (Love Story Timeline)',
-        'Integrasi Live Streaming YouTube / Zoom',
-        'QR Code Presensi Meja Resepsi (Buku Tamu QR)',
-        'Filter Instagram Wedding Custom (Opsional)',
-        'Prioritas Bantuan Teknis 24 Jam Nonstop',
-      ],
-      ctaText: 'Pilih Paket Platinum',
-      ctaStyle: 'bg-[#113a25] hover:bg-[#0c2a1a] text-white',
-      waMsg: 'Halo%20Admin%20i%20say%20yes,%20saya%20tertarik%20pesan%20Paket%20Platinum%20VIP%20(Rp%20149.000)',
-    },
-  ];
+  const [plans, setPlans] = useState(DEFAULT_PLANS);
+
+  // Synchronize live pricing & features from Master Dashboard backend
+  useEffect(() => {
+    let isMounted = true;
+    getPricingPlans().then((serverPlans) => {
+      if (!isMounted || !serverPlans || serverPlans.length === 0) return;
+
+      setPlans((prev) => {
+        return serverPlans.map((sp) => {
+          const existing = prev.find((p) => p.id === sp.id);
+          const isGold = sp.id === 'gold' || sp.isPopular;
+          const isPlatinum = sp.id === 'platinum';
+
+          return {
+            id: sp.id as any,
+            name: sp.name,
+            subtitle: sp.subtitle || existing?.subtitle || '',
+            popular: sp.isPopular,
+            price: sp.formattedPrice || String(sp.price),
+            originalPrice: sp.formattedOriginalPrice || (sp.originalPrice ? String(sp.originalPrice) : ''),
+            accentColor: isGold
+              ? 'border-emerald-500/80 bg-gradient-to-b from-white to-emerald-50/30 shadow-[0_20px_50px_rgba(22,91,57,0.15)] ring-2 ring-emerald-600'
+              : isPlatinum
+              ? 'border-amber-300 bg-white hover:border-amber-400 shadow-lg shadow-amber-950/5'
+              : 'border-slate-200 bg-white hover:border-slate-300',
+            badge: sp.badge || existing?.badge || '',
+            badgeStyle: isGold
+              ? 'bg-[#165b39] text-white shadow-sm'
+              : isPlatinum
+              ? 'bg-amber-100 text-amber-900 border border-amber-300'
+              : 'bg-slate-100 text-slate-700',
+            features: sp.features && sp.features.length > 0 ? sp.features : (existing?.features || []),
+            ctaText: sp.ctaText || existing?.ctaText || 'Pilih Paket',
+            ctaStyle: isGold
+              ? 'bg-gradient-to-r from-[#175b39] via-[#1f6e47] to-[#b38b38] hover:brightness-105 text-white shadow-md'
+              : isPlatinum
+              ? 'bg-[#113a25] hover:bg-[#0c2a1a] text-white'
+              : 'bg-slate-900 hover:bg-slate-800 text-white',
+            waMsg: `Halo%20Admin%20i%20say%20yes,%20saya%20tertarik%20pesan%20${encodeURIComponent(sp.name)}%20(Rp%20${sp.formattedPrice})`,
+          };
+        });
+      });
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Mobile slider state (starts with index 1: Paket Gold Best Seller!)
   const [activeIndex, setActiveIndex] = useState(1);

@@ -117,6 +117,16 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
             <span>Upgrade / Perpanjang Paket</span>
           </button>
         )}
+        <a
+          href="http://localhost:8000/master/login"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-purple-50 hover:bg-purple-100/80 text-purple-900 border border-purple-200/80 text-xs font-semibold transition cursor-pointer"
+          title="Buka Panel Master Administrator"
+        >
+          <ShieldCheck className="w-4 h-4 text-purple-700" />
+          <span>Portal Master Admin</span>
+        </a>
       </div>
 
       {/* Subscription Status Card */}

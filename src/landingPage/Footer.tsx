@@ -144,10 +144,22 @@ export const Footer = () => {
         {/* Bottom Strip */}
         <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-emerald-200/60">
           <p>© 2026 <strong className="text-white">i say yes</strong>. Seluruh hak cipta dilindungi.</p>
-          <div className="flex items-center gap-1">
-            <span>Dibuat dengan</span>
-            <Heart className="w-3.5 h-3.5 fill-rose-500 text-rose-500 inline mx-0.5" />
-            <span>untuk kebahagiaan calon pengantin Indonesia</span>
+          <div className="flex items-center gap-4">
+            <a 
+              href="http://localhost:8000/master/login" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="px-3 py-1 rounded-full bg-emerald-950 border border-emerald-600/50 text-amber-300 hover:text-white hover:bg-emerald-800 text-[11px] font-bold flex items-center gap-1.5 transition-all hover:scale-105 shadow-sm"
+              title="Akses Portal Khusus Master Administrator"
+            >
+              <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
+              <span>Portal Master</span>
+            </a>
+            <div className="flex items-center gap-1">
+              <span>Dibuat dengan</span>
+              <Heart className="w-3.5 h-3.5 fill-rose-500 text-rose-500 inline mx-0.5" />
+              <span>untuk kebahagiaan calon pengantin Indonesia</span>
+            </div>
           </div>
         </div>
 

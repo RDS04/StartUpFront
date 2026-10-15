@@ -4,6 +4,7 @@ import confetti from 'canvas-confetti';
 import { Mail, Lock, Eye, EyeOff, ArrowRight, ShieldCheck, Check, Sparkles, AlertCircle, X } from 'lucide-react';
 import { authenticateWithGoogle, loginUser } from '../services/authService';
 import { triggerGoogleSignInPrompt } from '../services/googleAuth';
+import { triggerLoading } from '../components/common/LottieLoader';
 
 interface LoginProps {
   onSwitchToRegister: () => void;
@@ -43,6 +44,7 @@ export const Login: React.FC<LoginProps> = ({ onSwitchToRegister, onSuccessLogin
     }
 
     setIsLoading(true);
+    triggerLoading(true, 'Memverifikasi Akun...', 'Mengecek email dan kata sandi Anda...');
     try {
       const res = await loginUser({ email, password });
       setLoginSuccess(true);
@@ -55,6 +57,7 @@ export const Login: React.FC<LoginProps> = ({ onSwitchToRegister, onSuccessLogin
       setErrorMessage(err.message || 'Email atau kata sandi tidak cocok. Silakan coba lagi.');
     } finally {
       setIsLoading(false);
+      triggerLoading(false);
     }
   };
 
@@ -71,6 +74,7 @@ export const Login: React.FC<LoginProps> = ({ onSwitchToRegister, onSuccessLogin
     setErrorMessage('');
     setShowNotRegisteredPopup(false);
     setIsLoading(true);
+    triggerLoading(true, 'Menghubungkan Akun Google...', 'Memverifikasi profil Google Anda...');
     try {
       const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
       if (!clientId) {
@@ -78,6 +82,7 @@ export const Login: React.FC<LoginProps> = ({ onSwitchToRegister, onSuccessLogin
           'VITE_GOOGLE_CLIENT_ID belum diatur di file .env frontend. Tambahkan Client ID Google OAuth Anda.'
         );
         setIsLoading(false);
+        triggerLoading(false);
         return;
       }
 
@@ -99,6 +104,7 @@ export const Login: React.FC<LoginProps> = ({ onSwitchToRegister, onSuccessLogin
       }
     } finally {
       setIsLoading(false);
+      triggerLoading(false);
     }
   };
 

@@ -12,6 +12,7 @@ import { DashboardPage } from './dashboard/DashboardPage';
 import { ArrowLeft, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getSavedAuthUser, fetchCurrentUser, logoutAuth, type AuthUser } from './services/authService';
+import { GlobalLoadingOverlay } from './components/common/LottieLoader';
 
 type PageRoute = 
   | 'landing' 
@@ -417,9 +418,13 @@ export function App() {
           }
         }}
       />
+
+      {/* Global Lottie Loading Animation Overlay */}
+      <GlobalLoadingOverlay />
     </>
   );
 }
 
 export default App;
+
 
