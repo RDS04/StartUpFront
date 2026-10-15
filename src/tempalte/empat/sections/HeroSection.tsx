@@ -1,8 +1,9 @@
 import React from 'react';
 import { Sparkles, Calendar, MapPin } from 'lucide-react';
-import { ASSETS, WEDDING_INFO } from '../data';
+import { useTemplateEmpatData } from '../context';
 
 export const HeroSection: React.FC = () => {
+  const { weddingInfo: WEDDING_INFO, assets: ASSETS } = useTemplateEmpatData();
   return (
     <section id="hero-section" className="relative min-h-[90vh] flex flex-col items-center justify-center text-center px-6 py-16 overflow-hidden bg-[#fafbf7]">
       {/* Background Soft Glow Pattern */}
@@ -53,7 +54,7 @@ export const HeroSection: React.FC = () => {
 
         {/* Names */}
         <h1 className="font-sage-script text-5xl sm:text-6xl text-[#2b3b2d] leading-none mb-2">
-          Eza <span className="text-[#c5a454] font-serif">&amp;</span> Islammy
+          {WEDDING_INFO.groomNickname} <span className="text-[#c5a454] font-serif">&amp;</span> {WEDDING_INFO.brideNickname}
         </h1>
 
         <p className="font-sage-serif text-xs uppercase tracking-[0.25em] text-[#63765f] font-semibold mb-4">

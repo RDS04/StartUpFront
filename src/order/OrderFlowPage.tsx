@@ -960,6 +960,11 @@ export const OrderFlowPage: React.FC<OrderFlowPageProps> = ({
                       sessionStorage.removeItem('ij_selected_plan');
                       sessionStorage.removeItem('ij_selected_template');
                       sessionStorage.setItem('ij_order_paid', 'true');
+                      // Simpan template yang baru saja dibeli sebagai activeTemplateId
+                      const rawDash = localStorage.getItem('ij_dashboard_data');
+                      const dashObj = rawDash ? JSON.parse(rawDash) : {};
+                      dashObj.activeTemplateId = selectedTemplate.previewRoute || selectedTemplate.id;
+                      localStorage.setItem('ij_dashboard_data', JSON.stringify(dashObj));
                       window.dispatchEvent(new Event('storage'));
                       window.dispatchEvent(new CustomEvent('ij_order_state_change', { detail: { isPaid: true } }));
                     } catch {}

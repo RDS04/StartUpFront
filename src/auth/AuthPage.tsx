@@ -6,12 +6,14 @@ import { Register } from './Register';
 
 export interface AuthPageProps {
   initialMode?: 'login' | 'register';
+  initialAlert?: string;
   onBackToHome: () => void;
   onAuthSuccess?: (user: { name?: string; email: string; avatar?: string }) => void;
 }
 
 export const AuthPage: React.FC<AuthPageProps> = ({
   initialMode = 'login',
+  initialAlert,
   onBackToHome,
   onAuthSuccess,
 }) => {
@@ -27,6 +29,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
         {mode === 'login' ? (
           <Login
             key="login-form"
+            initialAlert={initialAlert}
             onSwitchToRegister={() => setMode('register')}
             onSuccessLogin={(userData) => {
               if (onAuthSuccess) {
@@ -53,4 +56,3 @@ export const AuthPage: React.FC<AuthPageProps> = ({
     </AuthLayout>
   );
 };
-

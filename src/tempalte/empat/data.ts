@@ -1,16 +1,32 @@
 import type { CoupleBio, EventDetail, TimelineStory, BankAccount, GuestBookMessage, GalleryPhoto } from './types';
+import { getSavedDashboardData } from '../../dashboard/initialData';
 
 export const ASSETS = {
   // Ornamen Floral Daun Watercolor Khas Sage Garden
   leafCorner: 'https://undangandigitalhbkomp.com/wp-content/uploads/2023/09/WhatsApp_Image_2023-09-12_at_15.09.15-removebg-preview-1.png',
   bgTexture: 'https://undangandigitalhbkomp.com/wp-content/uploads/2023/09/Cover-Greenl.png',
   
-  // Foto Mempelai
-  coupleCover: 'https://undangandigitalhbkomp.com/wp-content/uploads/2023/11/WhatsApp-Image-2023-11-14-at-09.11.57.jpeg',
-  groomPhoto: 'https://undangandigitalhbkomp.com/wp-content/uploads/2023/11/WhatsApp-Image-2023-11-14-at-09.11.56.jpeg',
-  bridePhoto: 'https://undangandigitalhbkomp.com/wp-content/uploads/2023/11/WhatsApp-Image-2023-11-14-at-09.11.56-1.jpeg',
-  coupleHero: 'https://undangandigitalhbkomp.com/wp-content/uploads/2023/11/WhatsApp-Image-2023-11-14-at-09.11.57-1.jpeg',
-  coupleClosing: 'https://undangandigitalhbkomp.com/wp-content/uploads/2023/11/WhatsApp-Image-2023-11-14-at-09.11.58.jpeg',
+  // Foto Mempelai (Dinamis dari Upload Dashboard)
+  get coupleCover() {
+    const d = getSavedDashboardData();
+    return d.bride.avatar || d.groom.avatar || 'https://undangandigitalhbkomp.com/wp-content/uploads/2023/11/WhatsApp-Image-2023-11-14-at-09.11.57.jpeg';
+  },
+  get groomPhoto() {
+    const d = getSavedDashboardData();
+    return d.groom.avatar || 'https://undangandigitalhbkomp.com/wp-content/uploads/2023/11/WhatsApp-Image-2023-11-14-at-09.11.56.jpeg';
+  },
+  get bridePhoto() {
+    const d = getSavedDashboardData();
+    return d.bride.avatar || 'https://undangandigitalhbkomp.com/wp-content/uploads/2023/11/WhatsApp-Image-2023-11-14-at-09.11.56-1.jpeg';
+  },
+  get coupleHero() {
+    const d = getSavedDashboardData();
+    return d.groom.avatar || 'https://undangandigitalhbkomp.com/wp-content/uploads/2023/11/WhatsApp-Image-2023-11-14-at-09.11.57-1.jpeg';
+  },
+  get coupleClosing() {
+    const d = getSavedDashboardData();
+    return d.bride.avatar || 'https://undangandigitalhbkomp.com/wp-content/uploads/2023/11/WhatsApp-Image-2023-11-14-at-09.11.58.jpeg';
+  },
   
   // Musik Latar
   bgMusic: 'https://undangandigitalhbkomp.com/wp-content/uploads/2023/05/Marry-Your-Daughter-Brian-Mcknight-Lyrics-video-dan-terjemahan.mp3',
@@ -22,35 +38,69 @@ export const ASSETS = {
 };
 
 export const WEDDING_INFO = {
-  groomNickname: 'Islammy',
-  brideNickname: 'Eza',
-  coupleDisplay: 'Eza & Islammy',
-  weddingDateDisplay: 'Minggu, 17 Desember 2023',
-  targetDate: '2023-12-17T10:00:00', // Tanggal acara
+  get groomNickname() {
+    return getSavedDashboardData().groom.nickName || 'Andi';
+  },
+  get brideNickname() {
+    return getSavedDashboardData().bride.nickName || 'Rosna';
+  },
+  get coupleDisplay() {
+    const d = getSavedDashboardData();
+    return `${d.groom.nickName} & ${d.bride.nickName}`;
+  },
+  get weddingDateDisplay() {
+    return getSavedDashboardData().event.dateDisplay || 'Sabtu, 24 Oktober 2026';
+  },
+  get targetDate() {
+    const d = getSavedDashboardData();
+    return `${d.event.date || '2026-10-24'}T08:00:00`;
+  },
   googleCalendarUrl:
-    'https://www.google.com/calendar/render?action=TEMPLATE&text=The+Wedding+Of+Eza+%26+Islammy&location=Komplek+Pasar+Siteba+No.+45+A%2C+RT+001%2C+RW+020%2C+Surau+Gadang%2C+Nanggalo&dates=20231217T030000Z/20231217T150000Z',
-  physicalGiftAddress: 'Komplek Pasar Siteba No. 45 A, RT 001, RW 020, Kelurahan Surau Gadang, Kecamatan Nanggalo, Kota Padang',
-  whatsappRsvpNumber: '6282391680946',
+    'https://www.google.com/calendar/render?action=TEMPLATE&text=The+Wedding+Of+Andi+%26+Rosna',
+  get physicalGiftAddress() {
+    return getSavedDashboardData().giftAddress?.address || 'Padang, Sumatera Barat';
+  },
+  whatsappRsvpNumber: '6281234567890',
 };
 
 export const BRIDE_DATA: CoupleBio = {
-  name: 'Eza',
-  fullName: 'Silvana Reza Anggraini, S.Pd',
-  childOrder: 'Putri Pertama dari :',
-  father: 'Bapak Zulkarnaini Rafa\'ali',
-  mother: 'Ibu Reni Susanti (Almh)',
-  photoUrl: ASSETS.bridePhoto,
-  instagram: 'https://instagram.com',
+  get name() {
+    return getSavedDashboardData().bride.nickName || 'Rosna';
+  },
+  get fullName() {
+    return getSavedDashboardData().bride.fullName || 'Adv. Rosna Linny, S.H., Gr.';
+  },
+  childOrder: 'Mempelai Wanita :',
+  get father() {
+    return getSavedDashboardData().bride.parents || 'Putri dari Bpk. Adiswan & Ibu Emi';
+  },
+  mother: '',
+  get photoUrl() {
+    return getSavedDashboardData().bride.avatar || 'https://undangandigitalhbkomp.com/wp-content/uploads/2023/11/WhatsApp-Image-2023-11-14-at-09.11.56-1.jpeg';
+  },
+  get instagram() {
+    return getSavedDashboardData().bride.instagram || 'https://instagram.com';
+  },
 };
 
 export const GROOM_DATA: CoupleBio = {
-  name: 'Islammy',
-  fullName: 'Islammy Shaleh, S.T.',
-  childOrder: 'Putra Pertama dari :',
-  father: 'Bapak Zulfariwat',
-  mother: 'Ibu Martaleni',
-  photoUrl: ASSETS.groomPhoto,
-  instagram: 'https://instagram.com/islammyshaleh_rz',
+  get name() {
+    return getSavedDashboardData().groom.nickName || 'Andi';
+  },
+  get fullName() {
+    return getSavedDashboardData().groom.fullName || 'Andi Irawan, S.H., M.H.';
+  },
+  childOrder: 'Mempelai Pria :',
+  get father() {
+    return getSavedDashboardData().groom.parents || 'Putra dari Bpk. Irianto & Ibu Nurleli';
+  },
+  mother: '',
+  get photoUrl() {
+    return getSavedDashboardData().groom.avatar || 'https://undangandigitalhbkomp.com/wp-content/uploads/2023/11/WhatsApp-Image-2023-11-14-at-09.11.56.jpeg';
+  },
+  get instagram() {
+    return getSavedDashboardData().groom.instagram || 'https://instagram.com';
+  },
 };
 
 export const EVENTS: EventDetail[] = [
@@ -58,25 +108,41 @@ export const EVENTS: EventDetail[] = [
     id: 'akad',
     title: 'Akad Nikah',
     dayName: 'Sabtu',
-    dayNumber: '16',
-    monthName: 'Desember',
-    year: '2023',
-    time: 'Pukul 10.00 WIB s/d Selesai',
-    locationName: 'Kediaman Mempelai Wanita',
-    address: 'Komplek Pasar Siteba No. 45 A, RT 001, RW 020, Kelurahan Surau Gadang, Kecamatan Nanggalo.',
-    mapUrl: 'https://maps.app.goo.gl/r9cfLyyaEGSLjtsE7',
+    dayNumber: '24',
+    monthName: 'Oktober',
+    year: '2026',
+    get time() {
+      return getSavedDashboardData().event.akadTime || 'Pukul 08.00 - 10.00 WIB';
+    },
+    get locationName() {
+      return getSavedDashboardData().event.akadPlace || 'Masjid Agung & Kediaman Mempelai';
+    },
+    get address() {
+      return getSavedDashboardData().event.akadAddress || 'Jl. Jondul Rawang Blok C/20, Padang Selatan';
+    },
+    get mapUrl() {
+      return getSavedDashboardData().event.mapsUrl || 'https://maps.google.com';
+    },
   },
   {
     id: 'resepsi',
     title: 'Resepsi Pernikahan',
-    dayName: 'Minggu',
-    dayNumber: '17',
-    monthName: 'Desember',
-    year: '2023',
-    time: 'Pukul 10.00 WIB s/d Selesai',
-    locationName: 'Kediaman Mempelai Wanita',
-    address: 'Komplek Pasar Siteba No. 45 A, RT 001, RW 020, Kelurahan Surau Gadang, Kecamatan Nanggalo.',
-    mapUrl: 'https://maps.app.goo.gl/r9cfLyyaEGSLjtsE7',
+    dayName: 'Sabtu',
+    dayNumber: '24',
+    monthName: 'Oktober',
+    year: '2026',
+    get time() {
+      return getSavedDashboardData().event.resepsiTime || 'Pukul 11.00 - 17.00 WIB';
+    },
+    get locationName() {
+      return getSavedDashboardData().event.resepsiPlace || 'Grand Ballroom & Kediaman';
+    },
+    get address() {
+      return getSavedDashboardData().event.resepsiAddress || 'Jl. Jondul Rawang Blok C/20, Padang Selatan';
+    },
+    get mapUrl() {
+      return getSavedDashboardData().event.mapsUrl || 'https://maps.google.com';
+    },
   },
 ];
 

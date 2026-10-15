@@ -3,11 +3,12 @@ import { ScrollReveal } from '../components/ScrollReveal';
 import { RoseFloralDivider } from '../components/RoseFloralDivider';
 import bungaKiri from '../../../assets/templateSatu/bungaKiri.png';
 import bungaKanan from '../../../assets/templateSatu/bungaKanan.png';
-
-const gcalAkadUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=Akad+Nikah+Andi+%26+Rosna&dates=20261024T010000Z/20261024T030000Z&details=Pernikahan+Suci+Andi+Irawan+%26+Rosna+Linny&location=Masjid+Agung+Al-Azhar,+Jakarta+Selatan`;
-const gcalResepsiUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=Resepsi+Pernikahan+Andi+%26+Rosna&dates=20261024T040000Z/20261024T090000Z&details=Resepsi+Pernikahan+Andi+Irawan+%26+Rosna+Linny&location=Grand+Ballroom+Hotel+Santika+Premiere+Jakarta`;
+import { useTemplateSatuData } from '../context';
 
 const AcaraSection: React.FC = () => {
+  const { data: dashData } = useTemplateSatuData();
+  const gcalAkadUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=Akad+Nikah+${encodeURIComponent(dashData.groom.nickName + ' & ' + dashData.bride.nickName)}&details=Pernikahan+Suci+${encodeURIComponent(dashData.groom.fullName + ' & ' + dashData.bride.fullName)}&location=${encodeURIComponent(dashData.event.akadPlace)}`;
+  const gcalResepsiUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=Resepsi+Pernikahan+${encodeURIComponent(dashData.groom.nickName + ' & ' + dashData.bride.nickName)}&details=Resepsi+Pernikahan+${encodeURIComponent(dashData.groom.fullName + ' & ' + dashData.bride.fullName)}&location=${encodeURIComponent(dashData.event.resepsiPlace)}`;
   return (
     <section className="relative py-12 px-6 z-10 space-y-8 bg-[#F5EFEB]/60">
       <ScrollReveal variant="up">
@@ -48,11 +49,11 @@ const AcaraSection: React.FC = () => {
 
           <div className="space-y-1 text-xs text-[#6B5F52] relative z-10">
             <p className="font-bold text-[#3E3326] text-sm">
-              Sabtu, 24 Oktober 2026
+              {dashData.event.akadDate || dashData.event.dateDisplay}
             </p>
             <p className="flex items-center justify-center gap-1.5 font-medium text-[#8B263E]">
               <Clock className="w-3.5 h-3.5" />
-              <span>Pukul 08.00 - 10.00 WIB</span>
+              <span>{dashData.event.akadTime}</span>
             </p>
           </div>
 
@@ -60,10 +61,10 @@ const AcaraSection: React.FC = () => {
 
           <div className="space-y-1 text-xs relative z-10">
             <p className="font-bold text-[#352B20]">
-              Masjid Agung Al-Azhar
+              {dashData.event.akadPlace}
             </p>
             <p className="text-[#756A5E] leading-relaxed">
-              Jl. Sisingamangaraja No. 1, RT.2/RW.1, Selong, Kebayoran Baru, Jakarta Selatan
+              {dashData.event.akadAddress}
             </p>
           </div>
 
@@ -112,11 +113,11 @@ const AcaraSection: React.FC = () => {
 
           <div className="space-y-1 text-xs text-[#6B5F52] relative z-10">
             <p className="font-bold text-[#3E3326] text-sm">
-              Sabtu, 24 Oktober 2026
+              {dashData.event.resepsiDate || dashData.event.dateDisplay}
             </p>
             <p className="flex items-center justify-center gap-1.5 font-medium text-[#8B263E]">
               <Clock className="w-3.5 h-3.5" />
-              <span>Pukul 11.00 - 16.00 WIB</span>
+              <span>{dashData.event.resepsiTime}</span>
             </p>
           </div>
 
@@ -124,10 +125,10 @@ const AcaraSection: React.FC = () => {
 
           <div className="space-y-1 text-xs relative z-10">
             <p className="font-bold text-[#352B20]">
-              Grand Ballroom Hotel Santika Premiere
+              {dashData.event.resepsiPlace}
             </p>
             <p className="text-[#756A5E] leading-relaxed">
-              Jl. Hayam Wuruk No. 28, RT.6/RW.2, Gambir, Jakarta Pusat
+              {dashData.event.resepsiAddress}
             </p>
           </div>
 

@@ -1,14 +1,15 @@
 import React from 'react';
-import { ASSETS } from '../data';
+import { useTemplateEmpatData } from '../context';
 
 export const ClosingSection: React.FC = () => {
+  const { weddingInfo: WEDDING_INFO, assets: ASSETS } = useTemplateEmpatData();
   return (
     <footer className="relative px-6 py-20 bg-[#223124] text-white text-center overflow-hidden">
       {/* Background Dim Image */}
       <div className="absolute inset-0 z-0 overflow-hidden opacity-25">
         <img
           src={ASSETS.coupleClosing}
-          alt="Eza & Islammy"
+          alt={WEDDING_INFO.coupleDisplay}
           className="w-full h-full object-cover object-center"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-[#1b261d] via-[#243526]/90 to-[#223124]" />
@@ -33,7 +34,7 @@ export const ClosingSection: React.FC = () => {
           <div className="w-full h-full rounded-t-[86px] rounded-b-xl overflow-hidden">
             <img
               src={ASSETS.coupleClosing}
-              alt="Eza & Islammy"
+              alt={WEDDING_INFO.coupleDisplay}
               className="w-full h-full object-cover object-center"
             />
           </div>
@@ -45,14 +46,14 @@ export const ClosingSection: React.FC = () => {
             See you on our big day!
           </p>
           <h2 className="font-sage-script text-4xl sm:text-5xl text-[#f4f7f0] leading-tight">
-            Eza <span className="text-[#c5a454] font-serif">&amp;</span> Islammy
+            {WEDDING_INFO.groomNickname} <span className="text-[#c5a454] font-serif">&amp;</span> {WEDDING_INFO.brideNickname}
           </h2>
         </div>
 
         {/* Footer Brand */}
         <div className="pt-8 border-t border-white/10 space-y-2 text-[11px] text-[#9aab8f]">
           <p className="font-serif">
-            The Wedding of Eza &amp; Islammy &bull; 2023
+            The Wedding of {WEDDING_INFO.coupleDisplay} &bull; 2026
           </p>
           <p className="text-[10px] text-[#86967b]">
             Dibuat dengan cinta menggunakan platform undangan digital

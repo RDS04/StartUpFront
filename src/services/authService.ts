@@ -109,7 +109,14 @@ export async function authenticateWithGoogle(
   const data = await response.json();
 
   if (!response.ok) {
-    throw new Error(data.message || 'Gagal melakukan autentikasi dengan Google di server.');
+    const error: any = new Error(data.message || 'Gagal melakukan autentikasi dengan Google di server.');
+    error.not_registered = !!data.not_registered;
+    error.already_registered = !!data.already_registered;
+    error.email = data.email;
+    error.name = data.name;
+    error.status = response.status;
+    error.data = data;
+    throw error;
   }
 
   // Simpan token ke localStorage jika ada
@@ -145,7 +152,10 @@ export function getSavedAuthUser(): AuthUser | null {
  */
 export async function fetchCurrentUser(): Promise<AuthUser | null> {
   const token = getAuthToken();
-  if (!token) return null;
+  if (!token) {
+    localStorage.removeItem('auth_user');
+    return null;
+  }
 
   try {
     const response = await fetch(`${API_BASE_URL}/auth/me`, {
@@ -157,8 +167,8 @@ export async function fetchCurrentUser(): Promise<AuthUser | null> {
     });
 
     if (!response.ok) {
-      if (response.status === 401) {
-        logoutAuth();
+      if (response.status === 401 || response.status === 403) {
+        await logoutAuth();
       }
       return null;
     }
@@ -196,4 +206,13 @@ export async function logoutAuth(): Promise<void> {
 
   localStorage.removeItem('auth_token');
   localStorage.removeItem('auth_user');
+
+  // Matikan auto-select akun Google agar user bisa memilih akun Google lain saat login ulang
+  if (typeof window !== 'undefined' && window.google?.accounts?.id?.disableAutoSelect) {
+    try {
+      window.google.accounts.id.disableAutoSelect();
+    } catch (e) {
+      console.warn('GSI disableAutoSelect error:', e);
+    }
+  }
 }

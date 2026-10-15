@@ -28,21 +28,40 @@ import FooterSection from './sections/FooterSection';
 
 // Types
 import type { RSVPItem } from './types';
+import { TemplateSatuProvider, useTemplateSatuData } from './context';
 
 export interface RusticBlossomTemplateProps {
   isEmbedded?: boolean;
   defaultOpen?: boolean;
+  isPreview?: boolean;
+  guestName?: string;
 }
 
 export const RusticBlossomTemplate: React.FC<RusticBlossomTemplateProps> = ({
   isEmbedded = false,
   defaultOpen = false,
+  isPreview = true,
+  guestName,
 }) => {
+  return (
+    <TemplateSatuProvider isPreview={isPreview}>
+      <RusticBlossomTemplateInner isEmbedded={isEmbedded} defaultOpen={defaultOpen} guestNameProp={guestName} />
+    </TemplateSatuProvider>
+  );
+};
+
+const RusticBlossomTemplateInner: React.FC<{ isEmbedded?: boolean; defaultOpen?: boolean; guestNameProp?: string }> = ({
+  isEmbedded = false,
+  defaultOpen = false,
+  guestNameProp,
+}) => {
+  const { data: tplData } = useTemplateSatuData();
   // --- States ---
   const [isCoverOpen, setIsCoverOpen] = useState(defaultOpen);
   const [isOpening, setIsOpening] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [guestName] = useState<string>(() => {
+    if (guestNameProp) return guestNameProp;
     if (typeof window === 'undefined') return 'Tamu Undangan';
     try {
       const urlParams = new URLSearchParams(window.location.search);
@@ -390,17 +409,19 @@ export const RusticBlossomTemplate: React.FC<RusticBlossomTemplateProps> = ({
           <div className="p-6 rounded-3xl bg-white/80 backdrop-blur-md border border-[#E8DEC8] shadow-[0_12px_40px_rgba(139,38,62,0.08)] space-y-4 relative overflow-hidden">
             <div className="absolute -top-10 -left-10 w-28 h-28 bg-[#8B263E]/10 rounded-full blur-xl" />
             <div className="w-20 h-20 mx-auto rounded-full border-2 border-[#D4AF37]/60 bg-gradient-to-br from-[#FFFDF9] to-[#F5ECE0] flex items-center justify-center shadow-md">
-              <span className="font-script-calligraphy text-4xl text-[#8B263E]">A &amp; R</span>
+              <span className="font-script-calligraphy text-4xl text-[#8B263E]">
+                {tplData.groom.nickName?.[0] || 'A'} &amp; {tplData.bride.nickName?.[0] || 'R'}
+              </span>
             </div>
             <div className="space-y-1">
               <span className="text-[9px] uppercase tracking-[0.35em] text-[#8B263E] font-bold block">
                 WALIMATUL 'URS
               </span>
               <h3 className="font-serif-wedding text-xl font-bold text-[#4A1521]">
-                Andi &amp; Rosna
+                {tplData.groom.nickName} &amp; {tplData.bride.nickName}
               </h3>
               <p className="text-[11px] text-[#7A6A5E] font-serif">
-                Sabtu, 24 Oktober 2026
+                {tplData.event.dateDisplay}
               </p>
             </div>
             <div className="w-12 h-[1px] bg-[#D4AF37]/45 mx-auto" />

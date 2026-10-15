@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { CalendarCheck } from 'lucide-react';
 import { SongketBorder } from '../components/SongketBorder';
 import { GoldenSparkles } from '../components/GoldenSparkles';
-import { ASSETS, WEDDING_INFO } from '../data';
+import { useTemplateTigaData } from '../context';
 
 interface TimeLeft {
   days: number;
@@ -13,6 +13,7 @@ interface TimeLeft {
 }
 
 export const HeroSection: React.FC = () => {
+  const { weddingInfo: WEDDING_INFO, assets: ASSETS } = useTemplateTigaData();
   const [timeLeft, setTimeLeft] = useState<TimeLeft>({
     days: 0,
     hours: 0,

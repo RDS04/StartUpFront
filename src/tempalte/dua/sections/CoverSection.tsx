@@ -2,7 +2,7 @@ import React from 'react';
 import { MailOpen } from 'lucide-react';
 import { FloralCorners } from '../components/FloralCorners';
 import { NameBadge, Petals } from '../components/Shared';
-import { PHOTOS } from '../data';
+import { useTemplateDuaData } from '../context';
 
 interface CoverProps {
   guestName: string;
@@ -11,13 +11,15 @@ interface CoverProps {
   onOpen: () => void;
 }
 
-const CoverSection: React.FC<CoverProps> = ({ guestName, isOpen, isEmbedded, onOpen }) => (
-  <div
-    className={`dr-cover ${isOpen ? 'is-open' : ''} ${
-      isEmbedded ? 'absolute' : 'fixed'
-    } inset-y-0 left-1/2 z-50 w-full max-w-[430px] -translate-x-1/2 overflow-hidden bg-[#4b3d3e]`}
-  >
-    <img src={PHOTOS.cover} alt="Vani & Rahmat" className="dr-kenburns absolute inset-0 h-full w-full object-cover" />
+const CoverSection: React.FC<CoverProps> = ({ guestName, isOpen, isEmbedded, onOpen }) => {
+  const { photos, couple } = useTemplateDuaData();
+  return (
+    <div
+      className={`dr-cover ${isOpen ? 'is-open' : ''} ${
+        isEmbedded ? 'absolute' : 'fixed'
+      } inset-y-0 left-1/2 z-50 w-full max-w-[430px] -translate-x-1/2 overflow-hidden bg-[#4b3d3e]`}
+    >
+      <img src={photos.cover} alt={`${couple.shortBride} & ${couple.shortGroom}`} className="dr-kenburns absolute inset-0 h-full w-full object-cover" />
     <div className="absolute inset-0 bg-gradient-to-b from-black/5 via-black/15 to-black/70" />
     <FloralCorners size="w-36" opacity={0.85} />
     <Petals count={10} />
@@ -45,6 +47,7 @@ const CoverSection: React.FC<CoverProps> = ({ guestName, isOpen, isEmbedded, onO
       </button>
     </div>
   </div>
-);
+  );
+};
 
 export default CoverSection;

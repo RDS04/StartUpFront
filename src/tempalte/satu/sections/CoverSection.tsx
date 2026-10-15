@@ -1,6 +1,7 @@
 import { MailOpen, Sparkles } from 'lucide-react';
 import { RoseFloralDivider } from '../components/RoseFloralDivider';
 import cardBgImage from '../../../assets/templateSatu/bacgraund.jpg';
+import { useTemplateSatuData } from '../context';
 
 interface CoverSectionProps {
   guestName: string;
@@ -15,6 +16,8 @@ const CoverSection: React.FC<CoverSectionProps> = ({
   isEmbedded,
   onOpen,
 }) => {
+  const { data: dashData } = useTemplateSatuData();
+
   return (
     <section
       className={`w-full ${isEmbedded ? 'h-full min-h-[600px]' : 'min-h-screen min-h-[100dvh]'
@@ -57,10 +60,10 @@ const CoverSection: React.FC<CoverSectionProps> = ({
           {/* Nama Mempelai */}
           <div className="py-1">
             <h1 className="font-script-calligraphy text-6xl sm:text-7xl text-[#FFF8ED] leading-tight drop-shadow-[0_4px_16px_rgba(0,0,0,0.85)] tracking-wide">
-              Andi <span className="text-[#F3E5AB] text-5xl font-serif">&</span> Rosna
+              {dashData.groom.nickName} <span className="text-[#F3E5AB] text-5xl font-serif">&</span> {dashData.bride.nickName}
             </h1>
             <p className="text-xs uppercase font-serif tracking-[0.25em] text-[#E5D0B1] mt-2 font-medium drop-shadow-sm">
-              Sabtu, 24 • 10 • 2026
+              {dashData.event.dateDisplay}
             </p>
           </div>
 

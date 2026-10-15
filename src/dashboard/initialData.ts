@@ -44,6 +44,24 @@ export const INITIAL_DATA: DashboardData = {
   },
 };
 
+export const getSavedDashboardData = (): DashboardData => {
+  if (typeof window === 'undefined') return INITIAL_DATA;
+  try {
+    const raw = localStorage.getItem('ij_dashboard_data');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return {
+        ...INITIAL_DATA,
+        ...parsed,
+        groom: { ...INITIAL_DATA.groom, ...(parsed.groom || {}) },
+        bride: { ...INITIAL_DATA.bride, ...(parsed.bride || {}) },
+        event: { ...INITIAL_DATA.event, ...(parsed.event || {}) },
+      };
+    }
+  } catch {}
+  return INITIAL_DATA;
+};
+
 export const INITIAL_GUESTS: GuestItem[] = [
   { id: 1, name: 'Bpk. Hendra & Ibu', phone: '6281234567890', category: 'Keluarga', sent: true, rsvp: 'hadir', pax: 2 },
   { id: 2, name: 'dr. Dimas Prasetyo', phone: '6281398765432', category: 'VIP', sent: true, rsvp: 'hadir', pax: 1 },

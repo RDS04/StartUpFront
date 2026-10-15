@@ -4,8 +4,11 @@ import InstagramIcon from '../components/InstagramIcon';
 import bungaKiri from '../../../assets/templateSatu/bungaKiri.png';
 import bungaKanan from '../../../assets/templateSatu/bungaKanan.png';
 import bungaAtas from '../../../assets/templateSatu/atas.png';
+import { useTemplateSatuData } from '../context';
 
 const MempelaiSection: React.FC = () => {
+  const { data: dashData } = useTemplateSatuData();
+
   return (
     <section className="relative py-12 px-6 z-10 space-y-8">
       {/* Side Hanging Floral Vine Decor */}
@@ -47,15 +50,15 @@ const MempelaiSection: React.FC = () => {
             <div className="absolute inset-0 rounded-full border-2 border-[#D8C7B2] animate-pulse-gentle" />
             <div className="absolute inset-1.5 rounded-full border border-[#8B263E]/40" />
             <img
-              src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=600&q=80"
-              alt="Andi Irawan, S.H., M.H."
+              src={dashData.groom.avatar || "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=600&q=80"}
+              alt={dashData.groom.fullName}
               className="w-full h-full object-cover rounded-full p-2.5"
             />
           </div>
 
           <div className="space-y-1">
             <h4 className="font-serif-wedding text-2xl font-bold text-[#4A1521]">
-              Andi Irawan, S.H., M.H.
+              {dashData.groom.fullName}
             </h4>
             <p className="text-xs font-semibold text-[#8B263E] tracking-wider uppercase">
               Mempelai Pria
@@ -63,20 +66,20 @@ const MempelaiSection: React.FC = () => {
           </div>
 
           <p className="text-xs text-[#6B5F52] leading-relaxed">
-            Putra pertama dari pasangan<br />
-            <strong className="text-[#3E3326]">Bapak H. Bambang Irawan</strong><br />
-            &amp; <strong className="text-[#3E3326]">Ibu Hj. Siti Aminah</strong>
+            {dashData.groom.parents}
           </p>
 
-          <a
-            href="https://instagram.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-[#F6F1EA] text-[#8B263E] hover:bg-[#8B263E] hover:text-white transition-all text-xs font-medium cursor-pointer"
-          >
-            <InstagramIcon className="w-3.5 h-3.5" />
-            <span>@andirawan_</span>
-          </a>
+          {dashData.groom.instagram && (
+            <a
+              href={dashData.groom.instagram.startsWith('http') ? dashData.groom.instagram : `https://instagram.com/${dashData.groom.instagram.replace('@', '')}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-[#F6F1EA] text-[#8B263E] hover:bg-[#8B263E] hover:text-white transition-all text-xs font-medium cursor-pointer"
+            >
+              <InstagramIcon className="w-3.5 h-3.5" />
+              <span>{dashData.groom.instagram}</span>
+            </a>
+          )}
         </div>
       </ScrollReveal>
 
@@ -106,15 +109,15 @@ const MempelaiSection: React.FC = () => {
             <div className="absolute inset-0 rounded-full border-2 border-[#D8C7B2] animate-pulse-gentle" />
             <div className="absolute inset-1.5 rounded-full border border-[#8B263E]/40" />
             <img
-              src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80"
-              alt="Adv. Rosna Linny, S.H., Gr."
+              src={dashData.bride.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80"}
+              alt={dashData.bride.fullName}
               className="w-full h-full object-cover rounded-full p-2.5"
             />
           </div>
 
           <div className="space-y-1">
             <h4 className="font-serif-wedding text-2xl font-bold text-[#4A1521]">
-              Adv. Rosna Linny, S.H., Gr.
+              {dashData.bride.fullName}
             </h4>
             <p className="text-xs font-semibold text-[#8B263E] tracking-wider uppercase">
               Mempelai Wanita
@@ -122,20 +125,20 @@ const MempelaiSection: React.FC = () => {
           </div>
 
           <p className="text-xs text-[#6B5F52] leading-relaxed">
-            Putri kedua dari pasangan<br />
-            <strong className="text-[#3E3326]">Bapak Dr. H. Rahman Hakim</strong><br />
-            &amp; <strong className="text-[#3E3326]">Ibu Hj. Nurhayati</strong>
+            {dashData.bride.parents}
           </p>
 
-          <a
-            href="https://instagram.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-[#F6F1EA] text-[#8B263E] hover:bg-[#8B263E] hover:text-white transition-all text-xs font-medium cursor-pointer"
-          >
-            <InstagramIcon className="w-3.5 h-3.5" />
-            <span>@rosnalinny_</span>
-          </a>
+          {dashData.bride.instagram && (
+            <a
+              href={dashData.bride.instagram.startsWith('http') ? dashData.bride.instagram : `https://instagram.com/${dashData.bride.instagram.replace('@', '')}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-[#F6F1EA] text-[#8B263E] hover:bg-[#8B263E] hover:text-white transition-all text-xs font-medium cursor-pointer"
+            >
+              <InstagramIcon className="w-3.5 h-3.5" />
+              <span>{dashData.bride.instagram}</span>
+            </a>
+          )}
         </div>
       </ScrollReveal>
     </section>

@@ -20,13 +20,17 @@ import { ClosingSection } from './sections/ClosingSection';
 
 // Data
 import { ASSETS, GALLERY_PHOTOS } from './data';
+import { TemplateTigaProvider } from './context';
 
 export interface MinangMaroonTemplateProps {
   isEmbedded?: boolean;
   defaultOpen?: boolean;
+  isPreview?: boolean;
+  guestName?: string;
 }
 
-const getGuestNameFromUrl = (): string => {
+const getGuestNameFromUrl = (customName?: string): string => {
+  if (customName) return customName;
   if (typeof window === 'undefined') return 'Auli Dan Partner';
   try {
     const search = window.location.search || window.location.hash.split('?')[1] || '';
@@ -43,10 +47,24 @@ const getGuestNameFromUrl = (): string => {
 export const MinangMaroonTemplate: React.FC<MinangMaroonTemplateProps> = ({
   isEmbedded = false,
   defaultOpen = false,
+  isPreview = true,
+  guestName,
+}) => {
+  return (
+    <TemplateTigaProvider isPreview={isPreview}>
+      <MinangMaroonTemplateInner isEmbedded={isEmbedded} defaultOpen={defaultOpen} guestNameProp={guestName} />
+    </TemplateTigaProvider>
+  );
+};
+
+const MinangMaroonTemplateInner: React.FC<{ isEmbedded?: boolean; defaultOpen?: boolean; guestNameProp?: string }> = ({
+  isEmbedded = false,
+  defaultOpen = false,
+  guestNameProp,
 }) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [guestName] = useState(getGuestNameFromUrl);
+  const [guestName] = useState(() => getGuestNameFromUrl(guestNameProp));
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [activePhotoIndex, setActivePhotoIndex] = useState<number | null>(null);
 

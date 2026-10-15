@@ -1,8 +1,9 @@
 import React from 'react';
 import { Sparkles } from 'lucide-react';
-import { BRIDE_DATA, GROOM_DATA } from '../data';
+import { useTemplateEmpatData } from '../context';
 
 export const CoupleSection: React.FC = () => {
+  const { bride: BRIDE_DATA, groom: GROOM_DATA } = useTemplateEmpatData();
   return (
     <section id="couple-section" className="relative px-6 py-16 bg-[#fafbf7] text-[#2c3d2f] overflow-hidden">
       <div className="max-w-sm sm:max-w-md mx-auto space-y-12">

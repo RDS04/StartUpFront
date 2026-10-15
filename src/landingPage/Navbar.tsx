@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Menu, X, Check, LogOut, LayoutDashboard, ChevronDown, Sparkles, ShieldCheck } from 'lucide-react';
+import { Menu, X, Check, LogOut, LayoutDashboard, ChevronDown, Sparkles } from 'lucide-react';
 import { WeddingRingsIcon } from './DecorativeBackground';
 import type { AuthUser } from '../services/authService';
 
@@ -305,44 +305,6 @@ export const Navbar: React.FC<NavbarProps> = ({
                           <div className="text-[10px] text-slate-500 font-normal">Kelola undangan & pesanan</div>
                         </div>
                       </button>
-
-                      {/* 2. Paket & Template Menu Button */}
-                      <button
-                        onClick={() => {
-                          setDropdownOpen(false);
-                          const el = document.getElementById('harga');
-                          if (el) el.scrollIntoView({ behavior: 'smooth' });
-                          else window.location.hash = '#harga';
-                        }}
-                        className="w-full px-3 py-2 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 transition-colors cursor-pointer group"
-                      >
-                        <div className="w-7 h-7 rounded-lg bg-amber-100/80 text-amber-700 flex items-center justify-center">
-                          <Sparkles className="w-3.5 h-3.5" />
-                        </div>
-                        <div className="text-left flex-1">
-                          <div>Paket & Template</div>
-                          <div className="text-[10px] text-slate-500 font-normal">Lihat pilihan harga & desain</div>
-                        </div>
-                      </button>
-                      {/* 3. Portal Master Button */}
-                      <a
-                        href="http://localhost:8000/master/login"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={() => setDropdownOpen(false)}
-                        className="w-full px-3 py-2 rounded-xl text-xs font-bold text-amber-950 bg-amber-50/80 hover:bg-amber-100 flex items-center gap-2.5 transition-colors cursor-pointer group border border-amber-200/60"
-                      >
-                        <div className="w-7 h-7 rounded-lg bg-amber-600 text-white flex items-center justify-center shadow-xs">
-                          <ShieldCheck className="w-3.5 h-3.5 stroke-[2.5]" />
-                        </div>
-                        <div className="text-left flex-1">
-                          <div className="flex items-center gap-1.5">
-                            <span className="font-extrabold text-amber-950">Portal Master</span>
-                            <span className="text-[9px] px-1 py-0.2 rounded bg-amber-200 text-amber-900 font-black uppercase">Admin</span>
-                          </div>
-                          <div className="text-[10px] text-amber-700 font-normal">Kelola semua user & transaksi</div>
-                        </div>
-                      </a>
                     </div>
 
                     <div className="my-1.5 border-t border-slate-100" />

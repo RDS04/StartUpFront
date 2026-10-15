@@ -1,7 +1,6 @@
 import React from 'react';
 import { FloralCorners } from './FloralCorners';
 import { Reveal } from './Reveal';
-import { COUPLE } from '../data';
 
 /* ------------------------------------------------------------------ */
 /* Section shell: full-height panel with optional photo background     */
@@ -62,6 +61,8 @@ export const Section: React.FC<SectionProps> = ({
   </section>
 );
 
+import { useTemplateDuaData } from '../context';
+
 /* ------------------------------------------------------------------ */
 /* Couple name badge  "Vani  |  Rahmat"  + date                        */
 /* ------------------------------------------------------------------ */
@@ -69,12 +70,13 @@ export const NameBadge: React.FC<{ size?: 'lg' | 'sm'; className?: string }> = (
   size = 'sm',
   className = '',
 }) => {
+  const { couple } = useTemplateDuaData();
   const big = size === 'lg';
   return (
     <div className={`text-center ${className}`}>
       <div className="relative mx-auto flex items-center justify-center gap-3">
         <span className={`dr-display font-semibold tracking-wide ${big ? 'text-[2.6rem]' : 'text-xl'}`}>
-          {COUPLE.shortBride}
+          {couple.shortBride}
         </span>
         <span className="flex flex-col items-center">
           <span className={`block bg-white/70 ${big ? 'h-10' : 'h-6'} w-px`} />
@@ -82,11 +84,11 @@ export const NameBadge: React.FC<{ size?: 'lg' | 'sm'; className?: string }> = (
           <span className={`block bg-white/70 ${big ? 'h-10' : 'h-6'} w-px`} />
         </span>
         <span className={`dr-display font-semibold tracking-wide ${big ? 'text-[2.6rem]' : 'text-xl'}`}>
-          {COUPLE.shortGroom}
+          {couple.shortGroom}
         </span>
       </div>
       <p className={`tracking-[0.4em] text-white/85 ${big ? 'mt-2 text-sm' : 'mt-1 text-[11px]'}`}>
-        {COUPLE.dateShort}
+        {couple.dateShort}
       </p>
     </div>
   );

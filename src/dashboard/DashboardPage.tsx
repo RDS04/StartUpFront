@@ -1,7 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Sparkles } from 'lucide-react';
 import type { DashboardTab, DashboardData, GuestItem, WishItem, TierConfig, DashboardPageProps } from './types';
-import { INITIAL_DATA, INITIAL_GUESTS, INITIAL_WISHES } from './initialData';
+import { INITIAL_GUESTS, INITIAL_WISHES, getSavedDashboardData } from './initialData';
 
 // Sub Components
 import { DashboardNavbar } from './components/DashboardNavbar';
@@ -24,15 +24,22 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   onNavigatePricing,
   onNavigateTemplates,
   onNavigatePayment,
-  onPreviewTemplate,
+  onPreviewTemplate: _onPreviewTemplate,
 }) => {
   // Main Navigation & Active Tab
   const [activeTab, setActiveTab] = useState<DashboardTab>('overview');
 
-  // Main Dashboard State
-  const [data, setData] = useState<DashboardData>(INITIAL_DATA);
+  // Main Dashboard State (disimpan dan dibaca dari localStorage agar persist)
+  const [data, setData] = useState<DashboardData>(() => getSavedDashboardData());
   const [guests, setGuests] = useState<GuestItem[]>(INITIAL_GUESTS);
   const [wishes, setWishes] = useState<WishItem[]>(INITIAL_WISHES);
+
+  // Sync data ke localStorage setiap ada perubahan
+  useEffect(() => {
+    try {
+      localStorage.setItem('ij_dashboard_data', JSON.stringify(data));
+    } catch {}
+  }, [data]);
 
   // Modal Dialogs & Simulator State
   const [showMobilePreview, setShowMobilePreview] = useState(false);
@@ -170,10 +177,15 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
           setActiveTab={setActiveTab}
           tierConfig={tierConfig}
           guestCount={guests.length}
+          activeTemplateId={data.activeTemplateId}
+          currentUser={currentUser}
           onNavigateTemplates={onNavigateTemplates}
           onNavigatePricing={onNavigatePricing}
           onNavigatePayment={onNavigatePayment}
-          onPreviewTemplate={onPreviewTemplate}
+          onPreviewTemplate={() => {
+            setPreviewGuestName('Tamu Terhormat');
+            setShowMobilePreview(true);
+          }}
         />
 
         {/* Dynamic Section Canvas */}

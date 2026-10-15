@@ -84,20 +84,14 @@ export interface GlobalLoadingOverlayProps {
  */
 export const GlobalLoadingOverlay: React.FC<GlobalLoadingOverlayProps> = ({
   isVisible: propVisible,
-  text: propText,
-  subtext: propSubtext,
 }) => {
   const [internalVisible, setInternalVisible] = useState(false);
-  const [internalText, setInternalText] = useState('Memproses...');
-  const [internalSubtext, setInternalSubtext] = useState('Mohon tunggu sebentar, sistem sedang memverifikasi data Anda');
 
   useEffect(() => {
     const handleLoadingEvent = (e: Event) => {
       const customEvent = e as CustomEvent<{ show: boolean; text?: string; subtext?: string }>;
       if (customEvent.detail) {
         setInternalVisible(!!customEvent.detail.show);
-        if (customEvent.detail.text) setInternalText(customEvent.detail.text);
-        if (customEvent.detail.subtext) setInternalSubtext(customEvent.detail.subtext);
       }
     };
 
@@ -108,8 +102,6 @@ export const GlobalLoadingOverlay: React.FC<GlobalLoadingOverlayProps> = ({
   }, []);
 
   const visible = propVisible !== undefined ? propVisible : internalVisible;
-  const displayText = propText || internalText;
-  const displaySubtext = propSubtext || internalSubtext;
 
   if (!visible) return null;
 

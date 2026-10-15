@@ -1,5 +1,5 @@
-import React from 'react';
-import { Calendar, Music, MapPin, Lock, Save } from 'lucide-react';
+import React, { useRef } from 'react';
+import { Calendar, Music, MapPin, Lock, Save, Camera, Globe, Copy, ExternalLink, Sparkles, RefreshCw } from 'lucide-react';
 import type { DashboardData, TierConfig } from '../types';
 
 interface BrideEventSectionProps {
@@ -9,13 +9,127 @@ interface BrideEventSectionProps {
   onShowToast: (msg: string) => void;
 }
 
+export function createSlugFromNames(groom: string, bride: string): string {
+  const cleanGroom = (groom || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+  const cleanBride = (bride || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+  if (cleanGroom && cleanBride) {
+    return `${cleanGroom}-${cleanBride}`;
+  }
+  return cleanGroom || cleanBride || 'andi-rosna';
+}
+
+const TEMPLATE_OPTIONS = [
+  { id: 'template-empat', name: 'Template 4 - Sage Blossom (Green Botanical)' },
+  { id: 'template-tiga', name: 'Template 3 - Minang Maroon (Adat Tradisional)' },
+  { id: 'template-dua', name: 'Template 2 - Dusty Rose (Modern Minimalist)' },
+  { id: 'template-satu', name: 'Template 1 - Rustic Blossom (Floral Rose)' },
+];
+
 export const BrideEventSection: React.FC<BrideEventSectionProps> = ({
   data,
   setData,
   tierConfig,
   onShowToast,
 }) => {
+  const groomFileRef = useRef<HTMLInputElement | null>(null);
+  const brideFileRef = useRef<HTMLInputElement | null>(null);
+
+  const baseUrl = typeof window !== 'undefined' 
+    ? `${window.location.protocol}//${window.location.host}` 
+    : 'http://localhost:5173';
+  const invitationLocalUrl = `${baseUrl}/#/${data.slug}`;
+
+  // Reset Photo to Default Sample Avatar
+  const handleResetPhoto = (role: 'groom' | 'bride') => {
+    const defaultAvatar = role === 'groom'
+      ? 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&auto=format&fit=crop&q=80'
+      : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80';
+
+    setData((prev) => {
+      const updated = {
+        ...prev,
+        [role]: { ...prev[role], avatar: defaultAvatar },
+      };
+      try {
+        localStorage.setItem('ij_dashboard_data', JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+    onShowToast(`Foto mempelai ${role === 'groom' ? 'pria' : 'wanita'} dikembalikan ke default.`);
+  };
+
+  // Handle Photo Upload via FileReader (Base64)
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>, role: 'groom' | 'bride') => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      onShowToast('Mohon pilih file gambar (JPG, PNG, atau WebP)!');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      onShowToast('Ukuran foto terlalu besar. Maksimal 5MB.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const base64 = event.target?.result as string;
+      if (base64) {
+        setData((prev) => {
+          const updated = {
+            ...prev,
+            [role]: { ...prev[role], avatar: base64 },
+          };
+          try {
+            localStorage.setItem('ij_dashboard_data', JSON.stringify(updated));
+          } catch {}
+          return updated;
+        });
+        onShowToast(`Foto mempelai ${role === 'groom' ? 'pria' : 'wanita'} berhasil diunggah!`);
+      }
+    };
+    reader.readAsDataURL(file);
+    // Reset file input agar bisa upload file yang sama jika diinginkan
+    e.target.value = '';
+  };
+
+  // Auto update slug when groom or bride nickname changes
+  const handleGroomNickChange = (val: string) => {
+    const newSlug = createSlugFromNames(val, data.bride.nickName);
+    setData((prev) => {
+      const updated = {
+        ...prev,
+        slug: newSlug,
+        groom: { ...prev.groom, nickName: val },
+      };
+      try {
+        localStorage.setItem('ij_dashboard_data', JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+  };
+
+  const handleBrideNickChange = (val: string) => {
+    const newSlug = createSlugFromNames(data.groom.nickName, val);
+    setData((prev) => {
+      const updated = {
+        ...prev,
+        slug: newSlug,
+        bride: { ...prev.bride, nickName: val },
+      };
+      try {
+        localStorage.setItem('ij_dashboard_data', JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+  };
+
   const handleSave = () => {
+    try {
+      localStorage.setItem('ij_dashboard_data', JSON.stringify(data));
+    } catch {}
     onShowToast('Perubahan data mempelai & acara berhasil disimpan!');
   };
 
@@ -28,39 +142,180 @@ export const BrideEventSection: React.FC<BrideEventSectionProps> = ({
         </p>
       </div>
 
+      {/* Banner Domain Tautan Undangan (Localhost) */}
+      <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-emerald-950 via-[#133e2b] to-[#1b4332] text-white shadow-md border border-emerald-700/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center shrink-0 text-emerald-300">
+            <Globe className="w-5 h-5" />
+          </div>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] font-bold text-emerald-300 tracking-wide uppercase">
+                Tautan Domain Undangan (Localhost)
+              </span>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-400/20 border border-emerald-400/30 text-emerald-200 font-medium">
+                Auto-Slug Aktif
+              </span>
+            </div>
+            <div className="text-xs sm:text-sm font-mono font-bold text-white mt-0.5 truncate select-all">
+              {invitationLocalUrl}
+            </div>
+            <p className="text-[11px] text-emerald-200/80 mt-0.5">
+              Slug <strong className="text-white font-mono">"{data.slug}"</strong> otomatis terisi dari Nama Panggilan Mempelai Pria &amp; Wanita.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
+          <button
+            type="button"
+            onClick={() => {
+              navigator.clipboard?.writeText(invitationLocalUrl);
+              onShowToast('Tautan localhost berhasil disalin!');
+            }}
+            className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3.5 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-semibold border border-white/20 transition cursor-pointer"
+          >
+            <Copy className="w-3.5 h-3.5 text-emerald-300" /> Salin Link
+          </button>
+          <a
+            href={invitationLocalUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2 bg-[#D4AF37] hover:bg-[#c49f2e] text-stone-950 rounded-xl text-xs font-bold transition cursor-pointer shadow-xs"
+          >
+            <ExternalLink className="w-3.5 h-3.5" /> Buka Undangan
+          </a>
+        </div>
+      </div>
+
+      {/* Info Template Undangan Yang Digunakan */}
+      <div className="p-4 sm:p-5 rounded-2xl bg-white border border-stone-200/90 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-start gap-3">
+          <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center shrink-0 text-amber-700">
+            <Sparkles className="w-5 h-5" />
+          </div>
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-[11px] font-bold text-amber-900 tracking-wide uppercase">
+                Template Undangan Aktif
+              </span>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-semibold border border-emerald-200 flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                Tersinkronisasi Otomatis
+              </span>
+            </div>
+            <p className="text-xs text-stone-600 mt-1">
+              Foto mempelai pria &amp; wanita serta seluruh data yang Anda simpan di bawah ini akan <strong>otomatis diterapkan</strong> pada template yang aktif di tautan undangan tamu Anda.
+            </p>
+            <p className="text-[11px] text-stone-400 italic mt-0.5">
+              *Catatan: Tampilan preview katalog template tetap menyajikan foto sampel pajangan sebagai display contoh pembeli.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 shrink-0 self-start md:self-auto">
+          <select
+            value={data.activeTemplateId || 'template-empat'}
+            onChange={(e) => {
+              const newTpl = e.target.value;
+              setData((prev) => {
+                const updated = { ...prev, activeTemplateId: newTpl };
+                try {
+                  localStorage.setItem('ij_dashboard_data', JSON.stringify(updated));
+                } catch {}
+                return updated;
+              });
+              const tplObj = TEMPLATE_OPTIONS.find((t) => t.id === newTpl);
+              onShowToast(`Template aktif beralih ke: ${tplObj?.name || newTpl}`);
+            }}
+            aria-label="Pilih Template Aktif"
+            className="text-xs font-semibold bg-stone-50 hover:bg-stone-100 border border-stone-300 rounded-xl px-3 py-2 text-stone-800 focus:outline-none focus:ring-2 focus:ring-[#2D6A4F] cursor-pointer shadow-xs"
+          >
+            {TEMPLATE_OPTIONS.map((opt) => (
+              <option key={opt.id} value={opt.id}>
+                {opt.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
       {/* Profil Mempelai Pria & Wanita */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Mempelai Pria */}
-        <div className="p-5 rounded-3xl border border-stone-200 bg-[#FAF7F2]/70 space-y-3.5 shadow-xs">
-          <div className="flex items-center space-x-3.5 pb-2.5 border-b border-stone-200/80">
-            <img
-              src={data.groom.avatar}
-              alt="Groom avatar"
-              className="w-13 h-13 rounded-2xl object-cover border-2 border-stone-300 shadow-xs"
+        {/* ================= MEMPELAI PRIA ================= */}
+        <div className="p-5 rounded-3xl border border-stone-200 bg-[#FAF7F2]/70 space-y-4 shadow-xs">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-stone-200/80">
+            <div className="flex items-center space-x-3.5">
+              <div className="relative group w-16 h-16 rounded-2xl overflow-hidden border-2 border-emerald-700/30 bg-stone-200 shadow-sm shrink-0">
+                <img
+                  src={data.groom.avatar}
+                  alt="Groom avatar"
+                  className="w-full h-full object-cover"
+                />
+                <button
+                  type="button"
+                  onClick={() => groomFileRef.current?.click()}
+                  className="absolute inset-0 bg-black/55 text-white flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-[10px] font-semibold"
+                  title="Ganti Foto Mempelai Pria"
+                >
+                  <Camera className="w-4 h-4 mb-0.5" />
+                  <span>Ubah</span>
+                </button>
+              </div>
+              <div>
+                <h2 className="font-bold text-sm text-stone-900">Mempelai Pria</h2>
+                <p className="text-[11px] text-stone-500 font-medium">Foto &amp; Profil Pengantin Pria</p>
+                <span className="inline-block mt-0.5 text-[10px] font-medium text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200/60">
+                  {data.groom.avatar?.startsWith('data:image') ? 'Foto Kustom Aktif' : 'Foto Sampel'}
+                </span>
+              </div>
+            </div>
+
+            {/* Hidden Input File Groom */}
+            <input
+              ref={groomFileRef}
+              type="file"
+              accept="image/*"
+              onChange={(e) => handlePhotoUpload(e, 'groom')}
+              className="hidden"
             />
-            <div>
-              <h2 className="font-bold text-sm text-stone-900">Mempelai Pria</h2>
-              <p className="text-[11px] text-stone-500 font-medium">Profil Pengantin Pria</p>
+
+            <div className="flex items-center gap-1.5 self-start sm:self-auto">
+              <button
+                type="button"
+                onClick={() => groomFileRef.current?.click()}
+                className="px-3 py-1.5 bg-[#2D6A4F] hover:bg-[#1B4332] text-white rounded-xl text-xs font-semibold transition cursor-pointer flex items-center justify-center gap-1.5 shadow-xs shrink-0"
+              >
+                <Camera className="w-3.5 h-3.5" />
+                <span>Unggah Foto</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleResetPhoto('groom')}
+                title="Kembalikan foto mempelai pria ke default"
+                className="p-1.5 bg-stone-100 hover:bg-stone-200 text-stone-600 rounded-xl transition cursor-pointer border border-stone-200 shadow-xs"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+              </button>
             </div>
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-stone-700 block mb-1">Nama Panggilan</label>
+            <label className="text-xs font-semibold text-stone-700 flex items-center justify-between mb-1">
+              <span>Nama Panggilan (Groom)</span>
+              <span className="text-[10px] text-emerald-700 font-normal">Mempengaruhi slug URL</span>
+            </label>
             <input
               type="text"
               value={data.groom.nickName}
-              onChange={(e) =>
-                setData({
-                  ...data,
-                  groom: { ...data.groom, nickName: e.target.value },
-                })
-              }
+              onChange={(e) => handleGroomNickChange(e.target.value)}
+              placeholder="Contoh: Andi"
               className="w-full text-xs bg-white border border-stone-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#2D6A4F]"
             />
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-stone-700 block mb-1">Nama Lengkap & Gelar</label>
+            <label className="text-xs font-semibold text-stone-700 block mb-1">Nama Lengkap &amp; Gelar</label>
             <input
               type="text"
               value={data.groom.fullName}
@@ -70,6 +325,7 @@ export const BrideEventSection: React.FC<BrideEventSectionProps> = ({
                   groom: { ...data.groom, fullName: e.target.value },
                 })
               }
+              placeholder="Contoh: Andi Irawan, S.H., M.H."
               className="w-full text-xs bg-white border border-stone-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#2D6A4F]"
             />
           </div>
@@ -85,42 +341,86 @@ export const BrideEventSection: React.FC<BrideEventSectionProps> = ({
                   groom: { ...data.groom, parents: e.target.value },
                 })
               }
+              placeholder="Contoh: Putra ke-4 dari Bpk. Irianto & Ibu Nurleli"
               className="w-full text-xs bg-white border border-stone-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#2D6A4F]"
             />
           </div>
         </div>
 
-        {/* Mempelai Wanita */}
-        <div className="p-5 rounded-3xl border border-stone-200 bg-[#FAF7F2]/70 space-y-3.5 shadow-xs">
-          <div className="flex items-center space-x-3.5 pb-2.5 border-b border-stone-200/80">
-            <img
-              src={data.bride.avatar}
-              alt="Bride avatar"
-              className="w-13 h-13 rounded-2xl object-cover border-2 border-stone-300 shadow-xs"
+        {/* ================= MEMPELAI WANITA ================= */}
+        <div className="p-5 rounded-3xl border border-stone-200 bg-[#FAF7F2]/70 space-y-4 shadow-xs">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-stone-200/80">
+            <div className="flex items-center space-x-3.5">
+              <div className="relative group w-16 h-16 rounded-2xl overflow-hidden border-2 border-emerald-700/30 bg-stone-200 shadow-sm shrink-0">
+                <img
+                  src={data.bride.avatar}
+                  alt="Bride avatar"
+                  className="w-full h-full object-cover"
+                />
+                <button
+                  type="button"
+                  onClick={() => brideFileRef.current?.click()}
+                  className="absolute inset-0 bg-black/55 text-white flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-[10px] font-semibold"
+                  title="Ganti Foto Mempelai Wanita"
+                >
+                  <Camera className="w-4 h-4 mb-0.5" />
+                  <span>Ubah</span>
+                </button>
+              </div>
+              <div>
+                <h2 className="font-bold text-sm text-stone-900">Mempelai Wanita</h2>
+                <p className="text-[11px] text-stone-500 font-medium">Foto &amp; Profil Pengantin Wanita</p>
+                <span className="inline-block mt-0.5 text-[10px] font-medium text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200/60">
+                  {data.bride.avatar?.startsWith('data:image') ? 'Foto Kustom Aktif' : 'Foto Sampel'}
+                </span>
+              </div>
+            </div>
+
+            {/* Hidden Input File Bride */}
+            <input
+              ref={brideFileRef}
+              type="file"
+              accept="image/*"
+              onChange={(e) => handlePhotoUpload(e, 'bride')}
+              className="hidden"
             />
-            <div>
-              <h2 className="font-bold text-sm text-stone-900">Mempelai Wanita</h2>
-              <p className="text-[11px] text-stone-500 font-medium">Profil Pengantin Wanita</p>
+
+            <div className="flex items-center gap-1.5 self-start sm:self-auto">
+              <button
+                type="button"
+                onClick={() => brideFileRef.current?.click()}
+                className="px-3 py-1.5 bg-[#2D6A4F] hover:bg-[#1B4332] text-white rounded-xl text-xs font-semibold transition cursor-pointer flex items-center justify-center gap-1.5 shadow-xs shrink-0"
+              >
+                <Camera className="w-3.5 h-3.5" />
+                <span>Unggah Foto</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleResetPhoto('bride')}
+                title="Kembalikan foto mempelai wanita ke default"
+                className="p-1.5 bg-stone-100 hover:bg-stone-200 text-stone-600 rounded-xl transition cursor-pointer border border-stone-200 shadow-xs"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+              </button>
             </div>
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-stone-700 block mb-1">Nama Panggilan</label>
+            <label className="text-xs font-semibold text-stone-700 flex items-center justify-between mb-1">
+              <span>Nama Panggilan (Bride)</span>
+              <span className="text-[10px] text-emerald-700 font-normal">Mempengaruhi slug URL</span>
+            </label>
             <input
               type="text"
               value={data.bride.nickName}
-              onChange={(e) =>
-                setData({
-                  ...data,
-                  bride: { ...data.bride, nickName: e.target.value },
-                })
-              }
+              onChange={(e) => handleBrideNickChange(e.target.value)}
+              placeholder="Contoh: Rosna"
               className="w-full text-xs bg-white border border-stone-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#2D6A4F]"
             />
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-stone-700 block mb-1">Nama Lengkap & Gelar</label>
+            <label className="text-xs font-semibold text-stone-700 block mb-1">Nama Lengkap &amp; Gelar</label>
             <input
               type="text"
               value={data.bride.fullName}
@@ -130,6 +430,7 @@ export const BrideEventSection: React.FC<BrideEventSectionProps> = ({
                   bride: { ...data.bride, fullName: e.target.value },
                 })
               }
+              placeholder="Contoh: Adv. Rosna Linny, S.H., Gr."
               className="w-full text-xs bg-white border border-stone-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#2D6A4F]"
             />
           </div>
@@ -145,8 +446,51 @@ export const BrideEventSection: React.FC<BrideEventSectionProps> = ({
                   bride: { ...data.bride, parents: e.target.value },
                 })
               }
+              placeholder="Contoh: Putri ke-2 dari Bpk. Adiswan & Ibu Emi"
               className="w-full text-xs bg-white border border-stone-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#2D6A4F]"
             />
+          </div>
+        </div>
+      </div>
+
+      {/* Manual Slug Override (Jika user ingin mengedit slug secara manual) */}
+      <div className="p-4 rounded-2xl border border-stone-200 bg-white shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex-1">
+          <label className="text-xs font-semibold text-stone-700 flex items-center gap-1.5 mb-1">
+            <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+            <span>Kustomisasi Slug Tautan Undangan</span>
+          </label>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-stone-400 font-mono select-none">http://localhost:5173/#/</span>
+            <input
+              type="text"
+              value={data.slug}
+              onChange={(e) => {
+                const clean = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '');
+                setData((prev) => {
+                  const updated = { ...prev, slug: clean };
+                  try {
+                    localStorage.setItem('ij_dashboard_data', JSON.stringify(updated));
+                  } catch {}
+                  return updated;
+                });
+              }}
+              className="text-xs font-mono font-bold text-stone-900 bg-stone-50 border border-stone-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#2D6A4F]"
+              placeholder="andi-rosna"
+            />
+            <button
+              type="button"
+              onClick={() => {
+                const auto = createSlugFromNames(data.groom.nickName, data.bride.nickName);
+                setData((prev) => ({ ...prev, slug: auto }));
+                onShowToast(`Slug disinkronkan: ${auto}`);
+              }}
+              className="p-1.5 rounded-lg border border-stone-200 hover:bg-stone-100 text-stone-600 text-xs font-semibold flex items-center gap-1 cursor-pointer"
+              title="Reset ke auto-slug nama mempelai"
+            >
+              <RefreshCw className="w-3.5 h-3.5 text-stone-500" />
+              <span className="hidden sm:inline">Reset Auto</span>
+            </button>
           </div>
         </div>
       </div>
@@ -348,3 +692,4 @@ export const BrideEventSection: React.FC<BrideEventSectionProps> = ({
     </div>
   );
 };
+

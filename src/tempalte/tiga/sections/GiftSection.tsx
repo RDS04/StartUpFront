@@ -3,13 +3,15 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Gift, Copy, Check, MessageCircle } from 'lucide-react';
 import { SongketBorder } from '../components/SongketBorder';
 import { GoldenSparkles } from '../components/GoldenSparkles';
-import { BANK_ACCOUNTS, WEDDING_INFO, ASSETS } from '../data';
+import { ASSETS } from '../data';
+import { useTemplateTigaData } from '../context';
 
 interface GiftSectionProps {
   onShowToast: (msg: string) => void;
 }
 
 export const GiftSection: React.FC<GiftSectionProps> = ({ onShowToast }) => {
+  const { bankAccounts: BANK_ACCOUNTS, weddingInfo: WEDDING_INFO } = useTemplateTigaData();
   const [isOpen, setIsOpen] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 

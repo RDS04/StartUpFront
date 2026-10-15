@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { User, Mail, Phone, Lock, Eye, EyeOff, ArrowRight, ShieldCheck, Check, Sparkles, AlertCircle, X } from 'lucide-react';
 import { authenticateWithGoogle, registerUser } from '../services/authService';
-import { triggerGoogleSignInPrompt } from '../services/googleAuth';
+import { triggerGoogleSignInPrompt, renderGoogleIdentityButton } from '../services/googleAuth';
 import { triggerLoading } from '../components/common/LottieLoader';
 
 interface RegisterProps {
@@ -23,6 +23,8 @@ export const Register: React.FC<RegisterProps> = ({ onSwitchToLogin, onSuccessRe
   const [errorMessage, setErrorMessage] = useState('');
   const [registerSuccess, setRegisterSuccess] = useState(false);
   const [showAlreadyRegisteredPopup, setShowAlreadyRegisteredPopup] = useState(false);
+
+  const googleBtnWrapperRef = useRef<HTMLDivElement>(null);
 
   // Compute password strength (0 to 4)
   const getPasswordStrength = (pass: string) => {
@@ -113,22 +115,23 @@ export const Register: React.FC<RegisterProps> = ({ onSwitchToLogin, onSuccessRe
     }
   };
 
-  const handleGoogleRegister = async () => {
+  useEffect(() => {
+    if (googleBtnWrapperRef.current) {
+      renderGoogleIdentityButton(
+        googleBtnWrapperRef.current,
+        (credential) => {
+          handleGoogleCredentialRegister(credential);
+        },
+        'signup_with'
+      );
+    }
+  }, []);
+
+  const handleGoogleCredentialRegister = async (idToken: string) => {
     setErrorMessage('');
     setIsLoading(true);
     triggerLoading(true, 'Menghubungkan Akun Google...', 'Mendaftarkan profil Google Anda...');
     try {
-      const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-      if (!clientId) {
-        setErrorMessage(
-          'VITE_GOOGLE_CLIENT_ID belum diatur di file .env frontend. Tambahkan Client ID Google OAuth Anda.'
-        );
-        setIsLoading(false);
-        triggerLoading(false);
-        return;
-      }
-
-      const idToken = await triggerGoogleSignInPrompt();
       const res = await authenticateWithGoogle(idToken, 'register');
 
       setRegisterSuccess(true);
@@ -145,6 +148,34 @@ export const Register: React.FC<RegisterProps> = ({ onSwitchToLogin, onSuccessRe
     } finally {
       setIsLoading(false);
       triggerLoading(false);
+    }
+  };
+
+  const handleGoogleRegister = async () => {
+    setErrorMessage('');
+    setIsLoading(true);
+    triggerLoading(true, 'Menghubungkan Akun Google...', 'Mendaftarkan profil Google Anda...');
+    try {
+      const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+      if (!clientId) {
+        setErrorMessage(
+          'VITE_GOOGLE_CLIENT_ID belum diatur di file .env frontend. Tambahkan Client ID Google OAuth Anda.'
+        );
+        setIsLoading(false);
+        triggerLoading(false);
+        return;
+      }
+
+      const idToken = await triggerGoogleSignInPrompt();
+      await handleGoogleCredentialRegister(idToken);
+    } catch (err: any) {
+      setIsLoading(false);
+      triggerLoading(false);
+      const msg = err.message || 'Gagal mendaftar dengan Google.';
+      setErrorMessage(msg);
+      if (msg.toLowerCase().includes('sudah terdaftar')) {
+        setShowAlreadyRegisteredPopup(true);
+      }
     }
   };
 
@@ -458,34 +489,43 @@ export const Register: React.FC<RegisterProps> = ({ onSwitchToLogin, onSuccessRe
         </span>
       </div>
 
-      {/* Google OAuth Button */}
-      <motion.button
-        type="button"
-        onClick={handleGoogleRegister}
-        whileHover={{ scale: 1.015, backgroundColor: '#f8fafc' }}
-        whileTap={{ scale: 0.985 }}
-        className="w-full py-2.5 px-4 rounded-xl border border-slate-200 bg-white text-xs sm:text-sm font-semibold text-slate-700 flex items-center justify-center gap-2.5 shadow-xs hover:shadow-md transition-all cursor-pointer"
-      >
-        <svg className="w-4 h-4" viewBox="0 0 24 24">
-          <path
-            fill="#EA4335"
-            d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.7 14.8 1 12 1 7.4 1 3.5 3.6 1.6 7.4l3.7 2.9C6.2 7.3 8.8 5 12 5z"
-          />
-          <path
-            fill="#4285F4"
-            d="M23.5 12.3c0-.8-.1-1.7-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5.1 3.7-8.8z"
-          />
-          <path
-            fill="#FBBC05"
-            d="M5.3 14.7c-.2-.7-.4-1.5-.4-2.3s.1-1.6.4-2.3L1.6 7.2C.6 9.2 0 11.5 0 14s.6 4.8 1.6 6.8l3.7-2.9z"
-          />
-          <path
-            fill="#34A853"
-            d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3.2 0-5.8-2.3-6.7-5.3L1.6 16C3.5 19.8 7.4 23 12 23z"
-          />
-        </svg>
-        <span>Daftar Cepat dengan Google</span>
-      </motion.button>
+      {/* Google OAuth Button with GIS Official Overlay */}
+      <div className="relative overflow-hidden rounded-xl group w-full">
+        <motion.button
+          type="button"
+          onClick={handleGoogleRegister}
+          whileHover={{ scale: 1.015, backgroundColor: '#f8fafc' }}
+          whileTap={{ scale: 0.985 }}
+          className="w-full py-2.5 px-4 rounded-xl border border-slate-200 bg-white text-xs sm:text-sm font-semibold text-slate-700 flex items-center justify-center gap-2.5 shadow-xs hover:shadow-md transition-all cursor-pointer"
+        >
+          <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
+            <path
+              fill="#EA4335"
+              d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.7 14.8 1 12 1 7.4 1 3.5 3.6 1.6 7.4l3.7 2.9C6.2 7.3 8.8 5 12 5z"
+            />
+            <path
+              fill="#4285F4"
+              d="M23.5 12.3c0-.8-.1-1.7-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5.1 3.7-8.8z"
+            />
+            <path
+              fill="#FBBC05"
+              d="M5.3 14.7c-.2-.7-.4-1.5-.4-2.3s.1-1.6.4-2.3L1.6 7.2C.6 9.2 0 11.5 0 14s.6 4.8 1.6 6.8l3.7-2.9z"
+            />
+            <path
+              fill="#34A853"
+              d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3.2 0-5.8-2.3-6.7-5.3L1.6 16C3.5 19.8 7.4 23 12 23z"
+            />
+          </svg>
+          <span>Daftar Cepat dengan Google</span>
+        </motion.button>
+
+        {/* Overlay invisible resmi Google Identity Services */}
+        <div
+          ref={googleBtnWrapperRef}
+          className="absolute inset-0 opacity-[0.001] z-20 overflow-hidden cursor-pointer flex items-center justify-center"
+          title="Daftar dengan Akun Google"
+        />
+      </div>
 
       {/* Switch to Login link */}
       <div className="mt-5 text-center pt-1">

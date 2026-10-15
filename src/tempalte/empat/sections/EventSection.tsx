@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Clock, MapPin, Navigation, ExternalLink, CalendarPlus } from 'lucide-react';
-import { EVENTS, WEDDING_INFO } from '../data';
+import { useTemplateEmpatData } from '../context';
 
 export const EventSection: React.FC = () => {
+  const { events: EVENTS, weddingInfo: WEDDING_INFO } = useTemplateEmpatData();
   // Live Countdown Timer
   const [timeLeft, setTimeLeft] = useState({
     days: 0,
@@ -14,7 +15,7 @@ export const EventSection: React.FC = () => {
   useEffect(() => {
     const calculateTime = () => {
       // Hitung target date dari targetDate
-      const target = new Date('2026-12-17T10:00:00').getTime(); // gunakan tanggal dinamis/relevan
+      const target = new Date(WEDDING_INFO.targetDate).getTime();
       const now = new Date().getTime();
       const difference = target - now;
 

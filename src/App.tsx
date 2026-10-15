@@ -11,8 +11,9 @@ import { OrderFlowPage } from './order/OrderFlowPage';
 import { DashboardPage } from './dashboard/DashboardPage';
 import { ArrowLeft, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getSavedAuthUser, fetchCurrentUser, logoutAuth, type AuthUser } from './services/authService';
+import { getSavedAuthUser, getAuthToken, fetchCurrentUser, logoutAuth, type AuthUser } from './services/authService';
 import { GlobalLoadingOverlay } from './components/common/LottieLoader';
+import { getSavedDashboardData } from './dashboard/initialData';
 
 type PageRoute = 
   | 'landing' 
@@ -29,83 +30,86 @@ type PageRoute =
   | 'template-empat' 
   | 'card-atm'
   | 'wisuda-satu'
-  | 'wisuda-dua';
+  | 'wisuda-dua'
+  | 'invitation';
+
+function resolveCurrentRoute(): PageRoute {
+  const hash = window.location.hash.toLowerCase();
+  const search = window.location.search.toLowerCase();
+  const pathname = window.location.pathname.toLowerCase();
+
+  if (search.includes('order_id') || search.includes('payment_finish') || search.includes('transaction_status')) return 'pembayaran';
+  if (hash.includes('dashboard')) return 'dashboard';
+  if (hash.includes('pembayaran') || hash.includes('bayar') || hash.includes('checkout') || hash.includes('rincian-biaya')) return 'pembayaran';
+  if (hash.includes('card-atm')) return 'card-atm';
+  if (hash.includes('wisuda-dua') || hash.includes('wisuda-2') || hash.includes('yolanda')) return 'wisuda-dua';
+  if (hash.includes('wisuda') || hash.includes('template-wisuda')) return 'wisuda-satu';
+  if (hash.includes('login')) return 'login';
+  if (hash.includes('register')) return 'register';
+  if (hash.includes('template-empat') || hash.includes('template/empat') || hash.includes('sage')) return 'template-empat';
+  if (hash.includes('template-tiga') || hash.includes('template/tiga')) return 'template-tiga';
+  if (hash.includes('template-dua') || hash.includes('template/dua')) return 'template-dua';
+  if (hash.includes('template-satu') || hash.includes('undangan') || hash.includes('template/satu')) return 'template-satu';
+
+  // Landing page scroll sections
+  if (hash.includes('pilih-template') || hash.includes('template-select') || hash.includes('pilihan-template') || hash.includes('desain-template') || hash === '#template') return 'landing';
+  if (hash.includes('pilih-paket') || hash.includes('harga') || hash.includes('pricing') || hash.includes('order-flow') || hash === '#harga') return 'landing';
+
+  // Check if hash is an invitation slug (e.g. #/andi-rosna or #/andi-rosna?to=Budi)
+  const cleanHash = hash.replace(/^#\/?/, '').split('?')[0].trim();
+  if (cleanHash && !['', '/', 'landing'].includes(cleanHash)) {
+    return 'invitation';
+  }
+
+  // Check if pathname is an invitation slug (e.g. /andi-rosna)
+  const cleanPath = pathname.replace(/^\//, '').split('?')[0].trim();
+  if (cleanPath && !['', 'landing', 'index.html'].includes(cleanPath)) {
+    return 'invitation';
+  }
+
+  return 'landing';
+}
 
 export function App() {
-  const [route, setRoute] = useState<PageRoute>(() => {
-    const hash = window.location.hash.toLowerCase();
-    const search = window.location.search.toLowerCase();
-    if (search.includes('order_id') || search.includes('payment_finish') || search.includes('transaction_status')) return 'pembayaran';
-    if (hash.includes('dashboard')) return 'dashboard';
-    if (hash.includes('pembayaran') || hash.includes('bayar') || hash.includes('checkout') || hash.includes('rincian-biaya')) return 'pembayaran';
-    if (hash.includes('card-atm')) return 'card-atm';
-    if (hash.includes('wisuda-dua') || hash.includes('wisuda-2') || hash.includes('yolanda')) return 'wisuda-dua';
-    if (hash.includes('wisuda') || hash.includes('template-wisuda')) return 'wisuda-satu';
-    if (hash.includes('login')) return 'login';
-    if (hash.includes('register')) return 'register';
-    if (hash.includes('template-empat') || hash.includes('template/empat') || hash.includes('sage')) return 'template-empat';
-    if (hash.includes('template-tiga') || hash.includes('template/tiga')) return 'template-tiga';
-    if (hash.includes('template-dua') || hash.includes('template/dua')) return 'template-dua';
-    if (hash.includes('template-satu') || hash.includes('undangan') || hash.includes('template/satu')) return 'template-satu';
-    return 'landing';
-  });
+  const [route, setRoute] = useState<PageRoute>(() => resolveCurrentRoute());
 
   const [loggedInUser, setLoggedInUser] = useState<AuthUser | null>(() => getSavedAuthUser());
   const [showToast, setShowToast] = useState(false);
 
-  // Hanya sinkronkan data profil dari backend tanpa memunculkan toast notifikasi
+  // Sinkronkan data profil dari backend dan perbarui state autentikasi
   useEffect(() => {
     fetchCurrentUser().then((user) => {
-      if (user) setLoggedInUser(user);
+      setLoggedInUser(user);
+    }).catch(() => {
+      setLoggedInUser(null);
     });
   }, []);
 
   useEffect(() => {
     const handleHashChange = () => {
+      const detected = resolveCurrentRoute();
+      setRoute(detected);
+
       const hash = window.location.hash.toLowerCase();
-      if (hash.includes('dashboard')) {
-        setRoute('dashboard');
-      } else if (hash.includes('pembayaran') || hash.includes('bayar') || hash.includes('checkout') || hash.includes('rincian-biaya')) {
-        setRoute('pembayaran');
-      } else if (hash.includes('pilih-template') || hash.includes('template-select') || hash.includes('pilihan-template') || hash.includes('desain-template')) {
-        setRoute('landing');
+      if (hash.includes('pilih-template') || hash.includes('template-select') || hash.includes('pilihan-template') || hash.includes('desain-template')) {
         setTimeout(() => {
           const el = document.getElementById('template');
           if (el) el.scrollIntoView({ behavior: 'smooth' });
         }, 100);
       } else if (hash.includes('pilih-paket') || hash.includes('harga') || hash.includes('pricing') || hash.includes('order-flow')) {
-        setRoute('landing');
         setTimeout(() => {
           const el = document.getElementById('harga');
           if (el) el.scrollIntoView({ behavior: 'smooth' });
         }, 100);
-      } else if (hash.includes('card-atm')) {
-        setRoute('card-atm');
-      } else if (hash.includes('wisuda-dua') || hash.includes('wisuda-2') || hash.includes('yolanda')) {
-        setRoute('wisuda-dua');
-      } else if (hash.includes('wisuda') || hash.includes('template-wisuda')) {
-        setRoute('wisuda-satu');
-      } else if (hash.includes('login')) {
-        setRoute('login');
-      } else if (hash.includes('register')) {
-        setRoute('register');
-      } else if (hash.includes('template-empat') || hash.includes('template/empat') || hash.includes('sage')) {
-        setRoute('template-empat');
-      } else if (hash.includes('template-tiga') || hash.includes('template/tiga')) {
-        setRoute('template-tiga');
-      } else if (hash.includes('template-dua') || hash.includes('template/dua')) {
-        setRoute('template-dua');
-      } else if (hash.includes('template-satu') || hash.includes('undangan') || hash.includes('template/satu')) {
-        setRoute('template-satu');
-      } else if (hash === '' || hash === '#' || hash.startsWith('#/') || hash.startsWith('#')) {
-        if (!hash.includes('login') && !hash.includes('register') && !hash.includes('template-') && !hash.includes('card-atm') && !hash.includes('pembayaran')) {
-          setRoute('landing');
-        }
       }
     };
 
     window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
+    window.addEventListener('popstate', handleHashChange);
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+      window.removeEventListener('popstate', handleHashChange);
+    };
   }, []);
 
   // Sinkronkan hash awal jika mengarah ke harga atau template
@@ -153,20 +157,121 @@ export function App() {
     if (newRoute === 'landing') {
       window.location.hash = '#/';
       window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else if (newRoute === 'invitation') {
+      const dashData = getSavedDashboardData();
+      window.location.hash = `#/${dashData.slug}`;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
       window.location.hash = `#/${newRoute}`;
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
+  // RENDER DYNAMIC INVITATION TEMPLATE (Localhost domain: /#/:slug)
+  if (route === 'invitation') {
+    const dashData = getSavedDashboardData();
+    const activeTemplate = dashData.activeTemplateId || 'template-empat';
+
+    const backButton = (
+      <div className="fixed top-4 left-4 z-[70]">
+        <button
+          onClick={() => navigateTo('dashboard')}
+          className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-stone-900/85 text-white border border-white/20 shadow-xl hover:bg-stone-900 hover:scale-105 transition-all text-xs font-semibold backdrop-blur-md cursor-pointer group"
+        >
+          <ArrowLeft className="w-3.5 h-3.5 text-[#D4AF37] group-hover:-translate-x-1 transition-transform" />
+          <span>Dashboard Mempelai</span>
+        </button>
+      </div>
+    );
+
+    if (activeTemplate === 'template-satu') {
+      return (
+        <div className="relative min-h-screen bg-[#180407]">
+          {backButton}
+          <RusticBlossomTemplate isPreview={false} />
+        </div>
+      );
+    }
+    if (activeTemplate === 'template-dua') {
+      return (
+        <div className="relative min-h-screen bg-[#7e5f62]">
+          {backButton}
+          <DustyRoseTemplate isPreview={false} />
+        </div>
+      );
+    }
+    if (activeTemplate === 'template-tiga') {
+      return (
+        <div className="relative min-h-screen bg-[#200306]">
+          {backButton}
+          <MinangMaroonTemplate isPreview={false} />
+        </div>
+      );
+    }
+    if (activeTemplate === 'card-atm') {
+      return (
+        <div className="relative min-h-screen">
+          {backButton}
+          <CardAtmPreviewPage onBack={() => navigateTo('dashboard')} />
+        </div>
+      );
+    }
+    if (activeTemplate === 'wisuda-satu') {
+      return (
+        <div className="relative min-h-screen">
+          {backButton}
+          <WisudaSatuTemplate onBack={() => navigateTo('dashboard')} />
+        </div>
+      );
+    }
+    if (activeTemplate === 'wisuda-dua') {
+      return (
+        <div className="relative min-h-screen">
+          {backButton}
+          <WisudaDuaTemplate onBack={() => navigateTo('dashboard')} />
+        </div>
+      );
+    }
+
+    // Default template-empat (Sage Blossom)
+    return (
+      <div className="relative min-h-screen bg-[#1e2a20]">
+        {backButton}
+        <SageBlossomTemplate isPreview={false} />
+      </div>
+    );
+  }
+
   if (route === 'dashboard') {
+    const savedUser = getSavedAuthUser();
+    const token = getAuthToken();
+
+    // AUTH GUARD: Jika belum login atau token tidak ada, wajib login terlebih dahulu
+    if (!token || (!loggedInUser && !savedUser)) {
+      return (
+        <AuthPage
+          initialMode="login"
+          initialAlert="Akses Terbatas: Silakan masuk ke akun Anda terlebih dahulu untuk mengakses Dashboard Pengguna. Jika belum memiliki akun atau akun Google belum terdaftar, silakan daftar terlebih dahulu."
+          onBackToHome={() => navigateTo('landing')}
+          onAuthSuccess={(user) => {
+            setLoggedInUser(user);
+            setShowToast(true);
+            setTimeout(() => {
+              setShowToast(false);
+            }, 4000);
+            navigateTo('dashboard');
+          }}
+        />
+      );
+    }
+
     return (
       <DashboardPage
-        currentUser={loggedInUser}
+        currentUser={loggedInUser || savedUser}
         onLogout={async () => {
           await logoutAuth();
           setLoggedInUser(null);
-          navigateTo('landing');
+          navigateTo('login');
         }}
         onBackToHome={() => navigateTo('landing')}
         onNavigatePricing={() => navigateTo('pilih-paket')}
@@ -193,7 +298,7 @@ export function App() {
             <span>Kembali ke Platform</span>
           </button>
         </div>
-        <DustyRoseTemplate />
+        <DustyRoseTemplate isPreview={true} />
       </div>
     );
   }
@@ -211,7 +316,7 @@ export function App() {
             <span>Kembali ke Platform</span>
           </button>
         </div>
-        <MinangMaroonTemplate />
+        <MinangMaroonTemplate isPreview={true} />
       </div>
     );
   }
@@ -229,7 +334,7 @@ export function App() {
             <span>Kembali ke Platform</span>
           </button>
         </div>
-        <SageBlossomTemplate />
+        <SageBlossomTemplate isPreview={true} />
       </div>
     );
   }
@@ -247,7 +352,7 @@ export function App() {
             <span>Kembali ke Platform</span>
           </button>
         </div>
-        <RusticBlossomTemplate />
+        <RusticBlossomTemplate isPreview={true} />
       </div>
     );
   }
@@ -293,20 +398,22 @@ export function App() {
           setTimeout(() => {
             setShowToast(false);
           }, 4000);
-          // Set transaksi aktif karena setelah registrasi diarahkan untuk memilih template terlebih dahulu
-          try {
-            sessionStorage.setItem('ij_transaction_active', 'true');
-          } catch {}
-          // Arahkan ke Langkah 1: Pilihan Template di Landing Page
-          navigateTo('landing');
-          setTimeout(() => {
-            const el = document.getElementById('template');
-            if (el) {
-              el.scrollIntoView({ behavior: 'smooth' });
-            } else {
-              window.location.hash = '#template';
-            }
-          }, 150);
+
+          // Jika user login biasa, arahkan langsung ke Dashboard
+          const isTransaction = sessionStorage.getItem('ij_transaction_active') === 'true';
+          if (route === 'login' || !isTransaction) {
+            navigateTo('dashboard');
+          } else {
+            navigateTo('landing');
+            setTimeout(() => {
+              const el = document.getElementById('template');
+              if (el) {
+                el.scrollIntoView({ behavior: 'smooth' });
+              } else {
+                window.location.hash = '#template';
+              }
+            }, 150);
+          }
         }}
       />
     );

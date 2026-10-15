@@ -13,15 +13,20 @@ import DoaSection from './sections/DoaSection';
 import LoveStorySection from './sections/LoveStorySection';
 import GallerySection from './sections/GallerySection';
 import ClosingSection from './sections/ClosingSection';
+import { TemplateDuaProvider } from './context';
 
 export interface DustyRoseTemplateProps {
   /** true saat dirender di dalam modal pratinjau (tidak mengunci scroll body) */
   isEmbedded?: boolean;
   /** langsung tampilkan isi undangan tanpa cover */
   defaultOpen?: boolean;
+  /** mode pratinjau showcase (pajangan contoh) vs undangan aktif */
+  isPreview?: boolean;
+  guestName?: string;
 }
 
-const readGuestName = () => {
+const readGuestName = (customName?: string) => {
+  if (customName) return customName;
   if (typeof window === 'undefined') return 'Tamu Undangan';
   try {
     // dukung ?to= di query maupun di dalam hash (#/template-dua?to=...)
@@ -34,13 +39,30 @@ const readGuestName = () => {
   return 'Tamu Undangan';
 };
 
-export const DustyRoseTemplate: React.FC<DustyRoseTemplateProps> = ({ isEmbedded = false, defaultOpen = false }) => {
+export const DustyRoseTemplate: React.FC<DustyRoseTemplateProps> = ({
+  isEmbedded = false,
+  defaultOpen = false,
+  isPreview = true,
+  guestName,
+}) => {
+  return (
+    <TemplateDuaProvider isPreview={isPreview}>
+      <DustyRoseTemplateInner isEmbedded={isEmbedded} defaultOpen={defaultOpen} guestNameProp={guestName} />
+    </TemplateDuaProvider>
+  );
+};
+
+const DustyRoseTemplateInner: React.FC<{ isEmbedded?: boolean; defaultOpen?: boolean; guestNameProp?: string }> = ({
+  isEmbedded = false,
+  defaultOpen = false,
+  guestNameProp,
+}) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
   const [isPlaying, setIsPlaying] = useState(false);
   const [rsvpOpen, setRsvpOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [showTop, setShowTop] = useState(false);
-  const [guestName] = useState(readGuestName);
+  const [guestName] = useState(() => readGuestName(guestNameProp));
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const rootRef = useRef<HTMLDivElement | null>(null);

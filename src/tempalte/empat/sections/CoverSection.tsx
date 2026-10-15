@@ -1,6 +1,6 @@
 import React from 'react';
 import { Mail, Sparkles } from 'lucide-react';
-import { ASSETS, WEDDING_INFO } from '../data';
+import { useTemplateEmpatData } from '../context';
 
 interface CoverSectionProps {
   guestName: string;
@@ -8,6 +8,7 @@ interface CoverSectionProps {
 }
 
 export const CoverSection: React.FC<CoverSectionProps> = ({ guestName, onOpen }) => {
+  const { weddingInfo: WEDDING_INFO, assets: ASSETS } = useTemplateEmpatData();
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center overflow-hidden bg-[#223124] text-white">
       {/* Background Image with Slow Ken-Burns Motion */}
@@ -48,7 +49,7 @@ export const CoverSection: React.FC<CoverSectionProps> = ({ guestName, onOpen })
 
         {/* Couple Names */}
         <h1 className="font-sage-script text-5xl sm:text-6xl text-[#f4f7f0] leading-none mb-2 drop-shadow-md">
-          Eza <span className="text-[#c5a454] font-serif">&amp;</span> Islammy
+          {WEDDING_INFO.groomNickname} <span className="text-[#c5a454] font-serif">&amp;</span> {WEDDING_INFO.brideNickname}
         </h1>
 
         <p className="font-sage-serif text-xs uppercase tracking-[0.25em] text-[#cbd9bf] mb-8 font-medium">

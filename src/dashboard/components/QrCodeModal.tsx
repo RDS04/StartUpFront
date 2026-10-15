@@ -11,7 +11,8 @@ interface QrCodeModalProps {
 export const QrCodeModal: React.FC<QrCodeModalProps> = ({ isOpen, onClose, slug, onCopyLink }) => {
   if (!isOpen) return null;
 
-  const fullUrl = `https://isayyes.com/${slug}`;
+  const origin = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.host}` : 'http://localhost:5173';
+  const fullUrl = `${origin}/#/${slug}`;
 
   return (
     <div className="fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">

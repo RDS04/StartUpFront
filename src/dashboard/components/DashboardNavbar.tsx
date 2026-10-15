@@ -8,6 +8,7 @@ interface DashboardNavbarProps {
     name?: string;
     email?: string;
     avatar?: string;
+    role?: string;
   } | null;
   onTierChange: (tier: 'silver' | 'premium' | 'gold') => void;
   onOpenPreview: () => void;
@@ -93,17 +94,37 @@ export const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
 
         {/* User Profile Avatar / Logout */}
         {currentUser && (
-          <div className="flex items-center pl-1 sm:pl-2 border-l border-stone-200 gap-2">
-            <div className="w-8 h-8 rounded-full bg-emerald-100 text-[#1B4332] font-bold text-xs flex items-center justify-center border border-emerald-300">
-              {currentUser.name ? currentUser.name.charAt(0).toUpperCase() : 'U'}
+          <div className="flex items-center pl-1 sm:pl-3 border-l border-stone-200 gap-2.5">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-emerald-100 text-[#1B4332] font-bold text-xs flex items-center justify-center border border-emerald-300 overflow-hidden shadow-xs">
+                {currentUser.avatar ? (
+                  <img src={currentUser.avatar} alt={currentUser.name || 'User'} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                ) : (
+                  <span>{currentUser.name ? currentUser.name.charAt(0).toUpperCase() : 'U'}</span>
+                )}
+              </div>
+              <div className="hidden xl:block text-left max-w-[150px]">
+                <div className="flex items-center gap-1.5">
+                  <p className="text-xs font-bold text-stone-800 truncate leading-tight">{currentUser.name || 'Pengguna'}</p>
+                  <span className={`text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-md ${
+                    currentUser.role === 'master'
+                      ? 'bg-purple-100 text-purple-700 border border-purple-200'
+                      : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                  }`}>
+                    {currentUser.role || 'user'}
+                  </span>
+                </div>
+                <p className="text-[10px] text-stone-400 truncate">{currentUser.email || ''}</p>
+              </div>
             </div>
             {onLogout && (
               <button
                 onClick={onLogout}
-                title="Keluar dari Akun"
-                className="p-1.5 text-stone-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition cursor-pointer"
+                title="Keluar / Ganti Akun (Logout)"
+                className="flex items-center gap-1.5 px-2.5 py-1.5 text-stone-500 hover:text-rose-600 rounded-xl hover:bg-rose-50 transition cursor-pointer text-xs font-semibold border border-transparent hover:border-rose-200"
               >
-                <LogOut className="w-4 h-4" />
+                <LogOut className="w-4 h-4 text-rose-500" />
+                <span className="hidden sm:inline text-[11px]">Keluar</span>
               </button>
             )}
           </div>

@@ -43,7 +43,8 @@ export const GuestsSection: React.FC<GuestsSectionProps> = ({
   };
 
   const getWhatsAppShareUrl = (guest: GuestItem) => {
-    const inviteLink = `https://isayyes.com/${data.slug}?to=${encodeURIComponent(guest.name)}`;
+    const origin = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.host}` : 'http://localhost:5173';
+    const inviteLink = `${origin}/#/${data.slug}?to=${encodeURIComponent(guest.name)}`;
     const text = `Kepada Yth. Bpk/Ibu/Sdr/i *${guest.name}*,\n\nTanpa mengurangi rasa hormat, perkenankan kami mengundang Anda untuk hadir dan memberikan doa restu pada hari bahagia pernikahan kami:\n\n*${data.groom.nickName} & ${data.bride.nickName}*\n📅 ${data.event.dateDisplay}\n\nUntuk info lengkap acara, silakan klik tautan undangan digital resmi berikut:\n👉 ${inviteLink}\n\nMerupakan suatu kehormatan dan kebahagiaan bagi kami apabila Anda berkenan hadir.\n\nTerima kasih,\n*${data.groom.nickName} & ${data.bride.nickName}*`;
 
     const phone = guest.phone ? guest.phone.replace(/[^0-9]/g, '') : '';
@@ -152,7 +153,8 @@ export const GuestsSection: React.FC<GuestsSectionProps> = ({
                 </tr>
               ) : (
                 filteredGuests.map((guest) => {
-                  const personalizedUrl = `https://isayyes.com/${data.slug}?to=${encodeURIComponent(guest.name)}`;
+                  const origin = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.host}` : 'http://localhost:5173';
+                  const personalizedUrl = `${origin}/#/${data.slug}?to=${encodeURIComponent(guest.name)}`;
                   return (
                     <tr key={guest.id} className="hover:bg-stone-50/70 transition">
                       <td className="py-3.5 px-4 font-semibold text-stone-800">

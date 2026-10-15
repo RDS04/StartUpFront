@@ -134,19 +134,19 @@ export const PreviewModal = ({
           </div>
         ) : isSageGarden ? (
           <div className="flex-1 overflow-y-auto relative bg-[#1e2a20] min-h-[580px] max-h-[78vh] no-scrollbar">
-            <SageBlossomTemplate key={activeTab} isEmbedded={true} defaultOpen={activeTab === 'content'} />
+            <SageBlossomTemplate key={activeTab} isEmbedded={true} defaultOpen={activeTab === 'content'} isPreview={true} />
           </div>
         ) : isMinangMaroon ? (
           <div className="flex-1 overflow-y-auto relative bg-[#200306] min-h-[580px] max-h-[78vh] no-scrollbar">
-            <MinangMaroonTemplate key={activeTab} isEmbedded={true} defaultOpen={activeTab === 'content'} />
+            <MinangMaroonTemplate key={activeTab} isEmbedded={true} defaultOpen={activeTab === 'content'} isPreview={true} />
           </div>
         ) : isDustyRose ? (
           <div className="flex-1 overflow-y-auto relative bg-[#967678] min-h-[580px] max-h-[78vh] no-scrollbar">
-            <DustyRoseTemplate key={activeTab} isEmbedded={true} defaultOpen={activeTab === 'content'} />
+            <DustyRoseTemplate key={activeTab} isEmbedded={true} defaultOpen={activeTab === 'content'} isPreview={true} />
           </div>
         ) : isRustic ? (
           <div className="flex-1 overflow-y-auto relative bg-[#F9F6F0] min-h-[580px] max-h-[78vh] no-scrollbar">
-            <RusticBlossomTemplate key={activeTab} isEmbedded={true} defaultOpen={activeTab === 'content'} />
+            <RusticBlossomTemplate key={activeTab} isEmbedded={true} defaultOpen={activeTab === 'content'} isPreview={true} />
           </div>
         ) : (
           <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-[#fcfdfa] text-center">

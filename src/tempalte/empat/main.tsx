@@ -20,13 +20,17 @@ import { ClosingSection } from './sections/ClosingSection';
 
 // Data
 import { ASSETS, GALLERY_PHOTOS, WEDDING_INFO } from './data';
+import { TemplateEmpatProvider } from './context';
 
 export interface SageBlossomTemplateProps {
   isEmbedded?: boolean;
   defaultOpen?: boolean;
+  isPreview?: boolean;
+  guestName?: string;
 }
 
-const getGuestNameFromUrl = (): string => {
+const getGuestNameFromUrl = (customName?: string): string => {
+  if (customName) return customName;
   if (typeof window === 'undefined') return 'Reyhan & Partner';
   try {
     const search = window.location.search || window.location.hash.split('?')[1] || '';
@@ -44,10 +48,24 @@ const getGuestNameFromUrl = (): string => {
 export const SageBlossomTemplate: React.FC<SageBlossomTemplateProps> = ({
   isEmbedded = false,
   defaultOpen = false,
+  isPreview = true,
+  guestName,
+}) => {
+  return (
+    <TemplateEmpatProvider isPreview={isPreview}>
+      <SageBlossomTemplateInner isEmbedded={isEmbedded} defaultOpen={defaultOpen} guestNameProp={guestName} />
+    </TemplateEmpatProvider>
+  );
+};
+
+const SageBlossomTemplateInner: React.FC<{ isEmbedded?: boolean; defaultOpen?: boolean; guestNameProp?: string }> = ({
+  isEmbedded = false,
+  defaultOpen = false,
+  guestNameProp,
 }) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [guestName] = useState(getGuestNameFromUrl);
+  const [guestName] = useState(() => getGuestNameFromUrl(guestNameProp));
   const [activePhotoIndex, setActivePhotoIndex] = useState<number | null>(null);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);

@@ -2,9 +2,10 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { SongketBorder } from '../components/SongketBorder';
 import { GoldenSparkles } from '../components/GoldenSparkles';
-import { WEDDING_INFO } from '../data';
+import { useTemplateTigaData } from '../context';
 
 export const ClosingSection: React.FC = () => {
+  const { weddingInfo: WEDDING_INFO } = useTemplateTigaData();
   return (
     <section className="relative w-full bg-[#4a0910] text-[#f0e6d2] overflow-hidden flex flex-col justify-between items-center text-center px-4 py-6 pb-28">
       <GoldenSparkles />

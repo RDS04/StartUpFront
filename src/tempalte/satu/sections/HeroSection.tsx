@@ -3,6 +3,7 @@ import { ScrollReveal } from '../components/ScrollReveal';
 import { RoseFloralDivider } from '../components/RoseFloralDivider';
 import bungaKiri from '../../../assets/templateSatu/bungaKiri.png';
 import bungaKanan from '../../../assets/templateSatu/bungaKanan.png';
+import { useTemplateSatuData } from '../context';
 
 interface TimeLeft {
   days: number;
@@ -16,6 +17,8 @@ interface HeroSectionProps {
 }
 
 const HeroSection: React.FC<HeroSectionProps> = ({ timeLeft }) => {
+  const { data: dashData } = useTemplateSatuData();
+
   return (
     <section className="relative pt-6 pb-14 px-6 text-center z-10 space-y-8">
       {/* Corner Floral Ornaments */}
@@ -41,10 +44,10 @@ const HeroSection: React.FC<HeroSectionProps> = ({ timeLeft }) => {
             WALIMATUL 'URS
           </span>
           <h2 className="font-[#58111A] font-script-calligraphy text-6xl sm:text-7xl leading-tight drop-shadow-sm">
-            Andi <span className="text-[#8B263E] text-5xl font-serif">&</span> Rosna
+            {dashData.groom.nickName} <span className="text-[#8B263E] text-5xl font-serif">&</span> {dashData.bride.nickName}
           </h2>
           <p className="text-xs uppercase font-serif tracking-[0.2em] text-[#6E5E4F] font-medium">
-            Sabtu, 24 Oktober 2026
+            {dashData.event.dateDisplay}
           </p>
         </div>
       </ScrollReveal>

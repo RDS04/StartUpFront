@@ -1,7 +1,7 @@
 import React from 'react';
 import { Reveal } from '../components/Reveal';
 import { NameBadge, Pill, Section } from '../components/Shared';
-import { COUPLE, PHOTOS } from '../data';
+import { useTemplateDuaData } from '../context';
 
 const InstagramIcon = () => (
   <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} aria-hidden="true">
@@ -52,11 +52,14 @@ const PersonPanel: React.FC<PersonProps> = ({ photo, name, parents, parentNames,
   </Section>
 );
 
-const CoupleSection: React.FC = () => (
-  <>
-    <PersonPanel photo={PHOTOS.bride} label="The Bride" {...COUPLE.bride} />
-    <PersonPanel photo={PHOTOS.groom} label="The Groom" {...COUPLE.groom} />
-  </>
-);
+const CoupleSection: React.FC = () => {
+  const { photos, couple } = useTemplateDuaData();
+  return (
+    <>
+      <PersonPanel photo={photos.bride} label="The Bride" {...couple.bride} />
+      <PersonPanel photo={photos.groom} label="The Groom" {...couple.groom} />
+    </>
+  );
+};
 
 export default CoupleSection;

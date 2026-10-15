@@ -1,17 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
-import { Mail, Lock, Eye, EyeOff, ArrowRight, ShieldCheck, Check, Sparkles, AlertCircle, X } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, ArrowRight, ShieldCheck, Check, Sparkles, AlertCircle, X, UserPlus } from 'lucide-react';
 import { authenticateWithGoogle, loginUser } from '../services/authService';
-import { triggerGoogleSignInPrompt } from '../services/googleAuth';
+import { triggerGoogleSignInPrompt, renderGoogleIdentityButton, disableGoogleAutoSelect } from '../services/googleAuth';
 import { triggerLoading } from '../components/common/LottieLoader';
 
 interface LoginProps {
+  initialAlert?: string;
   onSwitchToRegister: () => void;
   onSuccessLogin?: (user: { name?: string; email: string; avatar?: string }) => void;
 }
 
-export const Login: React.FC<LoginProps> = ({ onSwitchToRegister, onSuccessLogin }) => {
+export const Login: React.FC<LoginProps> = ({ initialAlert, onSwitchToRegister, onSuccessLogin }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -19,7 +20,14 @@ export const Login: React.FC<LoginProps> = ({ onSwitchToRegister, onSuccessLogin
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [loginSuccess, setLoginSuccess] = useState(false);
-  const [showNotRegisteredPopup, setShowNotRegisteredPopup] = useState(false);
+
+  // State untuk peringatan akun Google belum terdaftar
+  const [showNotRegisteredModal, setShowNotRegisteredModal] = useState(false);
+  const [unregisteredEmail, setUnregisteredEmail] = useState('');
+  const [lastGoogleIdToken, setLastGoogleIdToken] = useState<string | null>(null);
+
+  // Ref kontainer tombol resmi Google GIS
+  const googleBtnWrapperRef = useRef<HTMLDivElement>(null);
 
   const triggerConfetti = () => {
     try {
@@ -34,9 +42,23 @@ export const Login: React.FC<LoginProps> = ({ onSwitchToRegister, onSuccessLogin
     }
   };
 
+  // Inisialisasi tombol resmi Google GIS overlay
+  useEffect(() => {
+    if (googleBtnWrapperRef.current) {
+      renderGoogleIdentityButton(
+        googleBtnWrapperRef.current,
+        (credential) => {
+          handleGoogleCredentialResponse(credential);
+        },
+        'signin_with'
+      );
+    }
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage('');
+    setShowNotRegisteredModal(false);
 
     if (!email || !password) {
       setErrorMessage('Mohon lengkapi email dan password Anda.');
@@ -61,47 +83,84 @@ export const Login: React.FC<LoginProps> = ({ onSwitchToRegister, onSuccessLogin
     }
   };
 
-  React.useEffect(() => {
-    if (showNotRegisteredPopup) {
-      const timer = setTimeout(() => {
-        setShowNotRegisteredPopup(false);
-      }, 6000);
-      return () => clearTimeout(timer);
-    }
-  }, [showNotRegisteredPopup]);
-
-  const handleGoogleLogin = async () => {
+  // Memproses respon credential dari Google (baik dari GIS button overlay atau prompt fallback)
+  const handleGoogleCredentialResponse = async (idToken: string) => {
     setErrorMessage('');
-    setShowNotRegisteredPopup(false);
+    setShowNotRegisteredModal(false);
     setIsLoading(true);
     triggerLoading(true, 'Menghubungkan Akun Google...', 'Memverifikasi profil Google Anda...');
+
     try {
-      const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-      if (!clientId) {
-        setErrorMessage(
-          'VITE_GOOGLE_CLIENT_ID belum diatur di file .env frontend. Tambahkan Client ID Google OAuth Anda.'
-        );
-        setIsLoading(false);
-        triggerLoading(false);
-        return;
-      }
-
-      const idToken = await triggerGoogleSignInPrompt();
       const res = await authenticateWithGoogle(idToken, 'login');
-
       setLoginSuccess(true);
       triggerConfetti();
+
       if (onSuccessLogin) {
         setTimeout(() => onSuccessLogin({ name: res.user.name, email: res.user.email, avatar: res.user.avatar }), 1200);
       }
     } catch (err: any) {
-      const msg = err.message || '';
-      if (msg.toLowerCase().includes('belum terdaftar')) {
-        setShowNotRegisteredPopup(true);
+      console.warn('Google Login caught error:', err);
+      const isNotRegistered = err.not_registered || (err.message && err.message.toLowerCase().includes('belum terdaftar'));
+      
+      if (isNotRegistered) {
+        setUnregisteredEmail(err.email || '');
+        setLastGoogleIdToken(idToken);
+        setShowNotRegisteredModal(true);
         setErrorMessage('');
       } else {
-        setErrorMessage(msg || 'Gagal masuk dengan Google.');
+        setErrorMessage(err.message || 'Gagal masuk dengan Google.');
       }
+    } finally {
+      setIsLoading(false);
+      triggerLoading(false);
+    }
+  };
+
+  // Tombol fallback jika klik manual pada tombol kustom
+  const handleGoogleLoginClick = async () => {
+    setErrorMessage('');
+    setShowNotRegisteredModal(false);
+    setIsLoading(true);
+    triggerLoading(true, 'Menghubungkan Akun Google...', 'Membuka dialog Google Sign-In...');
+
+    try {
+      const idToken = await triggerGoogleSignInPrompt();
+      await handleGoogleCredentialResponse(idToken);
+    } catch (err: any) {
+      setIsLoading(false);
+      triggerLoading(false);
+      const msg = err.message || '';
+      if (msg.toLowerCase().includes('belum terdaftar')) {
+        setShowNotRegisteredModal(true);
+      } else {
+        setErrorMessage(msg || 'Gagal membuka Google Sign-In.');
+      }
+    }
+  };
+
+  // 1-Klik Mendaftar langsung dengan kredensial Google yang baru saja dipilih
+  const handleQuickRegisterWithGoogle = async () => {
+    if (!lastGoogleIdToken) {
+      setShowNotRegisteredModal(false);
+      onSwitchToRegister();
+      return;
+    }
+
+    setIsLoading(true);
+    triggerLoading(true, 'Mendaftarkan Akun Google...', 'Menyiapkan akun & paket studio Anda...');
+
+    try {
+      const res = await authenticateWithGoogle(lastGoogleIdToken, 'register');
+      setShowNotRegisteredModal(false);
+      setLoginSuccess(true);
+      triggerConfetti();
+
+      if (onSuccessLogin) {
+        setTimeout(() => onSuccessLogin({ name: res.user.name, email: res.user.email, avatar: res.user.avatar }), 1200);
+      }
+    } catch (err: any) {
+      setShowNotRegisteredModal(false);
+      setErrorMessage(err.message || 'Gagal mendaftar dengan akun Google ini.');
     } finally {
       setIsLoading(false);
       triggerLoading(false);
@@ -116,46 +175,87 @@ export const Login: React.FC<LoginProps> = ({ onSwitchToRegister, onSuccessLogin
       transition={{ duration: 0.35, ease: 'easeOut' }}
       className="w-full max-w-md mx-auto relative"
     >
-      {/* Small Popup Alert: Anda Belum Terdaftar */}
+      {/* Modal Dialog: Akun Google Belum Terdaftar */}
       <AnimatePresence>
-        {showNotRegisteredPopup && (
-          <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[100] w-[92%] max-w-sm pointer-events-auto">
+        {showNotRegisteredModal && (
+          <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
             <motion.div
-              initial={{ opacity: 0, y: -25, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -15, scale: 0.95 }}
-              transition={{ duration: 0.25, ease: 'easeOut' }}
-              className="bg-slate-900/95 text-white backdrop-blur-md px-4 py-3 rounded-2xl shadow-[0_12px_40px_rgba(0,0,0,0.45)] border border-rose-500/40 flex items-center justify-between gap-3"
+              initial={{ opacity: 0, scale: 0.92, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.92, y: 20 }}
+              transition={{ duration: 0.25 }}
+              className="bg-white rounded-3xl p-6 sm:p-7 max-w-md w-full shadow-2xl border border-rose-100 text-slate-800 relative overflow-hidden"
             >
-              <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-8 h-8 rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/40 flex items-center justify-center shrink-0">
-                  <AlertCircle className="w-4 h-4" />
-                </div>
-                <div className="min-w-0 text-left">
-                  <p className="text-xs font-bold text-white leading-tight">Anda Belum Terdaftar</p>
-                  <p className="text-[11px] text-slate-300 truncate">Silakan daftar akun terlebih dahulu</p>
-                </div>
+              {/* Background Glow */}
+              <div className="absolute -top-12 -right-12 w-36 h-36 bg-rose-100/70 rounded-full blur-2xl pointer-events-none" />
+
+              {/* Close X button */}
+              <button
+                type="button"
+                onClick={() => {
+                  setShowNotRegisteredModal(false);
+                  disableGoogleAutoSelect();
+                }}
+                className="absolute top-5 right-5 p-1.5 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+                title="Tutup"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <div className="w-14 h-14 rounded-2xl bg-rose-50 text-rose-600 border border-rose-200 flex items-center justify-center mb-4 shadow-xs">
+                <AlertCircle className="w-8 h-8 stroke-[2.2]" />
               </div>
 
-              <div className="flex items-center gap-1.5 shrink-0">
+              <h3 className="text-xl font-black text-slate-900 tracking-tight mb-2">
+                Akun Google Belum Terdaftar!
+              </h3>
+              
+              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed mb-4">
+                Akun Google {unregisteredEmail ? <span className="font-bold text-slate-900 underline">{unregisteredEmail}</span> : 'Anda'} belum terdaftar di platform kami. Anda <span className="text-rose-600 font-bold">tidak dapat masuk ke Dashboard Pengguna</span> tanpa mendaftar terlebih dahulu.
+              </p>
+
+              <div className="p-3.5 rounded-2xl bg-amber-50/80 border border-amber-200 mb-6 text-left space-y-1">
+                <p className="text-[11px] font-bold text-amber-900 uppercase tracking-wider flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                  Solusi Cepat
+                </p>
+                <p className="text-xs text-amber-800 leading-snug">
+                  Daftarkan akun sekarang menggunakan akun Google ini dalam 1-klik, atau gunakan form pendaftaran.
+                </p>
+              </div>
+
+              <div className="flex flex-col gap-2.5">
                 <button
                   type="button"
-                  onClick={() => {
-                    setShowNotRegisteredPopup(false);
-                    onSwitchToRegister();
-                  }}
-                  className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-rose-600 to-rose-500 hover:from-rose-500 hover:to-rose-400 text-white text-[11px] font-bold shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer whitespace-nowrap"
+                  onClick={handleQuickRegisterWithGoogle}
+                  className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-[#165b39] via-[#1b6b43] to-[#228453] hover:brightness-105 text-white font-bold text-xs sm:text-sm shadow-md hover:scale-[1.01] active:scale-95 transition-all cursor-pointer flex items-center justify-center gap-2"
                 >
-                  Daftar
+                  <UserPlus className="w-4 h-4 text-emerald-200" />
+                  <span>Daftarkan Akun Google Ini Sekarang</span>
                 </button>
-                <button
-                  type="button"
-                  onClick={() => setShowNotRegisteredPopup(false)}
-                  className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
-                  title="Tutup"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
+
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowNotRegisteredModal(false);
+                      onSwitchToRegister();
+                    }}
+                    className="flex-1 py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-all cursor-pointer"
+                  >
+                    Form Registrasi
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowNotRegisteredModal(false);
+                      disableGoogleAutoSelect();
+                    }}
+                    className="py-2.5 px-4 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-500 hover:text-slate-700 font-medium text-xs transition-all cursor-pointer"
+                  >
+                    Batal / Ganti Akun
+                  </button>
+                </div>
               </div>
             </motion.div>
           </div>
@@ -163,7 +263,7 @@ export const Login: React.FC<LoginProps> = ({ onSwitchToRegister, onSuccessLogin
       </AnimatePresence>
       
       {/* Header Form */}
-      <div className="mb-7 text-center sm:text-left">
+      <div className="mb-6 text-center sm:text-left">
         <motion.div 
           initial={{ opacity: 0, x: -10 }}
           animate={{ opacity: 1, x: 0 }}
@@ -181,6 +281,18 @@ export const Login: React.FC<LoginProps> = ({ onSwitchToRegister, onSuccessLogin
           Kelola &amp; pantau undangan pernikahan Anda bersama <span className="font-serif-wedding font-bold text-[#165b39]">i say yes</span>.
         </p>
       </div>
+
+      {/* Initial Alert (misal: redirect dari route dashboard karena belum login) */}
+      {initialAlert && (
+        <motion.div
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-5 p-3.5 rounded-2xl bg-amber-50/90 border border-amber-300 text-amber-900 text-xs flex items-start gap-2.5 shadow-xs"
+        >
+          <AlertCircle className="w-4 h-4 shrink-0 text-amber-600 mt-0.5" />
+          <span className="leading-relaxed font-semibold">{initialAlert}</span>
+        </motion.div>
+      )}
 
       {/* Success Notification */}
       <AnimatePresence>
@@ -256,7 +368,7 @@ export const Login: React.FC<LoginProps> = ({ onSwitchToRegister, onSuccessLogin
             </label>
             <button
               type="button"
-              onClick={() => alert('Fitur reset password: Tautan pemulihan akan dikirimkan ke email terdaftar Anda.')}
+              onClick={() => alert('Fitur reset password: Hubungi admin atau gunakan login Google.')}
               className="text-xs font-semibold text-[#165b39] hover:text-emerald-700 hover:underline cursor-pointer"
             >
               Lupa Password?
@@ -345,34 +457,31 @@ export const Login: React.FC<LoginProps> = ({ onSwitchToRegister, onSuccessLogin
         </span>
       </div>
 
-      {/* Google OAuth Button */}
-      <motion.button
-        type="button"
-        onClick={handleGoogleLogin}
-        whileHover={{ scale: 1.015, backgroundColor: '#f8fafc' }}
-        whileTap={{ scale: 0.985 }}
-        className="w-full py-3 px-4 rounded-xl border border-slate-200 bg-white text-xs sm:text-sm font-semibold text-slate-700 flex items-center justify-center gap-2.5 shadow-xs hover:shadow-md transition-all cursor-pointer"
-      >
-        <svg className="w-4 h-4" viewBox="0 0 24 24">
-          <path
-            fill="#EA4335"
-            d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.7 14.8 1 12 1 7.4 1 3.5 3.6 1.6 7.4l3.7 2.9C6.2 7.3 8.8 5 12 5z"
-          />
-          <path
-            fill="#4285F4"
-            d="M23.5 12.3c0-.8-.1-1.7-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5.1 3.7-8.8z"
-          />
-          <path
-            fill="#FBBC05"
-            d="M5.3 14.7c-.2-.7-.4-1.5-.4-2.3s.1-1.6.4-2.3L1.6 7.2C.6 9.2 0 11.5 0 14s.6 4.8 1.6 6.8l3.7-2.9z"
-          />
-          <path
-            fill="#34A853"
-            d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3.2 0-5.8-2.3-6.7-5.3L1.6 16C3.5 19.8 7.4 23 12 23z"
-          />
-        </svg>
-        <span>Masuk Cepat dengan Google</span>
-      </motion.button>
+      {/* Google OAuth Button with GIS Official Overlay */}
+      <div className="relative overflow-hidden rounded-xl group w-full">
+        <motion.button
+          type="button"
+          onClick={handleGoogleLoginClick}
+          whileHover={{ scale: 1.015, backgroundColor: '#f8fafc' }}
+          whileTap={{ scale: 0.985 }}
+          className="w-full py-3 px-4 rounded-xl border border-slate-200 bg-white text-xs sm:text-sm font-semibold text-slate-700 flex items-center justify-center gap-2.5 shadow-xs hover:shadow-md transition-all cursor-pointer"
+        >
+          <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+          </svg>
+          <span>Masuk Cepat dengan Google</span>
+        </motion.button>
+
+        {/* Overlay invisible resmi Google Identity Services yang merender Account Chooser popup asli */}
+        <div
+          ref={googleBtnWrapperRef}
+          className="absolute inset-0 opacity-[0.001] z-20 overflow-hidden cursor-pointer flex items-center justify-center"
+          title="Masuk dengan Akun Google"
+        />
+      </div>
 
       {/* Switch to Register link */}
       <div className="mt-7 text-center pt-1">
@@ -397,4 +506,3 @@ export const Login: React.FC<LoginProps> = ({ onSwitchToRegister, onSuccessLogin
     </motion.div>
   );
 };
-

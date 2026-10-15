@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { CalendarHeart, MapPin } from 'lucide-react';
 import { Reveal } from '../components/Reveal';
 import { NameBadge, Pill, Section } from '../components/Shared';
-import { AKAD, COUPLE, PHOTOS, RESEPSI, type ResepsiItem } from '../data';
+import { type ResepsiItem } from '../data';
+import { useTemplateDuaData } from '../context';
 
 /* ------------------------------ Countdown ------------------------------ */
 const useCountdown = (iso: string) => {
@@ -25,23 +26,25 @@ const useCountdown = (iso: string) => {
   return t;
 };
 
-const buildCalendarUrl = () => {
-  const p = new URLSearchParams({
-    action: 'TEMPLATE',
-    text: `Pernikahan ${COUPLE.shortBride} & ${COUPLE.shortGroom}`,
-    dates: '20261009T010000Z/20261012T090000Z',
-    details: 'Akad Nikah & Resepsi',
-    location: AKAD.venue,
-  });
-  return `https://calendar.google.com/calendar/render?${p.toString()}`;
-};
-
 /* ------------------------------ Akad ------------------------------ */
 export const AkadSection: React.FC = () => {
-  const t = useCountdown(COUPLE.targetDate);
+  const { akad, couple, photos } = useTemplateDuaData();
+  const t = useCountdown(couple.targetDate);
+
+  const buildCalendarUrl = () => {
+    const p = new URLSearchParams({
+      action: 'TEMPLATE',
+      text: `Pernikahan ${couple.shortBride} & ${couple.shortGroom}`,
+      dates: '20261009T010000Z/20261012T090000Z',
+      details: 'Akad Nikah & Resepsi',
+      location: akad.venue,
+    });
+    return `https://calendar.google.com/calendar/render?${p.toString()}`;
+  };
+
   return (
     <Section
-      photo={PHOTOS.akad}
+      photo={photos.akad}
       overlay="bg-gradient-to-b from-[#967678]/70 via-[#967678]/55 to-[#5e4648]/80"
       innerClassName="flex min-h-[100svh] flex-col items-center justify-center px-8 py-20 text-center"
     >
@@ -50,20 +53,21 @@ export const AkadSection: React.FC = () => {
       </Reveal>
 
       <Reveal anim="down" delay={120} className="mt-10">
-        <h2 className="dr-display text-[2rem] font-semibold tracking-wide">{AKAD.title}</h2>
+        <h2 className="dr-display text-[2rem] font-semibold tracking-wide">{akad.title}</h2>
       </Reveal>
 
       <Reveal anim="zoom" delay={220} className="my-4 flex items-center justify-center">
-        <span className="w-20 text-right text-sm uppercase tracking-[0.25em]">{AKAD.day}</span>
+        <span className="w-20 text-right text-sm uppercase tracking-[0.25em]">{akad.day}</span>
         <span className="dr-display mx-4 border-x-2 border-white/80 px-4 text-[3.4rem] font-semibold leading-none">
-          {AKAD.date}
+          {akad.date}
         </span>
-        <span className="w-20 text-left text-sm leading-tight">{AKAD.monthYear}</span>
+        <span className="w-20 text-left text-sm uppercase tracking-[0.25em]">{akad.monthYear}</span>
       </Reveal>
 
-      <Reveal anim="up" delay={300}>
-        <p className="text-[13.5px] text-white/90">{AKAD.time}</p>
-        <p className="dr-display mt-3 text-2xl font-semibold">{AKAD.venue}</p>
+      <Reveal anim="up" delay={320}>
+        <p className="text-[15px] font-medium text-white/95">{akad.time}</p>
+        <p className="mt-1 text-[13px] text-white/80">Bertempat di</p>
+        <p className="text-base font-semibold text-white">{akad.venue}</p>
       </Reveal>
 
       {/* Countdown */}
@@ -124,10 +128,13 @@ const ResepsiCard: React.FC<{ item: ResepsiItem }> = ({ item }) => (
   </Section>
 );
 
-export const ResepsiSection: React.FC = () => (
-  <>
-    {RESEPSI.map((r) => (
-      <ResepsiCard key={r.numeral} item={r} />
-    ))}
-  </>
-);
+export const ResepsiSection: React.FC = () => {
+  const { resepsi } = useTemplateDuaData();
+  return (
+    <>
+      {resepsi.map((r) => (
+        <ResepsiCard key={r.numeral} item={r} />
+      ))}
+    </>
+  );
+};

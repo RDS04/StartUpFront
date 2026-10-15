@@ -17,6 +17,12 @@ interface DashboardSidebarProps {
   setActiveTab: (tab: DashboardTab) => void;
   tierConfig: TierConfig;
   guestCount: number;
+  activeTemplateId?: string;
+  currentUser?: {
+    role?: string;
+    name?: string;
+    email?: string;
+  } | null;
   onNavigateTemplates?: () => void;
   onNavigatePricing?: () => void;
   onNavigatePayment?: () => void;
@@ -28,6 +34,8 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
   setActiveTab,
   tierConfig,
   guestCount,
+  activeTemplateId,
+  currentUser,
   onNavigateTemplates,
   onNavigatePricing,
   onNavigatePayment,
@@ -92,7 +100,7 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
         )}
         {onPreviewTemplate && (
           <button
-            onClick={() => onPreviewTemplate('template-empat')}
+            onClick={() => onPreviewTemplate(activeTemplateId || 'template-empat')}
             className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-800 border border-stone-200 text-xs font-semibold transition cursor-pointer"
           >
             <Sparkles className="w-4 h-4 text-emerald-700" />
@@ -117,16 +125,18 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
             <span>Upgrade / Perpanjang Paket</span>
           </button>
         )}
-        <a
-          href="http://localhost:8000/master/login"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-purple-50 hover:bg-purple-100/80 text-purple-900 border border-purple-200/80 text-xs font-semibold transition cursor-pointer"
-          title="Buka Panel Master Administrator"
-        >
-          <ShieldCheck className="w-4 h-4 text-purple-700" />
-          <span>Portal Master Admin</span>
-        </a>
+        {(currentUser?.role === 'master' || currentUser?.role === 'admin') && (
+          <a
+            href="http://localhost:8000/master/login"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-purple-50 hover:bg-purple-100/80 text-purple-900 border border-purple-200/80 text-xs font-semibold transition cursor-pointer"
+            title="Buka Panel Master Administrator"
+          >
+            <ShieldCheck className="w-4 h-4 text-purple-700" />
+            <span>Portal Master Admin</span>
+          </a>
+        )}
       </div>
 
       {/* Subscription Status Card */}

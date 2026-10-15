@@ -2,9 +2,10 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { SongketBorder } from '../components/SongketBorder';
 import { GoldenSparkles } from '../components/GoldenSparkles';
-import { GROOM_DATA, BRIDE_DATA } from '../data';
+import { useTemplateTigaData } from '../context';
 
 export const CoupleSection: React.FC = () => {
+  const { groom: GROOM_DATA, bride: BRIDE_DATA } = useTemplateTigaData();
   return (
     <section id="mempelai" className="relative w-full bg-[#4a0910] text-[#3a060d] overflow-hidden flex flex-col justify-between items-center text-center px-4 py-4">
       <GoldenSparkles />

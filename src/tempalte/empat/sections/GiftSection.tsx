@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { Gift, MapPin, Copy, Check, MessageCircle } from 'lucide-react';
-import { BANK_ACCOUNTS, WEDDING_INFO } from '../data';
 import { AtmCard } from '../components/AtmCard';
+import { useTemplateEmpatData } from '../context';
 
 export const GiftSection: React.FC = () => {
+  const { bankAccounts: BANK_ACCOUNTS, weddingInfo: WEDDING_INFO } = useTemplateEmpatData();
   const [copiedAddress, setCopiedAddress] = useState(false);
 
   const handleCopyAddress = () => {

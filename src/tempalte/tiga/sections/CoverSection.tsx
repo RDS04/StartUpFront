@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { MailOpen } from 'lucide-react';
 import { SongketBorder } from '../components/SongketBorder';
 import { GoldenSparkles } from '../components/GoldenSparkles';
-import { WEDDING_INFO } from '../data';
+import { useTemplateTigaData } from '../context';
 
 interface CoverSectionProps {
   guestName: string;
@@ -11,6 +11,7 @@ interface CoverSectionProps {
 }
 
 export const CoverSection: React.FC<CoverSectionProps> = ({ guestName, onOpenInvitation }) => {
+  const { weddingInfo: WEDDING_INFO } = useTemplateTigaData();
   return (
     <section className="relative min-h-screen w-full bg-[#4a0910] flex flex-col justify-between items-center text-center overflow-hidden px-4 py-2 select-none">
       {/* Efek Bintang Kelip Emas */}

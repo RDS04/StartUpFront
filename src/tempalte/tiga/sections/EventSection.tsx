@@ -3,9 +3,11 @@ import { motion } from 'framer-motion';
 import { MapPin } from 'lucide-react';
 import { SongketBorder } from '../components/SongketBorder';
 import { GoldenSparkles } from '../components/GoldenSparkles';
-import { EVENTS, ASSETS } from '../data';
+import { ASSETS } from '../data';
+import { useTemplateTigaData } from '../context';
 
 export const EventSection: React.FC = () => {
+  const { events: EVENTS } = useTemplateTigaData();
   return (
     <section id="acara" className="relative w-full bg-[#4a0910] text-[#3a060d] overflow-hidden flex flex-col justify-between items-center text-center px-4 py-4">
       <GoldenSparkles />
