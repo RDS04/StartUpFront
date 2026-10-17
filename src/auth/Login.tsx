@@ -9,7 +9,7 @@ import { triggerLoading } from '../components/common/LottieLoader';
 interface LoginProps {
   initialAlert?: string;
   onSwitchToRegister: () => void;
-  onSuccessLogin?: (user: { name?: string; email: string; avatar?: string }) => void;
+  onSuccessLogin?: (user: { name?: string; email: string; avatar?: string }, authType?: 'login' | 'register') => void;
 }
 
 export const Login: React.FC<LoginProps> = ({ initialAlert, onSwitchToRegister, onSuccessLogin }) => {
@@ -156,7 +156,7 @@ export const Login: React.FC<LoginProps> = ({ initialAlert, onSwitchToRegister, 
       triggerConfetti();
 
       if (onSuccessLogin) {
-        setTimeout(() => onSuccessLogin({ name: res.user.name, email: res.user.email, avatar: res.user.avatar }), 1200);
+        setTimeout(() => onSuccessLogin({ name: res.user.name, email: res.user.email, avatar: res.user.avatar }, 'register'), 1200);
       }
     } catch (err: any) {
       setShowNotRegisteredModal(false);

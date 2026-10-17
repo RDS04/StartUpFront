@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { Calendar, Music, MapPin, Lock, Save, Camera, Globe, Copy, ExternalLink, Sparkles, RefreshCw } from 'lucide-react';
+import { Calendar, Music, MapPin, Lock, Save, Camera, Globe, Copy, ExternalLink, Sparkles, RefreshCw, User } from 'lucide-react';
 import type { DashboardData, TierConfig } from '../types';
 
 interface BrideEventSectionProps {
@@ -15,7 +15,7 @@ export function createSlugFromNames(groom: string, bride: string): string {
   if (cleanGroom && cleanBride) {
     return `${cleanGroom}-${cleanBride}`;
   }
-  return cleanGroom || cleanBride || 'andi-rosna';
+  return cleanGroom || cleanBride || '';
 }
 
 const TEMPLATE_OPTIONS = [
@@ -37,25 +37,16 @@ export const BrideEventSection: React.FC<BrideEventSectionProps> = ({
   const baseUrl = typeof window !== 'undefined' 
     ? `${window.location.protocol}//${window.location.host}` 
     : 'http://localhost:5173';
-  const invitationLocalUrl = `${baseUrl}/#/${data.slug}`;
+  const displaySlug = data.slug || createSlugFromNames(data.groom.nickName, data.bride.nickName) || 'nama-pasangan';
+  const invitationLocalUrl = `${baseUrl}/#/${displaySlug}`;
 
-  // Reset Photo to Default Sample Avatar
+  // Reset Photo to Empty Placeholder
   const handleResetPhoto = (role: 'groom' | 'bride') => {
-    const defaultAvatar = role === 'groom'
-      ? 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&auto=format&fit=crop&q=80'
-      : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80';
-
-    setData((prev) => {
-      const updated = {
-        ...prev,
-        [role]: { ...prev[role], avatar: defaultAvatar },
-      };
-      try {
-        localStorage.setItem('ij_dashboard_data', JSON.stringify(updated));
-      } catch {}
-      return updated;
-    });
-    onShowToast(`Foto mempelai ${role === 'groom' ? 'pria' : 'wanita'} dikembalikan ke default.`);
+    setData((prev) => ({
+      ...prev,
+      [role]: { ...prev[role], avatar: '' },
+    }));
+    onShowToast(`Foto mempelai ${role === 'groom' ? 'pria' : 'wanita'} dikosongkan (kembali ke placeholder).`);
   };
 
   // Handle Photo Upload via FileReader (Base64)
@@ -77,16 +68,10 @@ export const BrideEventSection: React.FC<BrideEventSectionProps> = ({
     reader.onload = (event) => {
       const base64 = event.target?.result as string;
       if (base64) {
-        setData((prev) => {
-          const updated = {
-            ...prev,
-            [role]: { ...prev[role], avatar: base64 },
-          };
-          try {
-            localStorage.setItem('ij_dashboard_data', JSON.stringify(updated));
-          } catch {}
-          return updated;
-        });
+        setData((prev) => ({
+          ...prev,
+          [role]: { ...prev[role], avatar: base64 },
+        }));
         onShowToast(`Foto mempelai ${role === 'groom' ? 'pria' : 'wanita'} berhasil diunggah!`);
       }
     };
@@ -98,38 +83,23 @@ export const BrideEventSection: React.FC<BrideEventSectionProps> = ({
   // Auto update slug when groom or bride nickname changes
   const handleGroomNickChange = (val: string) => {
     const newSlug = createSlugFromNames(val, data.bride.nickName);
-    setData((prev) => {
-      const updated = {
-        ...prev,
-        slug: newSlug,
-        groom: { ...prev.groom, nickName: val },
-      };
-      try {
-        localStorage.setItem('ij_dashboard_data', JSON.stringify(updated));
-      } catch {}
-      return updated;
-    });
+    setData((prev) => ({
+      ...prev,
+      slug: newSlug,
+      groom: { ...prev.groom, nickName: val },
+    }));
   };
 
   const handleBrideNickChange = (val: string) => {
     const newSlug = createSlugFromNames(data.groom.nickName, val);
-    setData((prev) => {
-      const updated = {
-        ...prev,
-        slug: newSlug,
-        bride: { ...prev.bride, nickName: val },
-      };
-      try {
-        localStorage.setItem('ij_dashboard_data', JSON.stringify(updated));
-      } catch {}
-      return updated;
-    });
+    setData((prev) => ({
+      ...prev,
+      slug: newSlug,
+      bride: { ...prev.bride, nickName: val },
+    }));
   };
 
   const handleSave = () => {
-    try {
-      localStorage.setItem('ij_dashboard_data', JSON.stringify(data));
-    } catch {}
     onShowToast('Perubahan data mempelai & acara berhasil disimpan!');
   };
 
@@ -153,15 +123,23 @@ export const BrideEventSection: React.FC<BrideEventSectionProps> = ({
               <span className="text-[11px] font-bold text-emerald-300 tracking-wide uppercase">
                 Tautan Domain Undangan (Localhost)
               </span>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-400/20 border border-emerald-400/30 text-emerald-200 font-medium">
-                Auto-Slug Aktif
+              <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
+                data.slug 
+                  ? 'bg-emerald-400/20 border border-emerald-400/30 text-emerald-200' 
+                  : 'bg-amber-400/20 border border-amber-400/30 text-amber-200'
+              }`}>
+                {data.slug ? 'Auto-Slug Aktif' : 'Placeholder Slug'}
               </span>
             </div>
             <div className="text-xs sm:text-sm font-mono font-bold text-white mt-0.5 truncate select-all">
               {invitationLocalUrl}
             </div>
             <p className="text-[11px] text-emerald-200/80 mt-0.5">
-              Slug <strong className="text-white font-mono">"{data.slug}"</strong> otomatis terisi dari Nama Panggilan Mempelai Pria &amp; Wanita.
+              {data.slug ? (
+                <>Slug <strong className="text-white font-mono">"{data.slug}"</strong> otomatis terisi dari Nama Panggilan Mempelai Pria &amp; Wanita.</>
+              ) : (
+                'Isi Nama Panggilan Mempelai Pria & Wanita di bawah ini untuk membuat slug otomatis.'
+              )}
             </p>
           </div>
         </div>
@@ -218,13 +196,7 @@ export const BrideEventSection: React.FC<BrideEventSectionProps> = ({
             value={data.activeTemplateId || 'template-empat'}
             onChange={(e) => {
               const newTpl = e.target.value;
-              setData((prev) => {
-                const updated = { ...prev, activeTemplateId: newTpl };
-                try {
-                  localStorage.setItem('ij_dashboard_data', JSON.stringify(updated));
-                } catch {}
-                return updated;
-              });
+              setData((prev) => ({ ...prev, activeTemplateId: newTpl }));
               const tplObj = TEMPLATE_OPTIONS.find((t) => t.id === newTpl);
               onShowToast(`Template aktif beralih ke: ${tplObj?.name || newTpl}`);
             }}
@@ -246,27 +218,38 @@ export const BrideEventSection: React.FC<BrideEventSectionProps> = ({
         <div className="p-5 rounded-3xl border border-stone-200 bg-[#FAF7F2]/70 space-y-4 shadow-xs">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-stone-200/80">
             <div className="flex items-center space-x-3.5">
-              <div className="relative group w-16 h-16 rounded-2xl overflow-hidden border-2 border-emerald-700/30 bg-stone-200 shadow-sm shrink-0">
-                <img
-                  src={data.groom.avatar}
-                  alt="Groom avatar"
-                  className="w-full h-full object-cover"
-                />
+              <div className="relative group w-16 h-16 rounded-2xl overflow-hidden border-2 border-emerald-700/30 bg-stone-100 shadow-sm shrink-0 flex items-center justify-center">
+                {data.groom.avatar ? (
+                  <img
+                    src={data.groom.avatar}
+                    alt="Groom avatar"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-stone-100 flex flex-col items-center justify-center text-stone-400">
+                    <User className="w-6 h-6 text-stone-400" />
+                    <span className="text-[8px] font-bold text-stone-400 uppercase tracking-wider mt-0.5">Pria</span>
+                  </div>
+                )}
                 <button
                   type="button"
                   onClick={() => groomFileRef.current?.click()}
                   className="absolute inset-0 bg-black/55 text-white flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-[10px] font-semibold"
-                  title="Ganti Foto Mempelai Pria"
+                  title={data.groom.avatar ? "Ganti Foto Mempelai Pria" : "Unggah Foto Mempelai Pria"}
                 >
                   <Camera className="w-4 h-4 mb-0.5" />
-                  <span>Ubah</span>
+                  <span>{data.groom.avatar ? "Ubah" : "Unggah"}</span>
                 </button>
               </div>
               <div>
                 <h2 className="font-bold text-sm text-stone-900">Mempelai Pria</h2>
                 <p className="text-[11px] text-stone-500 font-medium">Foto &amp; Profil Pengantin Pria</p>
-                <span className="inline-block mt-0.5 text-[10px] font-medium text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200/60">
-                  {data.groom.avatar?.startsWith('data:image') ? 'Foto Kustom Aktif' : 'Foto Sampel'}
+                <span className={`inline-block mt-0.5 text-[10px] font-medium px-2 py-0.5 rounded-md border ${
+                  data.groom.avatar
+                    ? 'text-emerald-800 bg-emerald-50 border-emerald-200/60'
+                    : 'text-stone-500 bg-stone-100 border-stone-200'
+                }`}>
+                  {data.groom.avatar ? 'Foto Kustom Aktif' : 'Belum Ada Foto (Placeholder)'}
                 </span>
               </div>
             </div>
@@ -292,7 +275,7 @@ export const BrideEventSection: React.FC<BrideEventSectionProps> = ({
               <button
                 type="button"
                 onClick={() => handleResetPhoto('groom')}
-                title="Kembalikan foto mempelai pria ke default"
+                title="Hapus / kosongkan foto mempelai pria"
                 className="p-1.5 bg-stone-100 hover:bg-stone-200 text-stone-600 rounded-xl transition cursor-pointer border border-stone-200 shadow-xs"
               >
                 <RefreshCw className="w-3.5 h-3.5" />
@@ -309,7 +292,7 @@ export const BrideEventSection: React.FC<BrideEventSectionProps> = ({
               type="text"
               value={data.groom.nickName}
               onChange={(e) => handleGroomNickChange(e.target.value)}
-              placeholder="Contoh: Andi"
+              placeholder="Contoh: Reyhan"
               className="w-full text-xs bg-white border border-stone-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#2D6A4F]"
             />
           </div>
@@ -325,7 +308,7 @@ export const BrideEventSection: React.FC<BrideEventSectionProps> = ({
                   groom: { ...data.groom, fullName: e.target.value },
                 })
               }
-              placeholder="Contoh: Andi Irawan, S.H., M.H."
+              placeholder="Contoh: Reyhan Pratama, S.Kom."
               className="w-full text-xs bg-white border border-stone-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#2D6A4F]"
             />
           </div>
@@ -341,7 +324,7 @@ export const BrideEventSection: React.FC<BrideEventSectionProps> = ({
                   groom: { ...data.groom, parents: e.target.value },
                 })
               }
-              placeholder="Contoh: Putra ke-4 dari Bpk. Irianto & Ibu Nurleli"
+              placeholder="Contoh: Putra pertama dari Bpk. Bambang & Ibu Sri"
               className="w-full text-xs bg-white border border-stone-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#2D6A4F]"
             />
           </div>
@@ -351,27 +334,38 @@ export const BrideEventSection: React.FC<BrideEventSectionProps> = ({
         <div className="p-5 rounded-3xl border border-stone-200 bg-[#FAF7F2]/70 space-y-4 shadow-xs">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-stone-200/80">
             <div className="flex items-center space-x-3.5">
-              <div className="relative group w-16 h-16 rounded-2xl overflow-hidden border-2 border-emerald-700/30 bg-stone-200 shadow-sm shrink-0">
-                <img
-                  src={data.bride.avatar}
-                  alt="Bride avatar"
-                  className="w-full h-full object-cover"
-                />
+              <div className="relative group w-16 h-16 rounded-2xl overflow-hidden border-2 border-emerald-700/30 bg-stone-100 shadow-sm shrink-0 flex items-center justify-center">
+                {data.bride.avatar ? (
+                  <img
+                    src={data.bride.avatar}
+                    alt="Bride avatar"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-stone-100 flex flex-col items-center justify-center text-stone-400">
+                    <User className="w-6 h-6 text-stone-400" />
+                    <span className="text-[8px] font-bold text-stone-400 uppercase tracking-wider mt-0.5">Wanita</span>
+                  </div>
+                )}
                 <button
                   type="button"
                   onClick={() => brideFileRef.current?.click()}
                   className="absolute inset-0 bg-black/55 text-white flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-[10px] font-semibold"
-                  title="Ganti Foto Mempelai Wanita"
+                  title={data.bride.avatar ? "Ganti Foto Mempelai Wanita" : "Unggah Foto Mempelai Wanita"}
                 >
                   <Camera className="w-4 h-4 mb-0.5" />
-                  <span>Ubah</span>
+                  <span>{data.bride.avatar ? "Ubah" : "Unggah"}</span>
                 </button>
               </div>
               <div>
                 <h2 className="font-bold text-sm text-stone-900">Mempelai Wanita</h2>
                 <p className="text-[11px] text-stone-500 font-medium">Foto &amp; Profil Pengantin Wanita</p>
-                <span className="inline-block mt-0.5 text-[10px] font-medium text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200/60">
-                  {data.bride.avatar?.startsWith('data:image') ? 'Foto Kustom Aktif' : 'Foto Sampel'}
+                <span className={`inline-block mt-0.5 text-[10px] font-medium px-2 py-0.5 rounded-md border ${
+                  data.bride.avatar
+                    ? 'text-emerald-800 bg-emerald-50 border-emerald-200/60'
+                    : 'text-stone-500 bg-stone-100 border-stone-200'
+                }`}>
+                  {data.bride.avatar ? 'Foto Kustom Aktif' : 'Belum Ada Foto (Placeholder)'}
                 </span>
               </div>
             </div>
@@ -397,7 +391,7 @@ export const BrideEventSection: React.FC<BrideEventSectionProps> = ({
               <button
                 type="button"
                 onClick={() => handleResetPhoto('bride')}
-                title="Kembalikan foto mempelai wanita ke default"
+                title="Hapus / kosongkan foto mempelai wanita"
                 className="p-1.5 bg-stone-100 hover:bg-stone-200 text-stone-600 rounded-xl transition cursor-pointer border border-stone-200 shadow-xs"
               >
                 <RefreshCw className="w-3.5 h-3.5" />
@@ -414,7 +408,7 @@ export const BrideEventSection: React.FC<BrideEventSectionProps> = ({
               type="text"
               value={data.bride.nickName}
               onChange={(e) => handleBrideNickChange(e.target.value)}
-              placeholder="Contoh: Rosna"
+              placeholder="Contoh: Yanti"
               className="w-full text-xs bg-white border border-stone-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#2D6A4F]"
             />
           </div>
@@ -430,7 +424,7 @@ export const BrideEventSection: React.FC<BrideEventSectionProps> = ({
                   bride: { ...data.bride, fullName: e.target.value },
                 })
               }
-              placeholder="Contoh: Adv. Rosna Linny, S.H., Gr."
+              placeholder="Contoh: Yanti Oktaviani, S.Pd."
               className="w-full text-xs bg-white border border-stone-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#2D6A4F]"
             />
           </div>
@@ -446,7 +440,7 @@ export const BrideEventSection: React.FC<BrideEventSectionProps> = ({
                   bride: { ...data.bride, parents: e.target.value },
                 })
               }
-              placeholder="Contoh: Putri ke-2 dari Bpk. Adiswan & Ibu Emi"
+              placeholder="Contoh: Putri kedua dari Bpk. Surya & Ibu Maya"
               className="w-full text-xs bg-white border border-stone-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#2D6A4F]"
             />
           </div>
@@ -467,16 +461,10 @@ export const BrideEventSection: React.FC<BrideEventSectionProps> = ({
               value={data.slug}
               onChange={(e) => {
                 const clean = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '');
-                setData((prev) => {
-                  const updated = { ...prev, slug: clean };
-                  try {
-                    localStorage.setItem('ij_dashboard_data', JSON.stringify(updated));
-                  } catch {}
-                  return updated;
-                });
+                setData((prev) => ({ ...prev, slug: clean }));
               }}
               className="text-xs font-mono font-bold text-stone-900 bg-stone-50 border border-stone-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#2D6A4F]"
-              placeholder="andi-rosna"
+              placeholder="reyhan-yanti"
             />
             <button
               type="button"
@@ -528,6 +516,7 @@ export const BrideEventSection: React.FC<BrideEventSectionProps> = ({
                   event: { ...data.event, dateDisplay: e.target.value },
                 })
               }
+              placeholder="Contoh: Sabtu, 24 Oktober 2026"
               className="w-full text-xs bg-white border border-stone-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#2D6A4F]"
             />
           </div>
@@ -547,11 +536,11 @@ export const BrideEventSection: React.FC<BrideEventSectionProps> = ({
                   event: { ...data.event, akadTime: e.target.value },
                 })
               }
-              className="w-full text-xs bg-white border border-stone-200 rounded-xl px-3 py-2"
+              className="w-full text-xs bg-white border border-stone-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#2D6A4F]"
             />
             <input
               type="text"
-              placeholder="Nama Lokasi / Tempat"
+              placeholder="Nama Lokasi / Tempat (contoh: Masjid Agung)"
               value={data.event.akadPlace}
               onChange={(e) =>
                 setData({
@@ -559,10 +548,10 @@ export const BrideEventSection: React.FC<BrideEventSectionProps> = ({
                   event: { ...data.event, akadPlace: e.target.value },
                 })
               }
-              className="w-full text-xs bg-white border border-stone-200 rounded-xl px-3 py-2"
+              className="w-full text-xs bg-white border border-stone-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#2D6A4F]"
             />
             <textarea
-              placeholder="Alamat Lengkap"
+              placeholder="Alamat Lengkap (contoh: Jl. Sudirman No. 10, Jakarta Selatan)"
               rows={2}
               value={data.event.akadAddress}
               onChange={(e) =>
@@ -571,7 +560,7 @@ export const BrideEventSection: React.FC<BrideEventSectionProps> = ({
                   event: { ...data.event, akadAddress: e.target.value },
                 })
               }
-              className="w-full text-xs bg-white border border-stone-200 rounded-xl px-3 py-2"
+              className="w-full text-xs bg-white border border-stone-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#2D6A4F]"
             />
           </div>
 
@@ -587,11 +576,11 @@ export const BrideEventSection: React.FC<BrideEventSectionProps> = ({
                   event: { ...data.event, resepsiTime: e.target.value },
                 })
               }
-              className="w-full text-xs bg-white border border-stone-200 rounded-xl px-3 py-2"
+              className="w-full text-xs bg-white border border-stone-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#2D6A4F]"
             />
             <input
               type="text"
-              placeholder="Nama Lokasi / Tempat"
+              placeholder="Nama Lokasi / Tempat (contoh: Grand Ballroom & Kediaman)"
               value={data.event.resepsiPlace}
               onChange={(e) =>
                 setData({
@@ -599,10 +588,10 @@ export const BrideEventSection: React.FC<BrideEventSectionProps> = ({
                   event: { ...data.event, resepsiPlace: e.target.value },
                 })
               }
-              className="w-full text-xs bg-white border border-stone-200 rounded-xl px-3 py-2"
+              className="w-full text-xs bg-white border border-stone-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#2D6A4F]"
             />
             <textarea
-              placeholder="Alamat Lengkap & Patokan Rumah"
+              placeholder="Alamat Lengkap & Patokan Rumah (contoh: Jl. Sudirman No. 10, Depan Pos Ronda)"
               rows={2}
               value={data.event.resepsiAddress}
               onChange={(e) =>
@@ -611,7 +600,7 @@ export const BrideEventSection: React.FC<BrideEventSectionProps> = ({
                   event: { ...data.event, resepsiAddress: e.target.value },
                 })
               }
-              className="w-full text-xs bg-white border border-stone-200 rounded-xl px-3 py-2"
+              className="w-full text-xs bg-white border border-stone-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#2D6A4F]"
             />
           </div>
         </div>
@@ -624,6 +613,7 @@ export const BrideEventSection: React.FC<BrideEventSectionProps> = ({
           <div className="flex gap-2">
             <input
               type="url"
+              placeholder="Contoh: https://maps.google.com/?q=Jakarta"
               value={data.event.mapsUrl}
               onChange={(e) =>
                 setData({
@@ -634,7 +624,7 @@ export const BrideEventSection: React.FC<BrideEventSectionProps> = ({
               className="flex-1 text-xs bg-white border border-stone-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#2D6A4F]"
             />
             <a
-              href={data.event.mapsUrl}
+              href={data.event.mapsUrl || 'https://maps.google.com'}
               target="_blank"
               rel="noreferrer"
               className="px-4 py-2.5 bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-semibold rounded-xl flex items-center gap-1.5 transition cursor-pointer"
@@ -662,6 +652,7 @@ export const BrideEventSection: React.FC<BrideEventSectionProps> = ({
           <input
             type="text"
             value={data.musicTitle}
+            placeholder="Contoh: Kahitna - Menikahimu (Acoustic Instrumental)"
             disabled={!tierConfig.canCustomMusic}
             onChange={(e) => setData({ ...data, musicTitle: e.target.value })}
             className={`flex-1 text-xs border rounded-xl px-3 py-2.5 ${

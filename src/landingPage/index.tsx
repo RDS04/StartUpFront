@@ -14,9 +14,10 @@ import { FaqSection } from './FaqSection';
 import { Footer } from './Footer';
 import { DynamicConfettiAndShadows, BotanicalLeaves } from './DecorativeBackground';
 import { PreviewModal } from './PreviewModal';
-import { Check, AlertCircle } from 'lucide-react';
-import type { AuthUser } from '../services/authService';
+import { Check, AlertCircle, X, Sparkles } from 'lucide-react';
+import { getSavedAuthUser, type AuthUser } from '../services/authService';
 import { getMyOrders } from '../services/orderService';
+import { getSavedDashboardData, saveDashboardData } from '../dashboard/initialData';
 
 interface LandingPageProps {
   currentUser?: AuthUser | null;
@@ -40,6 +41,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   const [previewTemplate, setPreviewTemplate] = useState<TemplateItem | null>(null);
   const [selectedTemplateNotice, setSelectedTemplateNotice] = useState<{ message: string; type?: 'success' | 'warning' } | null>(null);
 
+  const [welcomeRegisterNotice, setWelcomeRegisterNotice] = useState<boolean>(() => {
+    try {
+      return sessionStorage.getItem('ij_welcome_register') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
   // Status apakah pesanan sudah dibayar
   const [isOrderPaid, setIsOrderPaid] = useState<boolean>(() => {
     try {
@@ -51,6 +60,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
   const [isTransactionActive, setIsTransactionActive] = useState<boolean>(() => {
     try {
+      const user = getSavedAuthUser();
+      if (!user) return false;
       if (sessionStorage.getItem('ij_order_paid') === 'true') return false;
       return sessionStorage.getItem('ij_transaction_active') === 'true';
     } catch {
@@ -81,38 +92,48 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
   // Periksa apakah user yang sedang login sudah memiliki pesanan yang berhasil dibayar di backend
   useEffect(() => {
-    if (currentUser) {
-      getMyOrders()
-        .then((orders) => {
-          const hasPaid = orders.some((o) => o.status === 'paid');
-          const isUserActivelyOrdering = sessionStorage.getItem('ij_transaction_active') === 'true';
-          // Jika user sudah bayar dan sedang tidak sengaja membuat order baru, kembalikan navbar ke menu awal
-          if (hasPaid && !isUserActivelyOrdering) {
-            setIsOrderPaid(true);
-            setIsTransactionActive(false);
-            setCurrentPlan(null);
-            setCurrentTemplate(null);
-            try {
-              sessionStorage.setItem('ij_order_paid', 'true');
-              sessionStorage.removeItem('ij_transaction_active');
-              sessionStorage.removeItem('ij_selected_plan');
-              sessionStorage.removeItem('ij_selected_template');
-            } catch {}
-          }
-        })
-        .catch(() => {});
+    if (!currentUser) {
+      setIsTransactionActive(false);
+      try {
+        sessionStorage.removeItem('ij_transaction_active');
+      } catch {}
+      return;
     }
+
+    getMyOrders()
+      .then((orders) => {
+        const hasPaid = orders.some((o) => o.status === 'paid');
+        const isUserActivelyOrdering = sessionStorage.getItem('ij_transaction_active') === 'true';
+        // Jika user sudah bayar dan sedang tidak sengaja membuat order baru, kembalikan navbar ke menu awal
+        if (hasPaid && !isUserActivelyOrdering) {
+          setIsOrderPaid(true);
+          setIsTransactionActive(false);
+          setCurrentPlan(null);
+          setCurrentTemplate(null);
+          setWelcomeRegisterNotice(false);
+          try {
+            sessionStorage.setItem('ij_order_paid', 'true');
+            sessionStorage.removeItem('ij_transaction_active');
+            sessionStorage.removeItem('ij_selected_plan');
+            sessionStorage.removeItem('ij_selected_template');
+            sessionStorage.removeItem('ij_welcome_register');
+          } catch {}
+        }
+      })
+      .catch(() => {});
   }, [currentUser]);
 
   useEffect(() => {
     const handleStorageChange = () => {
       try {
+        const user = getSavedAuthUser();
         const isPaid = sessionStorage.getItem('ij_order_paid') === 'true';
         setIsOrderPaid(isPaid);
-        if (isPaid) {
+        if (isPaid || !user) {
           setIsTransactionActive(false);
           setCurrentPlan(null);
           setCurrentTemplate(null);
+          setWelcomeRegisterNotice(false);
           return;
         }
 
@@ -122,6 +143,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         setCurrentPlan(active && rawPlan ? JSON.parse(rawPlan) : null);
         const rawTmpl = sessionStorage.getItem('ij_selected_template');
         setCurrentTemplate(active && rawTmpl ? JSON.parse(rawTmpl) : null);
+        setWelcomeRegisterNotice(sessionStorage.getItem('ij_welcome_register') === 'true');
       } catch {}
     };
 
@@ -137,8 +159,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   }, []);
 
   const orderState: OrderState = {
-    // Stepper navbar HANYA aktif jika belum dibayar DAN user sedang aktif dalam alur pemesanan
-    isTransacting: Boolean(!isOrderPaid && isTransactionActive && (currentPlan || currentTemplate)),
+    // Stepper navbar HANYA aktif jika user login, belum dibayar, DAN sedang aktif bertransaksi
+    isTransacting: Boolean(currentUser && !isOrderPaid && isTransactionActive),
     hasPlan: Boolean(currentPlan),
     planName: currentPlan?.name,
     hasTemplate: Boolean(currentTemplate),
@@ -195,10 +217,30 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     };
 
     const selectedObj = planMap[planId];
+
+    // JIKA USER BELUM DAFTAR ATAU LOGIN:
+    // Simpan pilihan paket ke ij_intended_plan (TIDAK mengaktifkan stepper transaksi sampai user login)
+    if (!currentUser) {
+      try {
+        sessionStorage.setItem('ij_intended_plan', JSON.stringify(selectedObj));
+        sessionStorage.removeItem('ij_transaction_active');
+      } catch {}
+      if (onNavigateAuth) {
+        onNavigateAuth('register');
+      } else {
+        window.location.hash = '#/register';
+      }
+      return;
+    }
+
     try {
       sessionStorage.removeItem('ij_order_paid');
       sessionStorage.setItem('ij_selected_plan', JSON.stringify(selectedObj));
       sessionStorage.setItem('ij_transaction_active', 'true');
+      const userKey = currentUser?.id || currentUser?.email;
+      const dashData = getSavedDashboardData(userKey);
+      dashData.tier = planId as any;
+      saveDashboardData(dashData, userKey);
     } catch {}
     setIsOrderPaid(false);
     setCurrentPlan(selectedObj);
@@ -309,11 +351,28 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       };
     }
 
+    // JIKA USER BELUM DAFTAR ATAU LOGIN:
+    // Simpan template yang diinginkan ke ij_intended_template (TIDAK mengaktifkan stepper transaksi sampai user login)
+    if (!currentUser) {
+      try {
+        sessionStorage.setItem('ij_intended_template', JSON.stringify(tmplObj));
+        sessionStorage.removeItem('ij_transaction_active');
+      } catch {}
+      if (onNavigateAuth) {
+        onNavigateAuth('register');
+      } else {
+        window.location.hash = '#/register';
+      }
+      return;
+    }
+
     try {
+      sessionStorage.removeItem('ij_welcome_register');
       sessionStorage.removeItem('ij_order_paid');
       sessionStorage.setItem('ij_selected_template', JSON.stringify(tmplObj));
       sessionStorage.setItem('ij_transaction_active', 'true');
     } catch {}
+    setWelcomeRegisterNotice(false);
     setIsOrderPaid(false);
     setCurrentTemplate(tmplObj);
     setIsTransactionActive(true);
@@ -362,11 +421,28 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       badgeText: 'PREMIUM',
     };
 
+    // JIKA USER BELUM DAFTAR ATAU LOGIN:
+    // Simpan pilihan kartu ATM ke ij_intended_template (TIDAK mengaktifkan stepper transaksi sampai user login)
+    if (!currentUser) {
+      try {
+        sessionStorage.setItem('ij_intended_template', JSON.stringify(atmObj));
+        sessionStorage.removeItem('ij_transaction_active');
+      } catch {}
+      if (onNavigateAuth) {
+        onNavigateAuth('register');
+      } else {
+        window.location.hash = '#/register';
+      }
+      return;
+    }
+
     try {
+      sessionStorage.removeItem('ij_welcome_register');
       sessionStorage.removeItem('ij_order_paid');
       sessionStorage.setItem('ij_selected_template', JSON.stringify(atmObj));
       sessionStorage.setItem('ij_transaction_active', 'true');
     } catch {}
+    setWelcomeRegisterNotice(false);
     setIsOrderPaid(false);
     setCurrentTemplate(atmObj);
     setIsTransactionActive(true);
@@ -427,6 +503,45 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             )}
           </div>
           <span className="max-w-xs">{selectedTemplateNotice.message}</span>
+        </div>
+      )}
+
+      {/* Banner Khusus Pengguna Baru Selesai Registrasi */}
+      {welcomeRegisterNotice && (
+        <div className="fixed top-24 left-1/2 -translate-x-1/2 z-50 w-[94%] max-w-2xl p-4 sm:p-5 rounded-3xl bg-emerald-950/95 text-white shadow-[0_15px_50px_rgba(0,0,0,0.35)] border border-emerald-500/40 backdrop-blur-xl animate-in fade-in slide-in-from-top-4 duration-300">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-start gap-3">
+              <div className="w-9 h-9 rounded-2xl bg-amber-500 text-slate-950 flex items-center justify-center shrink-0 shadow-md shadow-amber-950/20 font-black">
+                <Sparkles className="w-5 h-5" />
+              </div>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h4 className="text-xs sm:text-sm font-black text-white">
+                    Pendaftaran Berhasil! Selamat Datang{currentUser?.name ? `, ${currentUser.name}` : ''} 🎉
+                  </h4>
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-800 text-[10px] font-bold text-emerald-200">
+                    Langkah 1 dari 3
+                  </span>
+                </div>
+                <p className="text-[11px] sm:text-xs text-emerald-200/90 leading-relaxed">
+                  Silakan <strong>pilih desain template undangan</strong> di bawah ini, lalu tentukan <strong>paket harga</strong>, dan lanjutkan ke <strong>pembayaran</strong>.
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                try {
+                  sessionStorage.removeItem('ij_welcome_register');
+                } catch {}
+                setWelcomeRegisterNotice(false);
+              }}
+              className="p-1 rounded-lg text-emerald-300 hover:text-white hover:bg-emerald-900 transition-colors cursor-pointer shrink-0"
+              title="Tutup pesan"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       )}
 

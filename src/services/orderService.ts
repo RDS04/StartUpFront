@@ -72,7 +72,10 @@ export async function createOrder(payload: CreateOrderPayload): Promise<CreateOr
   return data;
 }
 
-export async function markOrderPaid(orderId: number): Promise<{ status: boolean; message: string; order: OrderItem }> {
+export async function markOrderPaid(
+  orderId: number,
+  midtransOrderId?: string | null
+): Promise<{ status: boolean; message: string; order: OrderItem }> {
   const token = getAuthToken();
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -83,14 +86,19 @@ export async function markOrderPaid(orderId: number): Promise<{ status: boolean;
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${API_BASE_URL}/orders/${orderId}/mark-paid`, {
+  const response = await fetch(`${API_BASE_URL}/orders/${orderId}/verify-payment`, {
     method: 'POST',
     headers,
+    body: JSON.stringify({
+      midtrans_order_id: midtransOrderId || undefined,
+    }),
   });
 
   const data = await response.json();
   return data;
 }
+
+export const verifyOrderPayment = markOrderPaid;
 
 export async function getMyOrders(): Promise<OrderItem[]> {
   const token = getAuthToken();

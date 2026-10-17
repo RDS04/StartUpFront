@@ -29,7 +29,7 @@ export interface BankAccount {
 }
 
 export interface DashboardData {
-  tier: 'silver' | 'premium' | 'gold';
+  tier: 'silver' | 'premium' | 'gold' | 'platinum';
   slug: string;
   isPublished: boolean;
   themeColor: string;
@@ -67,7 +67,7 @@ export interface WishItem {
 
 export interface TierConfig {
   name: string;
-  tierId: 'silver' | 'premium' | 'gold';
+  tierId: 'silver' | 'premium' | 'gold' | 'platinum';
   maxGuests: number;
   canCustomMusic: boolean;
   canExport: boolean;

@@ -8,7 +8,7 @@ import { triggerLoading } from '../components/common/LottieLoader';
 
 interface RegisterProps {
   onSwitchToLogin: () => void;
-  onSuccessRegister?: (data: { name: string; email: string }) => void;
+  onSuccessRegister?: (data: { name: string; email: string; avatar?: string }) => void;
 }
 
 export const Register: React.FC<RegisterProps> = ({ onSwitchToLogin, onSuccessRegister }) => {
@@ -101,7 +101,7 @@ export const Register: React.FC<RegisterProps> = ({ onSwitchToLogin, onSuccessRe
       triggerConfetti();
 
       if (onSuccessRegister) {
-        setTimeout(() => onSuccessRegister({ name: res.user.name || name, email: res.user.email }), 1200);
+        setTimeout(() => onSuccessRegister({ name: res.user.name || name, email: res.user.email, avatar: res.user.avatar }), 1200);
       }
     } catch (err: any) {
       const msg = err.message || 'Gagal mendaftar akun. Silakan coba lagi.';
@@ -137,7 +137,7 @@ export const Register: React.FC<RegisterProps> = ({ onSwitchToLogin, onSuccessRe
       setRegisterSuccess(true);
       triggerConfetti();
       if (onSuccessRegister) {
-        setTimeout(() => onSuccessRegister({ name: res.user.name || 'Pengguna Google', email: res.user.email }), 1200);
+        setTimeout(() => onSuccessRegister({ name: res.user.name || 'Pengguna Google', email: res.user.email, avatar: res.user.avatar }), 1200);
       }
     } catch (err: any) {
       const msg = err.message || 'Gagal mendaftar dengan Google.';
@@ -266,7 +266,7 @@ export const Register: React.FC<RegisterProps> = ({ onSwitchToLogin, onSuccessRe
             </div>
             <div>
               <p className="font-bold text-sm text-emerald-950">Pendaftaran Berhasil! 🎉</p>
-              <p className="text-[11px] text-emerald-700">Akun Anda siap digunakan. Menyiapkan dashboard...</p>
+              <p className="text-[11px] text-emerald-700">Akun Anda siap digunakan. Mengarahkan ke pemilihan template undangan...</p>
             </div>
           </motion.div>
         )}

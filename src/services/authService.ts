@@ -206,6 +206,21 @@ export async function logoutAuth(): Promise<void> {
 
   localStorage.removeItem('auth_token');
   localStorage.removeItem('auth_user');
+  localStorage.removeItem('ij_dashboard_data');
+  localStorage.removeItem('ij_dashboard_data_guest');
+
+  try {
+    const toRemove: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && (key.startsWith('ij_dashboard_data') || key.startsWith('ij_guests') || key.startsWith('ij_wishes'))) {
+        toRemove.push(key);
+      }
+    }
+    toRemove.forEach((k) => localStorage.removeItem(k));
+  } catch (e) {
+    console.warn('Error clearing dashboard local storage:', e);
+  }
 
   // Matikan auto-select akun Google agar user bisa memilih akun Google lain saat login ulang
   if (typeof window !== 'undefined' && window.google?.accounts?.id?.disableAutoSelect) {

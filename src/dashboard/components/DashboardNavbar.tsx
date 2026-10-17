@@ -1,16 +1,17 @@
 import React from 'react';
 import { Smartphone, Home, LogOut, Crown } from 'lucide-react';
-import type { DashboardData } from '../types';
+import type { DashboardData, TierConfig } from '../types';
 
 interface DashboardNavbarProps {
   data: DashboardData;
+  tierConfig?: TierConfig;
   currentUser?: {
     name?: string;
     email?: string;
     avatar?: string;
     role?: string;
   } | null;
-  onTierChange: (tier: 'silver' | 'premium' | 'gold') => void;
+  onTierChange?: (tier: 'silver' | 'premium' | 'gold' | 'platinum') => void;
   onOpenPreview: () => void;
   onBackToHome?: () => void;
   onLogout?: () => void;
@@ -18,6 +19,7 @@ interface DashboardNavbarProps {
 
 export const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
   data,
+  tierConfig,
   currentUser,
   onTierChange,
   onOpenPreview,
@@ -48,26 +50,50 @@ export const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
         </div>
       </div>
 
-      {/* Action Controls & Tier Selector */}
+      {/* Action Controls & Selected Package Display */}
       <div className="flex items-center space-x-2.5 sm:space-x-3">
-        {/* Tier Switcher Simulation */}
-        <div className="hidden lg:flex items-center bg-stone-100 rounded-xl p-1 border border-stone-200 text-xs">
-          <span className="px-2 font-medium text-stone-500 flex items-center gap-1">
+        {/* Paket yang dipilih saja */}
+        <div className="flex items-center bg-stone-100/90 rounded-xl px-2.5 sm:px-3 py-1.5 border border-stone-200 text-xs shadow-xs">
+          <span className="font-medium text-stone-500 flex items-center gap-1.5 mr-1.5 sm:mr-2">
             <Crown className="w-3.5 h-3.5 text-amber-600" /> Paket:
           </span>
-          {(['silver', 'premium', 'gold'] as const).map((t) => (
-            <button
-              key={t}
-              onClick={() => onTierChange(t)}
-              className={`capitalize px-2.5 py-1 rounded-lg transition font-medium cursor-pointer ${
-                data.tier === t
-                  ? 'bg-white shadow-xs text-stone-900 font-bold border border-stone-200'
-                  : 'text-stone-600 hover:text-stone-900'
-              }`}
+          <span
+            className={`capitalize px-2.5 py-0.5 rounded-lg font-bold text-xs border shadow-xs inline-flex items-center gap-1 ${
+              tierConfig?.badge ||
+              (data.tier === 'silver'
+                ? 'bg-stone-200/90 text-stone-800 border-stone-300'
+                : data.tier === 'gold'
+                ? 'bg-amber-100 text-amber-900 border-amber-300'
+                : data.tier === 'platinum'
+                ? 'bg-purple-100 text-purple-900 border-purple-300'
+                : 'bg-emerald-100 text-emerald-900 border-emerald-300')
+            }`}
+          >
+            {tierConfig?.name || (
+              data.tier === 'silver'
+                ? 'Silver (Hemat)'
+                : data.tier === 'gold'
+                ? 'Gold (VIP)'
+                : data.tier === 'platinum'
+                ? 'Platinum (Full VIP)'
+                : 'Premium (Best Value)'
+            )}
+          </span>
+
+          {/* Opsi khusus Master Administrator jika ingin simulasi / ganti paket */}
+          {currentUser?.role === 'master' && onTierChange && (
+            <select
+              value={data.tier}
+              onChange={(e) => onTierChange(e.target.value as any)}
+              className="ml-2 bg-white border border-stone-300 text-stone-700 font-semibold rounded-md px-1.5 py-0.5 text-[11px] cursor-pointer focus:outline-none focus:ring-1 focus:ring-amber-500"
+              title="Ganti Paket (Simulasi Khusus Master Admin)"
             >
-              {t}
-            </button>
-          ))}
+              <option value="silver">Silver</option>
+              <option value="gold">Gold</option>
+              <option value="platinum">Platinum</option>
+              <option value="premium">Premium</option>
+            </select>
+          )}
         </div>
 
         {/* Live Mobile Preview Trigger */}

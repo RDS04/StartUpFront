@@ -8,7 +8,7 @@ export interface AuthPageProps {
   initialMode?: 'login' | 'register';
   initialAlert?: string;
   onBackToHome: () => void;
-  onAuthSuccess?: (user: { name?: string; email: string; avatar?: string }) => void;
+  onAuthSuccess?: (user: { name?: string; email: string; avatar?: string }, authType?: 'login' | 'register') => void;
 }
 
 export const AuthPage: React.FC<AuthPageProps> = ({
@@ -31,9 +31,9 @@ export const AuthPage: React.FC<AuthPageProps> = ({
             key="login-form"
             initialAlert={initialAlert}
             onSwitchToRegister={() => setMode('register')}
-            onSuccessLogin={(userData) => {
+            onSuccessLogin={(userData, authType = 'login') => {
               if (onAuthSuccess) {
-                onAuthSuccess(userData);
+                onAuthSuccess(userData, authType);
               } else {
                 onBackToHome();
               }
@@ -45,7 +45,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
             onSwitchToLogin={() => setMode('login')}
             onSuccessRegister={(data) => {
               if (onAuthSuccess) {
-                onAuthSuccess(data);
+                onAuthSuccess(data, 'register');
               } else {
                 onBackToHome();
               }

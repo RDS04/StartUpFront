@@ -13,7 +13,7 @@ import { ArrowLeft, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getSavedAuthUser, getAuthToken, fetchCurrentUser, logoutAuth, type AuthUser } from './services/authService';
 import { GlobalLoadingOverlay } from './components/common/LottieLoader';
-import { getSavedDashboardData } from './dashboard/initialData';
+import { getSavedDashboardData, clearAllDashboardData } from './dashboard/initialData';
 
 type PageRoute = 
   | 'landing' 
@@ -33,6 +33,52 @@ type PageRoute =
   | 'wisuda-dua'
   | 'invitation';
 
+const LANDING_SECTION_MAP: Record<string, string> = {
+  'beranda': 'beranda',
+  'fitur': 'fitur',
+  'features': 'fitur',
+  'template': 'template',
+  'pilih-template': 'template',
+  'template-select': 'template',
+  'pilihan-template': 'template',
+  'desain-template': 'template',
+  'amplop-digital': 'amplop-digital',
+  'kartu-atm': 'amplop-digital',
+  'harga': 'harga',
+  'pricing': 'harga',
+  'pilih-paket': 'harga',
+  'order-flow': 'harga',
+  'cara-buat': 'cara-buat',
+  'how-it-works': 'cara-buat',
+  'testimoni': 'testimoni',
+  'testimonials': 'testimoni',
+  'faq': 'faq',
+  'services': 'services',
+  'calculator': 'calculator',
+  'payment-info': 'payment-info',
+};
+
+function scrollToLandingSection(hashOrClean: string) {
+  const clean = hashOrClean.toLowerCase().replace(/^#\/?/, '').split('?')[0].trim();
+  const targetId = LANDING_SECTION_MAP[clean];
+  if (!targetId) return;
+
+  if (targetId === 'beranda') {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return;
+  }
+
+  const tryScroll = (attempts = 0) => {
+    const el = document.getElementById(targetId);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' });
+    } else if (attempts < 10) {
+      setTimeout(() => tryScroll(attempts + 1), 100);
+    }
+  };
+  setTimeout(() => tryScroll(0), 50);
+}
+
 function resolveCurrentRoute(): PageRoute {
   const hash = window.location.hash.toLowerCase();
   const search = window.location.search.toLowerCase();
@@ -51,19 +97,20 @@ function resolveCurrentRoute(): PageRoute {
   if (hash.includes('template-dua') || hash.includes('template/dua')) return 'template-dua';
   if (hash.includes('template-satu') || hash.includes('undangan') || hash.includes('template/satu')) return 'template-satu';
 
-  // Landing page scroll sections
-  if (hash.includes('pilih-template') || hash.includes('template-select') || hash.includes('pilihan-template') || hash.includes('desain-template') || hash === '#template') return 'landing';
-  if (hash.includes('pilih-paket') || hash.includes('harga') || hash.includes('pricing') || hash.includes('order-flow') || hash === '#harga') return 'landing';
+  // Landing page scroll sections (Anchor links dari navbar dan tombol landing page)
+  const cleanHash = hash.replace(/^#\/?/, '').split('?')[0].trim();
+  if (!cleanHash || cleanHash === 'landing' || cleanHash in LANDING_SECTION_MAP) {
+    return 'landing';
+  }
 
   // Check if hash is an invitation slug (e.g. #/andi-rosna or #/andi-rosna?to=Budi)
-  const cleanHash = hash.replace(/^#\/?/, '').split('?')[0].trim();
   if (cleanHash && !['', '/', 'landing'].includes(cleanHash)) {
     return 'invitation';
   }
 
   // Check if pathname is an invitation slug (e.g. /andi-rosna)
   const cleanPath = pathname.replace(/^\//, '').split('?')[0].trim();
-  if (cleanPath && !['', 'landing', 'index.html'].includes(cleanPath)) {
+  if (cleanPath && !['', 'landing', 'index.html', ...Object.keys(LANDING_SECTION_MAP)].includes(cleanPath)) {
     return 'invitation';
   }
 
@@ -72,6 +119,7 @@ function resolveCurrentRoute(): PageRoute {
 
 export function App() {
   const [route, setRoute] = useState<PageRoute>(() => resolveCurrentRoute());
+  const [orderFlowStep, setOrderFlowStep] = useState<1 | 2 | 3>(3);
 
   const [loggedInUser, setLoggedInUser] = useState<AuthUser | null>(() => getSavedAuthUser());
   const [showToast, setShowToast] = useState(false);
@@ -90,17 +138,8 @@ export function App() {
       const detected = resolveCurrentRoute();
       setRoute(detected);
 
-      const hash = window.location.hash.toLowerCase();
-      if (hash.includes('pilih-template') || hash.includes('template-select') || hash.includes('pilihan-template') || hash.includes('desain-template')) {
-        setTimeout(() => {
-          const el = document.getElementById('template');
-          if (el) el.scrollIntoView({ behavior: 'smooth' });
-        }, 100);
-      } else if (hash.includes('pilih-paket') || hash.includes('harga') || hash.includes('pricing') || hash.includes('order-flow')) {
-        setTimeout(() => {
-          const el = document.getElementById('harga');
-          if (el) el.scrollIntoView({ behavior: 'smooth' });
-        }, 100);
+      if (detected === 'landing') {
+        scrollToLandingSection(window.location.hash);
       }
     };
 
@@ -112,19 +151,10 @@ export function App() {
     };
   }, []);
 
-  // Sinkronkan hash awal jika mengarah ke harga atau template
+  // Sinkronkan scroll ke section landing page saat pertama kali dimuat
   useEffect(() => {
-    const hash = window.location.hash.toLowerCase();
-    if (hash.includes('pilih-paket') || hash.includes('harga') || hash.includes('pricing') || hash.includes('order-flow')) {
-      setTimeout(() => {
-        const el = document.getElementById('harga');
-        if (el) el.scrollIntoView({ behavior: 'smooth' });
-      }, 250);
-    } else if (hash.includes('pilih-template') || hash.includes('template-select') || hash.includes('pilihan-template') || hash.includes('desain-template')) {
-      setTimeout(() => {
-        const el = document.getElementById('template');
-        if (el) el.scrollIntoView({ behavior: 'smooth' });
-      }, 250);
+    if (resolveCurrentRoute() === 'landing') {
+      scrollToLandingSection(window.location.hash);
     }
   }, []);
 
@@ -132,24 +162,14 @@ export function App() {
     if (newRoute === 'pilih-paket' || newRoute === 'order-flow') {
       setRoute('landing');
       window.location.hash = '#harga';
-      setTimeout(() => {
-        const el = document.getElementById('harga');
-        if (el) {
-          el.scrollIntoView({ behavior: 'smooth' });
-        }
-      }, 100);
+      scrollToLandingSection('harga');
       return;
     }
 
     if (newRoute === 'pilih-template') {
       setRoute('landing');
       window.location.hash = '#template';
-      setTimeout(() => {
-        const el = document.getElementById('template');
-        if (el) {
-          el.scrollIntoView({ behavior: 'smooth' });
-        }
-      }, 100);
+      scrollToLandingSection('template');
       return;
     }
 
@@ -253,13 +273,27 @@ export function App() {
           initialMode="login"
           initialAlert="Akses Terbatas: Silakan masuk ke akun Anda terlebih dahulu untuk mengakses Dashboard Pengguna. Jika belum memiliki akun atau akun Google belum terdaftar, silakan daftar terlebih dahulu."
           onBackToHome={() => navigateTo('landing')}
-          onAuthSuccess={(user) => {
+          onAuthSuccess={(user, authType) => {
             setLoggedInUser(user);
             setShowToast(true);
             setTimeout(() => {
               setShowToast(false);
             }, 4000);
-            navigateTo('dashboard');
+
+            if (authType === 'register') {
+              try {
+                sessionStorage.setItem('ij_transaction_active', 'true');
+                sessionStorage.removeItem('ij_order_paid');
+                sessionStorage.removeItem('ij_selected_template');
+                sessionStorage.removeItem('ij_selected_plan');
+                sessionStorage.setItem('ij_welcome_register', 'true');
+                window.dispatchEvent(new Event('storage'));
+                window.dispatchEvent(new CustomEvent('ij_order_state_change', { detail: { isTransacting: true } }));
+              } catch {}
+              navigateTo('pilih-template');
+            } else {
+              navigateTo('dashboard');
+            }
           }}
         />
       );
@@ -270,6 +304,7 @@ export function App() {
         currentUser={loggedInUser || savedUser}
         onLogout={async () => {
           await logoutAuth();
+          clearAllDashboardData();
           setLoggedInUser(null);
           navigateTo('login');
         }}
@@ -370,16 +405,19 @@ export function App() {
   }
 
   if (route === 'pembayaran') {
+    if (!loggedInUser) {
+      navigateTo('register');
+      return null;
+    }
     return (
       <OrderFlowPage
         currentUser={loggedInUser}
-        activeStep={3}
+        activeStep={orderFlowStep}
         onStepChange={(newStep) => {
+          setOrderFlowStep(newStep);
           if (newStep === 1) navigateTo('pilih-template');
-          else if (newStep === 2) navigateTo('pilih-paket');
-          else if (newStep === 3) navigateTo('pembayaran');
         }}
-        onChangePlan={() => navigateTo('pilih-paket')}
+        onChangePlan={() => setOrderFlowStep(2)}
         onChangeTemplate={() => navigateTo('pilih-template')}
         onBackToHome={() => navigateTo('landing')}
         onPreviewTemplate={(previewRoute) => navigateTo(previewRoute)}
@@ -392,27 +430,58 @@ export function App() {
       <AuthPage
         initialMode={route}
         onBackToHome={() => navigateTo('landing')}
-        onAuthSuccess={(user) => {
+        onAuthSuccess={(user, authType) => {
           setLoggedInUser(user);
           setShowToast(true);
           setTimeout(() => {
             setShowToast(false);
           }, 4000);
 
-          // Jika user login biasa, arahkan langsung ke Dashboard
-          const isTransaction = sessionStorage.getItem('ij_transaction_active') === 'true';
-          if (route === 'login' || !isTransaction) {
-            navigateTo('dashboard');
+          const isRegistered = authType === 'register' || route === 'register';
+
+          // Ambil pilihan template atau paket yang dipilih sebelum mendaftar/login
+          const intendedTmpl = sessionStorage.getItem('ij_intended_template');
+          const intendedPlan = sessionStorage.getItem('ij_intended_plan');
+
+          if (intendedTmpl) {
+            sessionStorage.setItem('ij_selected_template', intendedTmpl);
+            sessionStorage.removeItem('ij_intended_template');
+          }
+          if (intendedPlan) {
+            sessionStorage.setItem('ij_selected_plan', intendedPlan);
+            sessionStorage.removeItem('ij_intended_plan');
+          }
+
+          const rawPlan = sessionStorage.getItem('ij_selected_plan');
+          const rawTmpl = sessionStorage.getItem('ij_selected_template');
+
+          try {
+            sessionStorage.removeItem('ij_order_paid');
+            if (isRegistered || rawTmpl || rawPlan) {
+              sessionStorage.setItem('ij_transaction_active', 'true');
+            }
+            if (isRegistered && !rawTmpl) {
+              sessionStorage.setItem('ij_welcome_register', 'true');
+            }
+            window.dispatchEvent(new Event('storage'));
+            window.dispatchEvent(new CustomEvent('ij_order_state_change', { detail: { isTransacting: true } }));
+          } catch {}
+
+          if (rawPlan && rawTmpl) {
+            // User sudah memilih template dan paket -> langsung lanjut ke formulir pembayaran
+            navigateTo('pembayaran');
+          } else if (rawTmpl && !rawPlan) {
+            // Alur Utama Step 1 -> Step 2: User sudah memilih template -> lanjutkan memilih paket harga
+            navigateTo('pilih-paket');
+          } else if (rawPlan && !rawTmpl) {
+            // User memilih paket terlebih dahulu -> lanjutkan memilih desain template
+            navigateTo('pilih-template');
+          } else if (isRegistered) {
+            // User baru mendaftar dari form registrasi -> mulai dari Langkah 1: Pilih Desain Template
+            navigateTo('pilih-template');
           } else {
-            navigateTo('landing');
-            setTimeout(() => {
-              const el = document.getElementById('template');
-              if (el) {
-                el.scrollIntoView({ behavior: 'smooth' });
-              } else {
-                window.location.hash = '#template';
-              }
-            }, 150);
+            // Login biasa tanpa transaksi aktif -> masuk ke dashboard
+            navigateTo('dashboard');
           }
         }}
       />
@@ -456,6 +525,7 @@ export function App() {
             <button
               onClick={async () => {
                 await logoutAuth();
+                clearAllDashboardData();
                 setLoggedInUser(null);
                 setShowToast(false);
                 try {
@@ -482,6 +552,7 @@ export function App() {
         currentUser={loggedInUser}
         onLogout={async () => {
           await logoutAuth();
+          clearAllDashboardData();
           setLoggedInUser(null);
           try {
             sessionStorage.removeItem('ij_transaction_active');
@@ -499,6 +570,10 @@ export function App() {
         onNavigateAuth={(mode) => navigateTo(mode)} 
         onNavigateCardAtm={() => navigateTo('card-atm')}
         onSelectPlan={(_planId) => {
+          if (!loggedInUser) {
+            navigateTo('register');
+            return;
+          }
           try {
             sessionStorage.setItem('ij_transaction_active', 'true');
           } catch {}
@@ -512,6 +587,10 @@ export function App() {
           }
         }}
         onSelectTemplate={(_templateId) => {
+          if (!loggedInUser) {
+            navigateTo('register');
+            return;
+          }
           try {
             sessionStorage.setItem('ij_transaction_active', 'true');
           } catch {}

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Menu, X, Check, LogOut, LayoutDashboard, ChevronDown, Sparkles } from 'lucide-react';
+import { Menu, X, Check, LogOut, LayoutDashboard, ChevronDown } from 'lucide-react';
 import { WeddingRingsIcon } from './DecorativeBackground';
 import type { AuthUser } from '../services/authService';
 
@@ -69,9 +69,29 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   const navLinks = ['Beranda', 'Fitur', 'Template', 'Amplop Digital', 'Harga', 'Cara Buat'];
 
+  // Sinkronkan activeTab dengan hash URL saat navigasi atau hash berubah
+  useEffect(() => {
+    const syncActiveTab = () => {
+      const hash = window.location.hash.toLowerCase().replace(/^#\/?/, '').split('?')[0].trim();
+      const matched = navLinks.find(
+        (link) => link.toLowerCase().replace(/\s+/g, '-') === hash
+      );
+      if (matched) {
+        setActiveTab(matched);
+      } else if (!hash || hash === 'beranda' || hash === 'landing') {
+        setActiveTab('Beranda');
+      }
+    };
+
+    syncActiveTab();
+    window.addEventListener('hashchange', syncActiveTab);
+    return () => window.removeEventListener('hashchange', syncActiveTab);
+  }, []);
+
   // Stepper Visual Component (Step 1: Desain Template -> Step 2: Paket Harga -> Step 3: Pembayaran)
   const renderStepper = (isMobile = false) => {
-    if (!orderState || !orderState.isTransacting) return null;
+    // Stepper HANYA boleh tampil jika user telah login dan sedang aktif dalam alur pemesanan
+    if (!currentUser || !orderState || !orderState.isTransacting) return null;
 
     return (
       <div className={`flex items-center justify-center ${isMobile ? 'py-2 px-3 w-full bg-[#072418]/95 rounded-2xl border border-emerald-500/30' : 'px-5 py-2 rounded-full bg-[#072418]/90 backdrop-blur-md border border-emerald-500/30 shadow-[0_4px_20px_rgba(0,0,0,0.3)]'}`}>
@@ -189,8 +209,8 @@ export const Navbar: React.FC<NavbarProps> = ({
             </span>
           </div>
 
-          {/* Stepper jika sedang transaksi aktif, atau Normal Navigation Links jika tidak sedang transaksi */}
-          {orderState && orderState.isTransacting ? (
+          {/* Stepper jika sedang transaksi aktif dan user telah login, atau Normal Navigation Links jika tidak sedang transaksi */}
+          {Boolean(currentUser && orderState && orderState.isTransacting) ? (
             <div className="hidden md:flex items-center justify-center flex-1 mx-4">
               {renderStepper()}
             </div>
@@ -353,8 +373,8 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         </div>
 
-        {/* Mobile Stepper Bar (hanya jika transaksi aktif) */}
-        {orderState && orderState.isTransacting && (
+        {/* Mobile Stepper Bar (hanya jika transaksi aktif dan user telah login) */}
+        {Boolean(currentUser && orderState && orderState.isTransacting) && (
           <div className="md:hidden pb-3">
             {renderStepper(true)}
           </div>

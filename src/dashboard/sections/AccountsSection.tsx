@@ -176,6 +176,7 @@ export const AccountsSection: React.FC<AccountsSectionProps> = ({
             </label>
             <input
               type="text"
+              placeholder="Contoh: Reyhan & Yanti"
               value={data.giftAddress?.recipient || ''}
               onChange={(e) =>
                 setData({
@@ -198,6 +199,7 @@ export const AccountsSection: React.FC<AccountsSectionProps> = ({
             </label>
             <input
               type="text"
+              placeholder="Contoh: 0812-3456-7890"
               value={data.giftAddress?.phone || ''}
               onChange={(e) =>
                 setData({
@@ -221,6 +223,7 @@ export const AccountsSection: React.FC<AccountsSectionProps> = ({
           </label>
           <textarea
             rows={2}
+            placeholder="Contoh: Jl. Sudirman No. 10, RT 01 / RW 02, Jakarta Selatan"
             value={data.giftAddress?.address || ''}
             onChange={(e) =>
               setData({
@@ -243,6 +246,7 @@ export const AccountsSection: React.FC<AccountsSectionProps> = ({
           </label>
           <input
             type="text"
+            placeholder="Contoh: Mohon konfirmasi penerima sebelum mengirimkan paket kado fisik"
             value={data.giftAddress?.notes || ''}
             onChange={(e) =>
               setData({

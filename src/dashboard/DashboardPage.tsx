@@ -1,7 +1,8 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Sparkles } from 'lucide-react';
 import type { DashboardTab, DashboardData, GuestItem, WishItem, TierConfig, DashboardPageProps } from './types';
-import { INITIAL_GUESTS, INITIAL_WISHES, getSavedDashboardData } from './initialData';
+import { INITIAL_GUESTS, INITIAL_WISHES, getSavedDashboardData, saveDashboardData } from './initialData';
+import { getMyOrders } from '../services/orderService';
 
 // Sub Components
 import { DashboardNavbar } from './components/DashboardNavbar';
@@ -29,17 +30,76 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   // Main Navigation & Active Tab
   const [activeTab, setActiveTab] = useState<DashboardTab>('overview');
 
-  // Main Dashboard State (disimpan dan dibaca dari localStorage agar persist)
-  const [data, setData] = useState<DashboardData>(() => getSavedDashboardData());
+  // User ID or Email scoping key
+  const userKey = currentUser?.id || currentUser?.email;
+
+  // Main Dashboard State (disimpan dan dibaca dari localStorage berdasar akun user)
+  const [data, setData] = useState<DashboardData>(() => getSavedDashboardData(userKey));
   const [guests, setGuests] = useState<GuestItem[]>(INITIAL_GUESTS);
   const [wishes, setWishes] = useState<WishItem[]>(INITIAL_WISHES);
 
   // Sync data ke localStorage setiap ada perubahan
   useEffect(() => {
+    saveDashboardData(data, userKey);
+  }, [data, userKey]);
+
+  // Reload data jika akun user berubah
+  useEffect(() => {
+    setData(getSavedDashboardData(userKey));
+  }, [userKey]);
+
+  // Deteksi dan sinkronkan paket yang dipilih dari sessionStorage atau pesanan user di backend
+  useEffect(() => {
+    let chosenTier: 'silver' | 'premium' | 'gold' | 'platinum' | null = null;
+
+    // 1. Cek dari sessionStorage ij_selected_plan
     try {
-      localStorage.setItem('ij_dashboard_data', JSON.stringify(data));
+      const rawPlan = sessionStorage.getItem('ij_selected_plan');
+      if (rawPlan) {
+        const parsed = JSON.parse(rawPlan);
+        const planId = parsed?.id?.toLowerCase();
+        if (planId === 'silver' || planId === 'gold' || planId === 'platinum' || planId === 'premium') {
+          chosenTier = planId;
+        }
+      }
     } catch {}
-  }, [data]);
+
+    // 2. Cek juga dari riwayat pesanan (getMyOrders) jika user sudah pernah checkout
+    getMyOrders().then((orders) => {
+      if (orders && orders.length > 0) {
+        const validOrder = orders.find((o) => o.status === 'paid') || orders[0];
+        if (validOrder?.plan_name) {
+          const lower = validOrder.plan_name.toLowerCase();
+          if (lower.includes('silver')) chosenTier = 'silver';
+          else if (lower.includes('platinum')) chosenTier = 'platinum';
+          else if (lower.includes('premium')) chosenTier = 'premium';
+          else if (lower.includes('gold')) chosenTier = 'gold';
+        }
+      }
+
+      if (chosenTier) {
+        setData((prev) => {
+          if (prev.tier !== chosenTier) {
+            const updated = { ...prev, tier: chosenTier! };
+            saveDashboardData(updated, userKey);
+            return updated;
+          }
+          return prev;
+        });
+      }
+    }).catch(() => {
+      if (chosenTier) {
+        setData((prev) => {
+          if (prev.tier !== chosenTier) {
+            const updated = { ...prev, tier: chosenTier! };
+            saveDashboardData(updated, userKey);
+            return updated;
+          }
+          return prev;
+        });
+      }
+    });
+  }, [userKey]);
 
   // Modal Dialogs & Simulator State
   const [showMobilePreview, setShowMobilePreview] = useState(false);
@@ -84,6 +144,17 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
           maxBank: 5,
           badge: 'bg-amber-100 text-amber-800 border-amber-300',
           badgeColor: 'text-amber-800',
+        };
+      case 'platinum':
+        return {
+          name: 'Platinum (Full VIP)',
+          tierId: 'platinum',
+          maxGuests: 9999,
+          canCustomMusic: true,
+          canExport: true,
+          maxBank: 5,
+          badge: 'bg-purple-100 text-purple-800 border-purple-300',
+          badgeColor: 'text-purple-800',
         };
       case 'premium':
       default:
@@ -156,6 +227,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
       {/* Top Navigation Bar */}
       <DashboardNavbar
         data={data}
+        tierConfig={tierConfig}
         currentUser={currentUser}
         onTierChange={(newTier) => {
           setData({ ...data, tier: newTier });

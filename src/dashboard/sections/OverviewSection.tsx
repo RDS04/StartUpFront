@@ -42,8 +42,9 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
   onNavigateTab,
 }) => {
   const origin = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.host}` : 'http://localhost:5173';
-  const publicLink = `${origin}/#/${data.slug}`;
-  const displayHost = typeof window !== 'undefined' ? `${window.location.host}/#/${data.slug}` : `localhost:5173/#/${data.slug}`;
+  const effectiveSlug = data.slug || (data.groom.nickName && data.bride.nickName ? `${data.groom.nickName}-${data.bride.nickName}`.toLowerCase().replace(/[^a-z0-9-]/g, '') : '') || 'nama-pasangan';
+  const publicLink = `${origin}/#/${effectiveSlug}`;
+  const displayHost = typeof window !== 'undefined' ? `${window.location.host}/#/${effectiveSlug}` : `localhost:5173/#/${effectiveSlug}`;
 
   // Helper nama template aktif
   const getTemplateName = (id?: string) => {
@@ -84,7 +85,9 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
           </div>
 
           <h1 className="font-serif text-2xl sm:text-3xl font-bold tracking-tight text-white mb-2">
-            {data.groom.nickName} & {data.bride.nickName}
+            {data.groom.nickName && data.bride.nickName
+              ? `${data.groom.nickName} & ${data.bride.nickName}`
+              : (data.groom.nickName || data.bride.nickName || 'Nama Pengantin (Belum Diisi)')}
           </h1>
 
           <p className="text-stone-300 text-xs sm:text-sm mb-5 leading-relaxed">
