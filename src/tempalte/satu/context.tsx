@@ -26,6 +26,8 @@ export const SAMPLE_DATA_SATU = {
     resepsiTime: '11.00 - 17.00 WIB',
     resepsiPlace: 'Grand Ballroom Hotel Santika',
     resepsiAddress: 'Jl. Hayam Wuruk No. 127, Jakarta Barat',
+    akadMapsUrl: 'https://maps.google.com/?q=Masjid+Agung+Al-Azhar+Kebayoran+Baru',
+    resepsiMapsUrl: 'https://maps.google.com/?q=Hotel+Santika+Premiere+Hayam+Wuruk+Jakarta',
     mapsUrl: 'https://maps.google.com',
   },
   bankAccounts: [
@@ -77,6 +79,8 @@ export const TemplateSatuProvider: React.FC<{
         resepsiTime: dash.event.resepsiTime || SAMPLE_DATA_SATU.event.resepsiTime,
         resepsiPlace: dash.event.resepsiPlace || SAMPLE_DATA_SATU.event.resepsiPlace,
         resepsiAddress: dash.event.resepsiAddress || SAMPLE_DATA_SATU.event.resepsiAddress,
+        akadMapsUrl: dash.event.akadMapsUrl || dash.event.mapsUrl || SAMPLE_DATA_SATU.event.akadMapsUrl,
+        resepsiMapsUrl: dash.event.resepsiMapsUrl || dash.event.mapsUrl || SAMPLE_DATA_SATU.event.resepsiMapsUrl,
         mapsUrl: dash.event.mapsUrl || SAMPLE_DATA_SATU.event.mapsUrl,
       },
       bankAccounts: dash.bankAccounts?.length

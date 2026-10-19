@@ -121,7 +121,8 @@ export const EVENTS: EventDetail[] = [
       return getSavedDashboardData().event.akadAddress || 'Jl. Jondul Rawang Blok C/20, Padang Selatan';
     },
     get mapUrl() {
-      return getSavedDashboardData().event.mapsUrl || 'https://maps.google.com';
+      const ev = getSavedDashboardData().event;
+      return ev.akadMapsUrl || ev.mapsUrl || 'https://maps.google.com';
     },
   },
   {
@@ -141,7 +142,8 @@ export const EVENTS: EventDetail[] = [
       return getSavedDashboardData().event.resepsiAddress || 'Jl. Jondul Rawang Blok C/20, Padang Selatan';
     },
     get mapUrl() {
-      return getSavedDashboardData().event.mapsUrl || 'https://maps.google.com';
+      const ev = getSavedDashboardData().event;
+      return ev.resepsiMapsUrl || ev.mapsUrl || 'https://maps.google.com';
     },
   },
 ];

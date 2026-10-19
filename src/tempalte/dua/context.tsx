@@ -67,6 +67,8 @@ export const TemplateDuaProvider: React.FC<{
         time: dash.event.akadTime ? `Pukul ${dash.event.akadTime}` : AKAD.time,
         venue: dash.event.akadPlace || AKAD.venue,
         monthYear: dash.event.dateDisplay || AKAD.monthYear,
+        address: dash.event.akadAddress || AKAD.address,
+        mapsUrl: dash.event.akadMapsUrl || dash.event.mapsUrl || AKAD.mapsUrl,
       },
       resepsi: RESEPSI.map((item, idx) => {
         if (idx === 0) {
@@ -76,11 +78,14 @@ export const TemplateDuaProvider: React.FC<{
             time: dash.event.resepsiTime || item.time,
             place: dash.event.resepsiPlace || item.place,
             address: dash.event.resepsiAddress || item.address,
-            mapsUrl: dash.event.mapsUrl || item.mapsUrl,
+            mapsUrl: dash.event.resepsiMapsUrl || dash.event.mapsUrl || item.mapsUrl,
             photo: groomPhoto || item.photo,
           };
         }
-        return item;
+        return {
+          ...item,
+          mapsUrl: dash.event.resepsiMapsUrl || dash.event.mapsUrl || item.mapsUrl,
+        };
       }),
       gift: {
         ...GIFT,

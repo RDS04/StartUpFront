@@ -80,7 +80,7 @@ const AcaraSection: React.FC = () => {
             </a>
 
             <a
-              href="https://maps.google.com/?q=Masjid+Agung+Al-Azhar+Kebayoran+Baru"
+              href={dashData.event.akadMapsUrl || dashData.event.mapsUrl || "https://maps.google.com"}
               target="_blank"
               rel="noopener noreferrer"
               className="py-2.5 px-3 rounded-xl bg-[#8B263E] text-white hover:bg-[#6F1D30] transition-all text-xs font-semibold flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
@@ -144,7 +144,7 @@ const AcaraSection: React.FC = () => {
             </a>
 
             <a
-              href="https://maps.google.com/?q=Hotel+Santika+Premiere+Hayam+Wuruk+Jakarta"
+              href={dashData.event.resepsiMapsUrl || dashData.event.mapsUrl || "https://maps.google.com"}
               target="_blank"
               rel="noopener noreferrer"
               className="py-2.5 px-3 rounded-xl bg-[#8B263E] text-white hover:bg-[#6F1D30] transition-all text-xs font-semibold flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"

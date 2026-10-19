@@ -2,14 +2,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { Mail, Lock, Eye, EyeOff, ArrowRight, ShieldCheck, Check, Sparkles, AlertCircle, X, UserPlus } from 'lucide-react';
-import { authenticateWithGoogle, loginUser } from '../services/authService';
+import { authenticateWithGoogle, loginUser, type AuthUser } from '../services/authService';
 import { triggerGoogleSignInPrompt, renderGoogleIdentityButton, disableGoogleAutoSelect } from '../services/googleAuth';
 import { triggerLoading } from '../components/common/LottieLoader';
 
 interface LoginProps {
   initialAlert?: string;
   onSwitchToRegister: () => void;
-  onSuccessLogin?: (user: { name?: string; email: string; avatar?: string }, authType?: 'login' | 'register') => void;
+  onSuccessLogin?: (user: AuthUser, authType?: 'login' | 'register') => void;
 }
 
 export const Login: React.FC<LoginProps> = ({ initialAlert, onSwitchToRegister, onSuccessLogin }) => {
@@ -73,7 +73,7 @@ export const Login: React.FC<LoginProps> = ({ initialAlert, onSwitchToRegister, 
       triggerConfetti();
 
       if (onSuccessLogin) {
-        setTimeout(() => onSuccessLogin({ name: res.user.name, email: res.user.email, avatar: res.user.avatar }), 1200);
+        setTimeout(() => onSuccessLogin(res.user), 1200);
       }
     } catch (err: any) {
       setErrorMessage(err.message || 'Email atau kata sandi tidak cocok. Silakan coba lagi.');
@@ -96,7 +96,7 @@ export const Login: React.FC<LoginProps> = ({ initialAlert, onSwitchToRegister, 
       triggerConfetti();
 
       if (onSuccessLogin) {
-        setTimeout(() => onSuccessLogin({ name: res.user.name, email: res.user.email, avatar: res.user.avatar }), 1200);
+        setTimeout(() => onSuccessLogin(res.user), 1200);
       }
     } catch (err: any) {
       console.warn('Google Login caught error:', err);
@@ -108,7 +108,12 @@ export const Login: React.FC<LoginProps> = ({ initialAlert, onSwitchToRegister, 
         setShowNotRegisteredModal(true);
         setErrorMessage('');
       } else {
-        setErrorMessage(err.message || 'Gagal masuk dengan Google.');
+        const rawMsg = err.message || '';
+        if (/curl|timed?\s*out|connection|failed to fetch|network|load failed|server error|tokeninfo|http/i.test(rawMsg)) {
+          setErrorMessage('Maaf, coba ulangi lagi.');
+        } else {
+          setErrorMessage(rawMsg || 'Maaf, coba ulangi lagi.');
+        }
       }
     } finally {
       setIsLoading(false);
@@ -132,8 +137,10 @@ export const Login: React.FC<LoginProps> = ({ initialAlert, onSwitchToRegister, 
       const msg = err.message || '';
       if (msg.toLowerCase().includes('belum terdaftar')) {
         setShowNotRegisteredModal(true);
+      } else if (/curl|timed?\s*out|connection|failed to fetch|network|load failed|server error|tokeninfo|http/i.test(msg)) {
+        setErrorMessage('Maaf, coba ulangi lagi.');
       } else {
-        setErrorMessage(msg || 'Gagal membuka Google Sign-In.');
+        setErrorMessage(msg || 'Maaf, coba ulangi lagi.');
       }
     }
   };
@@ -156,11 +163,16 @@ export const Login: React.FC<LoginProps> = ({ initialAlert, onSwitchToRegister, 
       triggerConfetti();
 
       if (onSuccessLogin) {
-        setTimeout(() => onSuccessLogin({ name: res.user.name, email: res.user.email, avatar: res.user.avatar }, 'register'), 1200);
+        setTimeout(() => onSuccessLogin(res.user, 'register'), 1200);
       }
     } catch (err: any) {
       setShowNotRegisteredModal(false);
-      setErrorMessage(err.message || 'Gagal mendaftar dengan akun Google ini.');
+      const rawMsg = err.message || '';
+      if (/curl|timed?\s*out|connection|failed to fetch|network|load failed|server error|tokeninfo|http/i.test(rawMsg)) {
+        setErrorMessage('Maaf, coba ulangi lagi.');
+      } else {
+        setErrorMessage(rawMsg || 'Maaf, coba ulangi lagi.');
+      }
     } finally {
       setIsLoading(false);
       triggerLoading(false);

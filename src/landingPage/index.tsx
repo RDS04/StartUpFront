@@ -52,6 +52,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   // Status apakah pesanan sudah dibayar
   const [isOrderPaid, setIsOrderPaid] = useState<boolean>(() => {
     try {
+      const user = getSavedAuthUser();
+      if (user?.has_paid_orders) return true;
       return sessionStorage.getItem('ij_order_paid') === 'true';
     } catch {
       return false;
@@ -62,7 +64,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     try {
       const user = getSavedAuthUser();
       if (!user) return false;
-      if (sessionStorage.getItem('ij_order_paid') === 'true') return false;
+      // Jika user sudah memiliki pesanan berbayar, stepper hanya aktif jika memulai order baru secara eksplisit
+      if (user.has_paid_orders || sessionStorage.getItem('ij_order_paid') === 'true') {
+        return sessionStorage.getItem('ij_new_order_intent') === 'true';
+      }
       return sessionStorage.getItem('ij_transaction_active') === 'true';
     } catch {
       return false;
@@ -72,7 +77,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   // Sinkronkan pilihan paket dan template dari sessionStorage (hanya jika belum dibayar)
   const [currentPlan, setCurrentPlan] = useState<any>(() => {
     try {
-      if (sessionStorage.getItem('ij_order_paid') === 'true') return null;
+      const user = getSavedAuthUser();
+      const isPaid = Boolean(user?.has_paid_orders) || sessionStorage.getItem('ij_order_paid') === 'true';
+      const isNewIntent = sessionStorage.getItem('ij_new_order_intent') === 'true';
+      if (isPaid && !isNewIntent) return null;
       const raw = sessionStorage.getItem('ij_selected_plan');
       return raw ? JSON.parse(raw) : null;
     } catch {
@@ -82,12 +90,26 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
   const [currentTemplate, setCurrentTemplate] = useState<any>(() => {
     try {
-      if (sessionStorage.getItem('ij_order_paid') === 'true') return null;
+      const user = getSavedAuthUser();
+      const isPaid = Boolean(user?.has_paid_orders) || sessionStorage.getItem('ij_order_paid') === 'true';
+      const isNewIntent = sessionStorage.getItem('ij_new_order_intent') === 'true';
+      if (isPaid && !isNewIntent) return null;
       const raw = sessionStorage.getItem('ij_selected_template');
       return raw ? JSON.parse(raw) : null;
     } catch {
       return null;
     }
+  });
+
+  const [flowMode, setFlowMode] = useState<'template-first' | 'plan-first'>(() => {
+    try {
+      const saved = sessionStorage.getItem('ij_flow_mode');
+      if (saved === 'plan-first' || saved === 'template-first') return saved;
+      if (sessionStorage.getItem('ij_selected_plan') && !sessionStorage.getItem('ij_selected_template')) {
+        return 'plan-first';
+      }
+    } catch {}
+    return 'template-first';
   });
 
   // Periksa apakah user yang sedang login sudah memiliki pesanan yang berhasil dibayar di backend
@@ -100,25 +122,33 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       return;
     }
 
+    const syncPaidUserStatus = (hasPaid: boolean) => {
+      const isNewOrderIntent = sessionStorage.getItem('ij_new_order_intent') === 'true';
+      if (hasPaid && !isNewOrderIntent) {
+        setIsOrderPaid(true);
+        setIsTransactionActive(false);
+        setCurrentPlan(null);
+        setCurrentTemplate(null);
+        setWelcomeRegisterNotice(false);
+        try {
+          sessionStorage.setItem('ij_order_paid', 'true');
+          sessionStorage.removeItem('ij_transaction_active');
+          sessionStorage.removeItem('ij_selected_plan');
+          sessionStorage.removeItem('ij_selected_template');
+          sessionStorage.removeItem('ij_flow_mode');
+          sessionStorage.removeItem('ij_welcome_register');
+        } catch {}
+      }
+    };
+
+    if (currentUser.has_paid_orders) {
+      syncPaidUserStatus(true);
+    }
+
     getMyOrders()
       .then((orders) => {
         const hasPaid = orders.some((o) => o.status === 'paid');
-        const isUserActivelyOrdering = sessionStorage.getItem('ij_transaction_active') === 'true';
-        // Jika user sudah bayar dan sedang tidak sengaja membuat order baru, kembalikan navbar ke menu awal
-        if (hasPaid && !isUserActivelyOrdering) {
-          setIsOrderPaid(true);
-          setIsTransactionActive(false);
-          setCurrentPlan(null);
-          setCurrentTemplate(null);
-          setWelcomeRegisterNotice(false);
-          try {
-            sessionStorage.setItem('ij_order_paid', 'true');
-            sessionStorage.removeItem('ij_transaction_active');
-            sessionStorage.removeItem('ij_selected_plan');
-            sessionStorage.removeItem('ij_selected_template');
-            sessionStorage.removeItem('ij_welcome_register');
-          } catch {}
-        }
+        syncPaidUserStatus(hasPaid);
       })
       .catch(() => {});
   }, [currentUser]);
@@ -127,9 +157,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     const handleStorageChange = () => {
       try {
         const user = getSavedAuthUser();
-        const isPaid = sessionStorage.getItem('ij_order_paid') === 'true';
+        const hasPaidInDb = Boolean(user?.has_paid_orders);
+        const isPaid = hasPaidInDb || sessionStorage.getItem('ij_order_paid') === 'true';
+        const isNewIntent = sessionStorage.getItem('ij_new_order_intent') === 'true';
         setIsOrderPaid(isPaid);
-        if (isPaid || !user) {
+        if ((isPaid && !isNewIntent) || !user) {
           setIsTransactionActive(false);
           setCurrentPlan(null);
           setCurrentTemplate(null);
@@ -143,6 +175,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         setCurrentPlan(active && rawPlan ? JSON.parse(rawPlan) : null);
         const rawTmpl = sessionStorage.getItem('ij_selected_template');
         setCurrentTemplate(active && rawTmpl ? JSON.parse(rawTmpl) : null);
+        
+        const savedFlow = sessionStorage.getItem('ij_flow_mode');
+        if (savedFlow === 'plan-first' || savedFlow === 'template-first') {
+          setFlowMode(savedFlow);
+        } else if (rawPlan && !rawTmpl) {
+          setFlowMode('plan-first');
+        } else if (rawTmpl && !rawPlan) {
+          setFlowMode('template-first');
+        }
+
         setWelcomeRegisterNotice(sessionStorage.getItem('ij_welcome_register') === 'true');
       } catch {}
     };
@@ -158,6 +200,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     };
   }, []);
 
+  const isPlanFirst = flowMode === 'plan-first';
   const orderState: OrderState = {
     // Stepper navbar HANYA aktif jika user login, belum dibayar, DAN sedang aktif bertransaksi
     isTransacting: Boolean(currentUser && !isOrderPaid && isTransactionActive),
@@ -165,18 +208,25 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     planName: currentPlan?.name,
     hasTemplate: Boolean(currentTemplate),
     templateName: currentTemplate?.name,
-    step: (currentTemplate && currentPlan) ? 3 : currentTemplate ? 2 : 1,
+    flowMode,
+    step: (currentTemplate && currentPlan) 
+      ? 3 
+      : isPlanFirst 
+        ? (currentPlan ? 2 : 1) 
+        : (currentTemplate ? 2 : 1),
   };
 
   const handleNavigateStep = (step: 1 | 2 | 3) => {
     if (step === 1) {
-      const el = document.getElementById('template');
+      const targetId = isPlanFirst ? 'harga' : 'template';
+      const el = document.getElementById(targetId);
       if (el) el.scrollIntoView({ behavior: 'smooth' });
-      else window.location.hash = '#template';
+      else window.location.hash = `#${targetId}`;
     } else if (step === 2) {
-      const el = document.getElementById('harga');
+      const targetId = isPlanFirst ? 'template' : 'harga';
+      const el = document.getElementById(targetId);
       if (el) el.scrollIntoView({ behavior: 'smooth' });
-      else window.location.hash = '#harga';
+      else window.location.hash = `#${targetId}`;
     } else if (step === 3) {
       if (currentTemplate && currentPlan) {
         if (onSelectTemplate) {
@@ -218,11 +268,20 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
     const selectedObj = planMap[planId];
 
+    // Jika template belum dipilih, berarti user memulai dari pemilihan paket harga (Langkah 1: Paket Harga)
+    if (!currentTemplate) {
+      try {
+        sessionStorage.setItem('ij_flow_mode', 'plan-first');
+      } catch {}
+      setFlowMode('plan-first');
+    }
+
     // JIKA USER BELUM DAFTAR ATAU LOGIN:
     // Simpan pilihan paket ke ij_intended_plan (TIDAK mengaktifkan stepper transaksi sampai user login)
     if (!currentUser) {
       try {
         sessionStorage.setItem('ij_intended_plan', JSON.stringify(selectedObj));
+        sessionStorage.setItem('ij_flow_mode', 'plan-first');
         sessionStorage.removeItem('ij_transaction_active');
       } catch {}
       if (onNavigateAuth) {
@@ -235,6 +294,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
     try {
       sessionStorage.removeItem('ij_order_paid');
+      sessionStorage.setItem('ij_new_order_intent', 'true');
       sessionStorage.setItem('ij_selected_plan', JSON.stringify(selectedObj));
       sessionStorage.setItem('ij_transaction_active', 'true');
       const userKey = currentUser?.id || currentUser?.email;
@@ -246,7 +306,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     setCurrentPlan(selectedObj);
     setIsTransactionActive(true);
 
-    // Jika template sudah dipilih sebelumnya (alur normal: Step 1: Template -> Step 2: Paket), langsung lanjut ke Step 3: Pembayaran
+    // Jika template sudah dipilih sebelumnya, langsung lanjut ke Step 3: Pembayaran
     if (currentTemplate) {
       setSelectedTemplateNotice({
         message: `${selectedObj.name} dipilih! Menuju formulir rincian pembayaran...`,
@@ -261,9 +321,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         }
       }, 700);
     } else {
-      // Jika template belum dipilih, arahkan ke section template di Landing Page (Step 1)
+      // Alur Plan-First: Step 1 (Pilih Paket Harga) Selesai -> Lanjut ke Step 2 (Pilih Desain Template)
       setSelectedTemplateNotice({
-        message: `${selectedObj.name} berhasil dipilih! Silakan pilih desain template undangan terlebih dahulu.`,
+        message: `Langkah 1 Selesai: ${selectedObj.name} dipilih! Silakan lanjutkan ke Langkah 2: Pilih Desain Template di atas.`,
         type: 'success',
       });
       setTimeout(() => {
@@ -276,7 +336,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   };
 
   const handleUseTemplate = (template: TemplateItem) => {
-    // LANGKAH 1: Pilih Desain Template
+    // Jika paket belum dipilih, berarti user memulai dari pemilihan template (Langkah 1: Desain Template)
+    if (!currentPlan) {
+      try {
+        sessionStorage.setItem('ij_flow_mode', 'template-first');
+      } catch {}
+      setFlowMode('template-first');
+    }
+
     let targetTmplId = 'rustic-blossom';
     let tmplObj = {
       id: 'rustic-blossom',
@@ -356,6 +423,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     if (!currentUser) {
       try {
         sessionStorage.setItem('ij_intended_template', JSON.stringify(tmplObj));
+        sessionStorage.setItem('ij_flow_mode', 'template-first');
         sessionStorage.removeItem('ij_transaction_active');
       } catch {}
       if (onNavigateAuth) {
@@ -369,6 +437,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     try {
       sessionStorage.removeItem('ij_welcome_register');
       sessionStorage.removeItem('ij_order_paid');
+      sessionStorage.setItem('ij_new_order_intent', 'true');
       sessionStorage.setItem('ij_selected_template', JSON.stringify(tmplObj));
       sessionStorage.setItem('ij_transaction_active', 'true');
     } catch {}
@@ -392,9 +461,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         }
       }, 600);
     } else {
-      // Alur Utama Step 1 -> Step 2: Arahkan ke Section Paket Harga
+      // Alur Template-First: Step 1 (Pilih Desain) Selesai -> Lanjut ke Step 2 (Pilih Paket Harga)
       setSelectedTemplateNotice({
-        message: `Desain "${template.title}" berhasil dipilih! Silakan tentukan Paket Harga di bawah ini.`,
+        message: `Langkah 1 Selesai: Desain "${template.title}" dipilih! Silakan lanjutkan ke Langkah 2: Tentukan Paket Harga di bawah ini.`,
         type: 'success',
       });
       setTimeout(() => {
@@ -410,6 +479,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   };
 
   const handleUseAtmCard = () => {
+    if (!currentPlan) {
+      try {
+        sessionStorage.setItem('ij_flow_mode', 'template-first');
+      } catch {}
+      setFlowMode('template-first');
+    }
+
     const atmObj = {
       id: 'card-atm',
       name: 'Royal ATM Card Invitation',
@@ -426,6 +502,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     if (!currentUser) {
       try {
         sessionStorage.setItem('ij_intended_template', JSON.stringify(atmObj));
+        sessionStorage.setItem('ij_flow_mode', 'template-first');
         sessionStorage.removeItem('ij_transaction_active');
       } catch {}
       if (onNavigateAuth) {
@@ -439,6 +516,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     try {
       sessionStorage.removeItem('ij_welcome_register');
       sessionStorage.removeItem('ij_order_paid');
+      sessionStorage.setItem('ij_new_order_intent', 'true');
       sessionStorage.setItem('ij_selected_template', JSON.stringify(atmObj));
       sessionStorage.setItem('ij_transaction_active', 'true');
     } catch {}
@@ -462,7 +540,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       }, 600);
     } else {
       setSelectedTemplateNotice({
-        message: `Desain "${atmObj.name}" berhasil dipilih! Silakan tentukan Paket Harga di bawah ini.`,
+        message: `Langkah 1 Selesai: Desain "${atmObj.name}" dipilih! Silakan lanjutkan ke Langkah 2: Tentukan Paket Harga di bawah ini.`,
         type: 'success',
       });
       setTimeout(() => {

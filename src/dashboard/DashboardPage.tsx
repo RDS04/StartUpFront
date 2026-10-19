@@ -1,8 +1,10 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Sparkles } from 'lucide-react';
 import type { DashboardTab, DashboardData, GuestItem, WishItem, TierConfig, DashboardPageProps } from './types';
-import { INITIAL_GUESTS, INITIAL_WISHES, getSavedDashboardData, saveDashboardData } from './initialData';
+import { INITIAL_WISHES, getSavedDashboardData, saveDashboardData, getSavedGuests, saveGuests } from './initialData';
 import { getMyOrders } from '../services/orderService';
+import { getMyInvitation } from '../services/invitationService';
+import { getGuests, createGuest } from '../services/guestService';
 import { normalizeTemplateId } from './templateHelpers';
 
 // Sub Components
@@ -36,7 +38,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
 
   // Main Dashboard State (disimpan dan dibaca dari localStorage berdasar akun user)
   const [data, setData] = useState<DashboardData>(() => getSavedDashboardData(userKey));
-  const [guests, setGuests] = useState<GuestItem[]>(INITIAL_GUESTS);
+  const [guests, setGuests] = useState<GuestItem[]>(() => getSavedGuests(userKey));
+  const [isSavingGuest, setIsSavingGuest] = useState(false);
   const [wishes, setWishes] = useState<WishItem[]>(INITIAL_WISHES);
 
   // Sync data ke localStorage setiap ada perubahan
@@ -44,9 +47,45 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
     saveDashboardData(data, userKey);
   }, [data, userKey]);
 
-  // Reload data jika akun user berubah
+  // Sync guests ke localStorage setiap ada perubahan
+  useEffect(() => {
+    saveGuests(guests, userKey);
+  }, [guests, userKey]);
+
+  // Reload data jika akun user berubah & sinkronkan dari database backend
   useEffect(() => {
     setData(getSavedDashboardData(userKey));
+
+    getMyInvitation().then((serverData) => {
+      if (serverData) {
+        setData((prev) => {
+          const merged: DashboardData = {
+            ...prev,
+            ...serverData,
+            groom: { ...prev.groom, ...serverData.groom },
+            bride: { ...prev.bride, ...serverData.bride },
+            event: { ...prev.event, ...serverData.event },
+            bankAccounts: serverData.bankAccounts?.length ? serverData.bankAccounts : prev.bankAccounts,
+            giftAddress: {
+              recipient: serverData.giftAddress?.recipient ?? prev.giftAddress?.recipient ?? '',
+              phone: serverData.giftAddress?.phone ?? prev.giftAddress?.phone ?? '',
+              address: serverData.giftAddress?.address ?? prev.giftAddress?.address ?? '',
+              notes: serverData.giftAddress?.notes ?? prev.giftAddress?.notes ?? '',
+            },
+          };
+          saveDashboardData(merged, userKey);
+          return merged;
+        });
+      }
+    }).catch(() => {});
+
+    // Sinkronkan daftar tamu dari database backend
+    getGuests().then((serverGuests) => {
+      if (serverGuests && serverGuests.length > 0) {
+        setGuests(serverGuests);
+        saveGuests(serverGuests, userKey);
+      }
+    }).catch(() => {});
   }, [userKey]);
 
   // Deteksi dan sinkronkan paket & template yang dipilih/dibeli dari sessionStorage atau pesanan user di backend
@@ -258,7 +297,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   }, [guests, wishes]);
 
   // Add Guest Handler
-  const handleAddGuest = ({
+  const handleAddGuest = async ({
     name,
     phone,
     category,
@@ -271,18 +310,27 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
       showToast(`Batas kuota tamu untuk paket ${tierConfig.name} sudah tercapai!`);
       return;
     }
-    const newGuest: GuestItem = {
-      id: Date.now(),
-      name,
-      phone,
-      category,
-      sent: false,
-      rsvp: 'menunggu',
-      pax: 0,
-    };
-    setGuests([newGuest, ...guests]);
-    setShowAddGuestModal(false);
-    showToast(`Tamu "${newGuest.name}" berhasil ditambahkan!`);
+
+    setIsSavingGuest(true);
+    try {
+      const created = await createGuest({ name, phone, category });
+      const newGuest: GuestItem = created || {
+        id: Date.now(),
+        name,
+        phone,
+        category,
+        sent: false,
+        rsvp: 'menunggu',
+        pax: 0,
+      };
+      setGuests((prev) => [newGuest, ...prev]);
+      setShowAddGuestModal(false);
+      showToast(`Tamu "${newGuest.name}" berhasil disimpan ke database!`);
+    } catch {
+      showToast('Gagal menyimpan tamu ke database. Coba lagi.');
+    } finally {
+      setIsSavingGuest(false);
+    }
   };
 
   const handlePreviewAsGuest = (guestName: string) => {
@@ -401,6 +449,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         isOpen={showAddGuestModal}
         onClose={() => setShowAddGuestModal(false)}
         onAddGuest={handleAddGuest}
+        isSaving={isSavingGuest}
       />
 
       {/* QR Code Quick Modal */}

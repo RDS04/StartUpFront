@@ -1,23 +1,24 @@
 import React, { useState } from 'react';
-import { X, UserPlus, Phone, User, Users } from 'lucide-react';
+import { X, UserPlus, Phone, User, Users, Loader2 } from 'lucide-react';
 
 interface AddGuestModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAddGuest: (guestData: { name: string; phone: string; category: string }) => void;
+  onAddGuest: (guestData: { name: string; phone: string; category: string }) => Promise<void> | void;
+  isSaving?: boolean;
 }
 
-export const AddGuestModal: React.FC<AddGuestModalProps> = ({ isOpen, onClose, onAddGuest }) => {
+export const AddGuestModal: React.FC<AddGuestModalProps> = ({ isOpen, onClose, onAddGuest, isSaving = false }) => {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [category, setCategory] = useState('Teman');
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) return;
-    onAddGuest({
+    if (!name.trim() || isSaving) return;
+    await onAddGuest({
       name: name.trim(),
       phone: phone.trim().replace(/^0/, '62'),
       category,
@@ -111,9 +112,16 @@ export const AddGuestModal: React.FC<AddGuestModalProps> = ({ isOpen, onClose, o
             </button>
             <button
               type="submit"
-              className="flex-1 py-2.5 bg-[#2D6A4F] hover:bg-[#1B4332] text-white font-semibold rounded-xl text-xs shadow-sm transition active:scale-95 cursor-pointer"
+              disabled={isSaving}
+              className="flex-1 py-2.5 bg-[#2D6A4F] hover:bg-[#1B4332] disabled:opacity-60 text-white font-semibold rounded-xl text-xs shadow-sm transition active:scale-95 cursor-pointer flex items-center justify-center gap-1.5"
             >
-              Simpan Tamu
+              {isSaving ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" /> Menyimpan...
+                </>
+              ) : (
+                'Simpan Tamu'
+              )}
             </button>
           </div>
         </form>

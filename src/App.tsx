@@ -13,7 +13,9 @@ import { ArrowLeft, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getSavedAuthUser, getAuthToken, fetchCurrentUser, logoutAuth, type AuthUser } from './services/authService';
 import { GlobalLoadingOverlay } from './components/common/LottieLoader';
-import { getSavedDashboardData, clearAllDashboardData } from './dashboard/initialData';
+import { getSavedDashboardData, saveDashboardData, clearAllDashboardData } from './dashboard/initialData';
+import { getInvitationBySlug } from './services/invitationService';
+import type { DashboardData } from './dashboard/types';
 
 type PageRoute = 
   | 'landing' 
@@ -128,10 +130,20 @@ export function App() {
   useEffect(() => {
     fetchCurrentUser().then((user) => {
       setLoggedInUser(user);
+      if (!user) {
+        clearAllDashboardData();
+        if (resolveCurrentRoute() === 'dashboard') {
+          setRoute('login');
+        }
+      }
     }).catch(() => {
       setLoggedInUser(null);
+      clearAllDashboardData();
+      if (resolveCurrentRoute() === 'dashboard') {
+        setRoute('login');
+      }
     });
-  }, []);
+  }, [route]);
 
   useEffect(() => {
     const handleHashChange = () => {
@@ -151,12 +163,65 @@ export function App() {
     };
   }, []);
 
-  // Sinkronkan scroll ke section landing page saat pertama kali dimuat
+  // Sinkronkan data undangan dari backend jika membuka tautan undangan publik (#/:slug)
   useEffect(() => {
-    if (resolveCurrentRoute() === 'landing') {
-      scrollToLandingSection(window.location.hash);
+    if (route === 'invitation') {
+      const hash = window.location.hash.replace(/^#\/?/, '').split('?')[0].trim();
+      const path = window.location.pathname.replace(/^\//, '').split('?')[0].trim();
+      const slug = hash || path;
+      if (slug && slug !== 'invitation') {
+        getInvitationBySlug(slug).then((inv) => {
+          if (inv) {
+            const serverData: DashboardData = {
+              tier: inv.tier || 'premium',
+              slug: inv.slug || slug,
+              isPublished: inv.is_published !== undefined ? Boolean(inv.is_published) : true,
+              themeColor: inv.theme_color || '#82694D',
+              activeTemplateId: inv.template_id || 'template-dua',
+              purchasedTemplateIds: [inv.template_id || 'template-dua'],
+              groom: {
+                nickName: inv.groom?.nickName || '',
+                fullName: inv.groom?.fullName || '',
+                parents: inv.groom?.parents || '',
+                avatar: inv.groom?.avatar || '',
+                instagram: inv.groom?.instagram || '',
+              },
+              bride: {
+                nickName: inv.bride?.nickName || '',
+                fullName: inv.bride?.fullName || '',
+                parents: inv.bride?.parents || '',
+                avatar: inv.bride?.avatar || '',
+                instagram: inv.bride?.instagram || '',
+              },
+              event: {
+                date: inv.event?.date || '',
+                dateDisplay: inv.event?.dateDisplay || '',
+                akadTime: inv.event?.akadTime || '',
+                akadPlace: inv.event?.akadPlace || '',
+                akadAddress: inv.event?.akadAddress || '',
+                akadMapsUrl: inv.event?.akadMapsUrl || '',
+                resepsiTime: inv.event?.resepsiTime || '',
+                resepsiPlace: inv.event?.resepsiPlace || '',
+                resepsiAddress: inv.event?.resepsiAddress || '',
+                resepsiMapsUrl: inv.event?.resepsiMapsUrl || '',
+                mapsUrl: inv.event?.mapsUrl || '',
+              },
+              musicTitle: inv.music_title || '',
+              bankAccounts: Array.isArray(inv.bank_accounts) ? inv.bank_accounts : [],
+              giftAddress: {
+                recipient: inv.gift_address?.recipient || '',
+                phone: inv.gift_address?.phone || '',
+                address: inv.gift_address?.address || '',
+                notes: inv.gift_address?.notes || '',
+              },
+            };
+            saveDashboardData(serverData);
+            window.dispatchEvent(new Event('storage'));
+          }
+        }).catch(() => {});
+      }
     }
-  }, []);
+  }, [route]);
 
   const navigateTo = (newRoute: PageRoute) => {
     if (newRoute === 'pilih-paket' || newRoute === 'order-flow') {
@@ -263,15 +328,14 @@ export function App() {
   }
 
   if (route === 'dashboard') {
-    const savedUser = getSavedAuthUser();
     const token = getAuthToken();
 
-    // AUTH GUARD: Jika belum login atau token tidak ada, wajib login terlebih dahulu
-    if (!token || (!loggedInUser && !savedUser)) {
+    // AUTH GUARD: Jika belum login, token tidak ada, atau user tidak terverifikasi di backend
+    if (!token || !loggedInUser) {
       return (
         <AuthPage
           initialMode="login"
-          initialAlert="Akses Terbatas: Silakan masuk ke akun Anda terlebih dahulu untuk mengakses Dashboard Pengguna. Jika belum memiliki akun atau akun Google belum terdaftar, silakan daftar terlebih dahulu."
+          initialAlert="Akses Terbatas: Akun tidak ditemukan atau sesi telah berakhir. Silakan masuk kembali."
           onBackToHome={() => navigateTo('landing')}
           onAuthSuccess={(user, authType) => {
             setLoggedInUser(user);
@@ -301,7 +365,7 @@ export function App() {
 
     return (
       <DashboardPage
-        currentUser={loggedInUser || savedUser}
+        currentUser={loggedInUser}
         onLogout={async () => {
           await logoutAuth();
           clearAllDashboardData();
@@ -415,10 +479,23 @@ export function App() {
         activeStep={orderFlowStep}
         onStepChange={(newStep) => {
           setOrderFlowStep(newStep);
-          if (newStep === 1) navigateTo('pilih-template');
         }}
-        onChangePlan={() => setOrderFlowStep(2)}
-        onChangeTemplate={() => navigateTo('pilih-template')}
+        onChangePlan={() => {
+          window.location.hash = '#harga';
+          navigateTo('landing');
+          setTimeout(() => {
+            const el = document.getElementById('harga');
+            if (el) el.scrollIntoView({ behavior: 'smooth' });
+          }, 100);
+        }}
+        onChangeTemplate={() => {
+          window.location.hash = '#template';
+          navigateTo('landing');
+          setTimeout(() => {
+            const el = document.getElementById('template');
+            if (el) el.scrollIntoView({ behavior: 'smooth' });
+          }, 100);
+        }}
         onBackToHome={() => navigateTo('landing')}
         onPreviewTemplate={(previewRoute) => navigateTo(previewRoute)}
         onNavigateDashboard={() => navigateTo('dashboard')}
@@ -440,7 +517,31 @@ export function App() {
 
           const isRegistered = authType === 'register' || route === 'register';
 
-          // Ambil pilihan template atau paket yang dipilih sebelum mendaftar/login
+          // JIKA LOGIN KE AKUN YANG SUDAH TERDAFTAR (BUKAN REGISTRASI BARU)
+          if (!isRegistered) {
+            // Bersihkan sisa session transaksi lama agar stepper pembelian TIDAK muncul
+            try {
+              sessionStorage.removeItem('ij_transaction_active');
+              sessionStorage.removeItem('ij_selected_plan');
+              sessionStorage.removeItem('ij_selected_template');
+              sessionStorage.removeItem('ij_intended_plan');
+              sessionStorage.removeItem('ij_intended_template');
+              sessionStorage.removeItem('ij_flow_mode');
+              sessionStorage.removeItem('ij_welcome_register');
+              sessionStorage.removeItem('ij_new_order_intent');
+              if (user.has_paid_orders || (user.total_orders && user.total_orders > 0)) {
+                sessionStorage.setItem('ij_order_paid', 'true');
+              }
+              window.dispatchEvent(new Event('storage'));
+              window.dispatchEvent(new CustomEvent('ij_order_state_change', { detail: { isTransacting: false } }));
+            } catch {}
+
+            // Arahkan akun yang sudah terdaftar langsung ke Dashboard
+            navigateTo('dashboard');
+            return;
+          }
+
+          // JIKA REGISTRASI BARU: Ambil pilihan template atau paket yang dipilih sebelum mendaftar
           const intendedTmpl = sessionStorage.getItem('ij_intended_template');
           const intendedPlan = sessionStorage.getItem('ij_intended_plan');
 
@@ -453,15 +554,21 @@ export function App() {
             sessionStorage.removeItem('ij_intended_plan');
           }
 
+          if (intendedTmpl && !intendedPlan) {
+            sessionStorage.setItem('ij_flow_mode', 'template-first');
+          } else if (intendedPlan && !intendedTmpl) {
+            sessionStorage.setItem('ij_flow_mode', 'plan-first');
+          }
+
           const rawPlan = sessionStorage.getItem('ij_selected_plan');
           const rawTmpl = sessionStorage.getItem('ij_selected_template');
 
           try {
             sessionStorage.removeItem('ij_order_paid');
-            if (isRegistered || rawTmpl || rawPlan) {
+            if (rawTmpl || rawPlan) {
               sessionStorage.setItem('ij_transaction_active', 'true');
             }
-            if (isRegistered && !rawTmpl) {
+            if (!rawTmpl) {
               sessionStorage.setItem('ij_welcome_register', 'true');
             }
             window.dispatchEvent(new Event('storage'));
@@ -469,20 +576,21 @@ export function App() {
           } catch {}
 
           if (rawPlan && rawTmpl) {
-            // User sudah memilih template dan paket -> langsung lanjut ke formulir pembayaran
+            // User baru sudah memilih template dan paket -> langsung lanjut ke formulir pembayaran
+            setOrderFlowStep(3);
             navigateTo('pembayaran');
           } else if (rawTmpl && !rawPlan) {
-            // Alur Utama Step 1 -> Step 2: User sudah memilih template -> lanjutkan memilih paket harga
+            // Alur Template-First: Step 1 (Template) Selesai -> Lanjut ke Step 2 (Pilih Paket Harga)
+            sessionStorage.setItem('ij_flow_mode', 'template-first');
             navigateTo('pilih-paket');
           } else if (rawPlan && !rawTmpl) {
-            // User memilih paket terlebih dahulu -> lanjutkan memilih desain template
-            navigateTo('pilih-template');
-          } else if (isRegistered) {
-            // User baru mendaftar dari form registrasi -> mulai dari Langkah 1: Pilih Desain Template
+            // Alur Plan-First: Step 1 (Paket) Selesai -> Lanjut ke Step 2 (Pilih Desain Template)
+            sessionStorage.setItem('ij_flow_mode', 'plan-first');
             navigateTo('pilih-template');
           } else {
-            // Login biasa tanpa transaksi aktif -> masuk ke dashboard
-            navigateTo('dashboard');
+            // User baru mendaftar tanpa pilihan -> default mulai dari Langkah 1: Pilih Desain Template
+            sessionStorage.setItem('ij_flow_mode', 'template-first');
+            navigateTo('pilih-template');
           }
         }}
       />

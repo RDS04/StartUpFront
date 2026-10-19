@@ -12,6 +12,7 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 import type { DashboardData, GuestItem, TierConfig } from '../types';
+import { deleteGuest, updateGuest } from '../../services/guestService';
 
 interface GuestsSectionProps {
   data: DashboardData;
@@ -37,9 +38,10 @@ export const GuestsSection: React.FC<GuestsSectionProps> = ({
   const [searchGuest, setSearchGuest] = useState('');
   const [filterCategory, setFilterCategory] = useState('all');
 
-  const handleDeleteGuest = (id: number) => {
-    setGuests(guests.filter((g) => g.id !== id));
-    onShowToast('Tamu berhasil dihapus dari daftar');
+  const handleDeleteGuest = async (id: number) => {
+    setGuests((prev) => prev.filter((g) => g.id !== id));
+    await deleteGuest(id);
+    onShowToast('Tamu berhasil dihapus dari database');
   };
 
   const getWhatsAppShareUrl = (guest: GuestItem) => {
@@ -215,6 +217,7 @@ export const GuestsSection: React.FC<GuestsSectionProps> = ({
                             setGuests(
                               guests.map((g) => (g.id === guest.id ? { ...g, sent: true } : g))
                             );
+                            updateGuest(guest.id, { sent: true });
                           }}
                           className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-semibold text-[11px] transition cursor-pointer ${
                             guest.sent

@@ -85,16 +85,16 @@ export const TemplateTigaProvider: React.FC<{
             time: dash.event.akadTime || ev.time,
             locationName: dash.event.akadPlace || ev.locationName,
             address: dash.event.akadAddress || ev.address,
-            mapUrl: dash.event.mapsUrl || ev.mapUrl,
+            mapUrl: dash.event.akadMapsUrl || dash.event.mapsUrl || ev.mapUrl,
           };
         }
-        if (i === 1) {
+        if (i >= 1) {
           return {
             ...ev,
             time: dash.event.resepsiTime || ev.time,
             locationName: dash.event.resepsiPlace || ev.locationName,
             address: dash.event.resepsiAddress || ev.address,
-            mapUrl: dash.event.mapsUrl || ev.mapUrl,
+            mapUrl: dash.event.resepsiMapsUrl || dash.event.mapsUrl || ev.mapUrl,
           };
         }
         return ev;

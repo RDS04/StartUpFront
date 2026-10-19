@@ -10,6 +10,7 @@ export interface OrderState {
   hasTemplate: boolean;
   templateName?: string;
   step: 1 | 2 | 3;
+  flowMode?: 'template-first' | 'plan-first';
 }
 
 interface NavbarProps {
@@ -88,21 +89,41 @@ export const Navbar: React.FC<NavbarProps> = ({
     return () => window.removeEventListener('hashchange', syncActiveTab);
   }, []);
 
-  // Stepper Visual Component (Step 1: Desain Template -> Step 2: Paket Harga -> Step 3: Pembayaran)
+  // Stepper Visual Component (Dinamis: Template-First ATAU Plan-First -> Pembayaran)
   const renderStepper = (isMobile = false) => {
     // Stepper HANYA boleh tampil jika user telah login dan sedang aktif dalam alur pemesanan
     if (!currentUser || !orderState || !orderState.isTransacting) return null;
 
+    const isPlanFirst = orderState.flowMode === 'plan-first';
+
+    // Step 1 Definition
+    const step1Label = isPlanFirst ? ['Paket', 'Harga'] : ['Desain', 'Template'];
+    const step1Done = isPlanFirst ? orderState.hasPlan : orderState.hasTemplate;
+    const step1Tooltip = isPlanFirst ? 'Langkah 1: Pilih Paket Harga' : 'Langkah 1: Pilih Desain Template';
+
+    // Step 2 Definition
+    const step2Label = isPlanFirst ? ['Desain', 'Template'] : ['Paket', 'Harga'];
+    const step2Done = isPlanFirst ? orderState.hasTemplate : orderState.hasPlan;
+    const step2Active = step1Done && !step2Done;
+    const step2Available = step1Done;
+    const step2Tooltip = isPlanFirst
+      ? (step2Available ? 'Langkah 2: Pilih Desain Template' : 'Pilih paket harga terlebih dahulu')
+      : (step2Available ? 'Langkah 2: Pilih Paket Harga' : 'Pilih desain template terlebih dahulu');
+
+    // Step 3 Definition
+    const step3Available = orderState.hasTemplate && orderState.hasPlan;
+    const step3Active = orderState.step === 3 || step3Available;
+
     return (
       <div className={`flex items-center justify-center ${isMobile ? 'py-2 px-3 w-full bg-[#072418]/95 rounded-2xl border border-emerald-500/30' : 'px-5 py-2 rounded-full bg-[#072418]/90 backdrop-blur-md border border-emerald-500/30 shadow-[0_4px_20px_rgba(0,0,0,0.3)]'}`}>
         <div className="flex items-center gap-2.5 sm:gap-4 md:gap-5">
-          {/* STEP 1: DESAIN TEMPLATE */}
+          {/* STEP 1 */}
           <div 
             onClick={() => onNavigateStep?.(1)}
             className="flex items-center gap-2 cursor-pointer group"
-            title="Langkah 1: Pilih Desain Template"
+            title={step1Tooltip}
           >
-            {orderState.hasTemplate ? (
+            {step1Done ? (
               <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-[#00c078] flex items-center justify-center text-white shadow-md shadow-emerald-950/30 group-hover:scale-110 transition-transform shrink-0">
                 <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[3]" />
               </div>
@@ -112,31 +133,31 @@ export const Navbar: React.FC<NavbarProps> = ({
               </div>
             )}
             <div className={`text-[10px] sm:text-xs font-bold leading-tight text-left ${
-              orderState.hasTemplate ? 'text-[#00d68f]' : 'text-[#ffb800]'
+              step1Done ? 'text-[#00d68f]' : 'text-[#ffb800]'
             }`}>
-              <div>Desain</div>
-              <div>Template</div>
+              <div>{step1Label[0]}</div>
+              <div>{step1Label[1]}</div>
             </div>
           </div>
 
           {/* CONNECTOR LINE 1 */}
           <div className={`h-[2px] w-6 sm:w-9 md:w-12 rounded-full shrink-0 transition-colors ${
-            orderState.hasTemplate ? 'bg-[#00d68f]' : 'bg-emerald-900/60'
+            step1Done ? 'bg-[#00d68f]' : 'bg-emerald-900/60'
           }`} />
 
-          {/* STEP 2: PAKET HARGA */}
+          {/* STEP 2 */}
           <div 
             onClick={() => {
-              if (orderState.hasTemplate) onNavigateStep?.(2);
+              if (step2Available) onNavigateStep?.(2);
             }}
-            className={`flex items-center gap-2 ${orderState.hasTemplate ? 'cursor-pointer group' : 'opacity-65 cursor-not-allowed'}`}
-            title={orderState.hasTemplate ? 'Langkah 2: Pilih Paket Harga' : 'Pilih desain template terlebih dahulu'}
+            className={`flex items-center gap-2 ${step2Available ? 'cursor-pointer group' : 'opacity-65 cursor-not-allowed'}`}
+            title={step2Tooltip}
           >
-            {orderState.hasPlan ? (
+            {step2Done ? (
               <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-[#00c078] flex items-center justify-center text-white shadow-md shadow-emerald-950/30 group-hover:scale-110 transition-transform shrink-0">
                 <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[3]" />
               </div>
-            ) : orderState.hasTemplate ? (
+            ) : step2Active ? (
               <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-[#ffb800] ring-4 ring-amber-400/25 flex items-center justify-center text-slate-950 font-black text-[11px] sm:text-xs shadow-md shadow-amber-950/20 group-hover:scale-110 transition-transform shrink-0 animate-pulse">
                 2
               </div>
@@ -146,35 +167,35 @@ export const Navbar: React.FC<NavbarProps> = ({
               </div>
             )}
             <div className={`text-[10px] sm:text-xs font-bold leading-tight text-left ${
-              orderState.hasPlan ? 'text-[#00d68f]' : orderState.hasTemplate ? 'text-[#ffb800]' : 'text-emerald-500/60'
+              step2Done ? 'text-[#00d68f]' : step2Active ? 'text-[#ffb800]' : 'text-emerald-500/60'
             }`}>
-              <div>Paket</div>
-              <div>Harga</div>
+              <div>{step2Label[0]}</div>
+              <div>{step2Label[1]}</div>
             </div>
           </div>
 
           {/* CONNECTOR LINE 2 */}
           <div className={`h-[2px] w-6 sm:w-9 md:w-12 rounded-full shrink-0 transition-colors ${
-            orderState.hasPlan ? 'bg-[#00d68f]' : 'bg-emerald-900/60'
+            step2Done ? 'bg-[#00d68f]' : 'bg-emerald-900/60'
           }`} />
 
           {/* STEP 3: PEMBAYARAN */}
           <div 
             onClick={() => {
-              if (orderState.hasTemplate && orderState.hasPlan) onNavigateStep?.(3);
+              if (step3Available) onNavigateStep?.(3);
             }}
-            className={`flex items-center gap-2 ${(orderState.hasTemplate && orderState.hasPlan) ? 'cursor-pointer group' : 'opacity-65 cursor-not-allowed'}`}
-            title={(orderState.hasTemplate && orderState.hasPlan) ? 'Langkah 3: Rincian Pembayaran' : 'Pilih template dan paket harga terlebih dahulu'}
+            className={`flex items-center gap-2 ${step3Available ? 'cursor-pointer group' : 'opacity-65 cursor-not-allowed'}`}
+            title={step3Available ? 'Langkah 3: Rincian Pembayaran' : (isPlanFirst ? 'Pilih paket harga dan desain template terlebih dahulu' : 'Pilih desain template dan paket harga terlebih dahulu')}
           >
             <div className={`w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center font-black text-[11px] sm:text-xs shadow-md transition-transform shrink-0 ${
-              orderState.step === 3 || (orderState.hasTemplate && orderState.hasPlan)
+              step3Active
                 ? 'bg-[#ffb800] text-slate-950 ring-4 ring-amber-400/25 shadow-amber-950/30 group-hover:scale-110'
                 : 'bg-emerald-950 text-emerald-500/60 border border-emerald-800/80'
             }`}>
               3
             </div>
             <div className={`text-[10px] sm:text-xs font-bold leading-tight text-left ${
-              orderState.step === 3 || (orderState.hasTemplate && orderState.hasPlan) ? 'text-[#ffb800]' : 'text-emerald-500/60'
+              step3Active ? 'text-[#ffb800]' : 'text-emerald-500/60'
             }`}>
               <div>Pembayaran</div>
             </div>

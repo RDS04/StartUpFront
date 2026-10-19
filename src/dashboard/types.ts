@@ -14,9 +14,11 @@ export interface EventInfo {
   akadTime: string;
   akadPlace: string;
   akadAddress: string;
+  akadMapsUrl?: string;
   resepsiTime: string;
   resepsiPlace: string;
   resepsiAddress: string;
+  resepsiMapsUrl?: string;
   mapsUrl: string;
 }
 

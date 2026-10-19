@@ -4,11 +4,13 @@ import { AuthLayout } from './AuthLayout';
 import { Login } from './Login';
 import { Register } from './Register';
 
+import type { AuthUser } from '../services/authService';
+
 export interface AuthPageProps {
   initialMode?: 'login' | 'register';
   initialAlert?: string;
   onBackToHome: () => void;
-  onAuthSuccess?: (user: { name?: string; email: string; avatar?: string }, authType?: 'login' | 'register') => void;
+  onAuthSuccess?: (user: AuthUser, authType?: 'login' | 'register') => void;
 }
 
 export const AuthPage: React.FC<AuthPageProps> = ({

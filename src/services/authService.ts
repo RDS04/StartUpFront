@@ -9,6 +9,8 @@ export interface AuthUser {
   google_id?: string;
   phone?: string;
   source?: 'form' | 'google';
+  has_paid_orders?: boolean;
+  total_orders?: number;
   created_at?: string;
 }
 
@@ -94,38 +96,68 @@ export async function authenticateWithGoogle(
   idToken: string, 
   mode: 'login' | 'register' = 'login'
 ): Promise<AuthResponse> {
-  const response = await fetch(`${API_BASE_URL}/auth/google`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-    },
-    body: JSON.stringify({ 
-      id_token: idToken,
-      mode: mode,
-    }),
-  });
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/google`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({ 
+        id_token: idToken,
+        mode: mode,
+      }),
+    });
 
-  const data = await response.json();
+    let data: any = {};
+    try {
+      data = await response.json();
+    } catch {
+      data = {};
+    }
 
-  if (!response.ok) {
-    const error: any = new Error(data.message || 'Gagal melakukan autentikasi dengan Google di server.');
-    error.not_registered = !!data.not_registered;
-    error.already_registered = !!data.already_registered;
-    error.email = data.email;
-    error.name = data.name;
-    error.status = response.status;
-    error.data = data;
-    throw error;
+    if (!response.ok) {
+      let msg = data.message || 'Maaf, coba ulangi lagi.';
+      if (/curl|timed?\s*out|connection|failed to fetch|network|server error|tokeninfo|http/i.test(msg)) {
+        msg = 'Maaf, coba ulangi lagi.';
+      }
+      const error: any = new Error(msg);
+      error.not_registered = !!data.not_registered;
+      error.already_registered = !!data.already_registered;
+      error.email = data.email;
+      error.name = data.name;
+      error.status = response.status;
+      error.data = data;
+      throw error;
+    }
+
+    // Simpan token ke localStorage jika ada
+    if (data.token) {
+      localStorage.setItem('auth_token', data.token);
+      localStorage.setItem('auth_user', JSON.stringify(data.user));
+    }
+
+    return data;
+  } catch (err: any) {
+    // Jika error memiliki status khusus dari backend (not_registered / already_registered)
+    if (err.not_registered || err.already_registered) {
+      throw err;
+    }
+
+    let msg = err.message || 'Maaf, coba ulangi lagi.';
+    if (/curl|timed?\s*out|connection|failed to fetch|network|load failed|server error|tokeninfo|http/i.test(msg)) {
+      msg = 'Maaf, coba ulangi lagi.';
+    }
+
+    const sanitizedError: any = new Error(msg);
+    sanitizedError.not_registered = !!err.not_registered;
+    sanitizedError.already_registered = !!err.already_registered;
+    sanitizedError.email = err.email;
+    sanitizedError.name = err.name;
+    sanitizedError.status = err.status;
+    sanitizedError.data = err.data;
+    throw sanitizedError;
   }
-
-  // Simpan token ke localStorage jika ada
-  if (data.token) {
-    localStorage.setItem('auth_token', data.token);
-    localStorage.setItem('auth_user', JSON.stringify(data.user));
-  }
-
-  return data;
 }
 
 /**
@@ -181,7 +213,7 @@ export async function fetchCurrentUser(): Promise<AuthUser | null> {
     return null;
   } catch (error) {
     console.error('Error fetching current user:', error);
-    return getSavedAuthUser();
+    return null;
   }
 }
 

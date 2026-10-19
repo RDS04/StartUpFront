@@ -68,6 +68,16 @@ export const AkadSection: React.FC = () => {
         <p className="text-[15px] font-medium text-white/95">{akad.time}</p>
         <p className="mt-1 text-[13px] text-white/80">Bertempat di</p>
         <p className="text-base font-semibold text-white">{akad.venue}</p>
+        {akad.address && (
+          <p className="mx-auto mt-1 max-w-[260px] text-xs text-white/85">{akad.address}</p>
+        )}
+        {akad.mapsUrl && (
+          <div className="mt-4 flex justify-center">
+            <Pill href={akad.mapsUrl} variant="glass" className="px-4 py-1.5 text-[12px] bg-white/20 border-white/40 text-white hover:bg-white/30">
+              <MapPin className="h-3.5 w-3.5" /> Buka Google Maps
+            </Pill>
+          </div>
+        )}
       </Reveal>
 
       {/* Countdown */}

@@ -156,7 +156,7 @@ export const TemplateEmpatProvider: React.FC<{
           time: dash.event.akadTime ? `Pukul ${dash.event.akadTime}` : 'Pukul 08.00 - 10.00 WIB',
           locationName: dash.event.akadPlace || 'Masjid Agung & Kediaman Mempelai',
           address: dash.event.akadAddress || 'Jl. Jondul Rawang Blok C/20, Padang Selatan',
-          mapUrl: dash.event.mapsUrl || 'https://maps.google.com',
+          mapUrl: dash.event.akadMapsUrl || dash.event.mapsUrl || 'https://maps.google.com',
         },
         {
           id: 'resepsi',
@@ -168,7 +168,7 @@ export const TemplateEmpatProvider: React.FC<{
           time: dash.event.resepsiTime ? `Pukul ${dash.event.resepsiTime}` : 'Pukul 11.00 - 17.00 WIB',
           locationName: dash.event.resepsiPlace || 'Grand Ballroom & Kediaman',
           address: dash.event.resepsiAddress || 'Jl. Jondul Rawang Blok C/20, Padang Selatan',
-          mapUrl: dash.event.mapsUrl || 'https://maps.google.com',
+          mapUrl: dash.event.resepsiMapsUrl || dash.event.mapsUrl || 'https://maps.google.com',
         },
       ],
       bankAccounts: dash.bankAccounts?.length

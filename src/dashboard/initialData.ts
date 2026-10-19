@@ -27,9 +27,11 @@ export const INITIAL_DATA: DashboardData = {
     akadTime: '',
     akadPlace: '',
     akadAddress: '',
+    akadMapsUrl: '',
     resepsiTime: '',
     resepsiPlace: '',
     resepsiAddress: '',
+    resepsiMapsUrl: '',
     mapsUrl: '',
   },
   musicTitle: '',
@@ -102,5 +104,26 @@ export const clearAllDashboardData = (): void => {
 };
 
 export const INITIAL_GUESTS: GuestItem[] = [];
+
+export const getSavedGuests = (userId?: string | number): GuestItem[] => {
+  if (typeof window === 'undefined') return INITIAL_GUESTS;
+  try {
+    const key = userId ? `ij_guests_${userId}` : 'ij_guests_guest';
+    const raw = localStorage.getItem(key);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch {}
+  return INITIAL_GUESTS;
+};
+
+export const saveGuests = (guests: GuestItem[], userId?: string | number): void => {
+  if (typeof window === 'undefined') return;
+  try {
+    const key = userId ? `ij_guests_${userId}` : 'ij_guests_guest';
+    localStorage.setItem(key, JSON.stringify(guests));
+  } catch {}
+};
 
 export const INITIAL_WISHES: WishItem[] = [];

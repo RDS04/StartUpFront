@@ -56,7 +56,7 @@ export interface TemplateOption {
   name: string;
   category: string;
   tag: string;
-  previewRoute: 'template-satu' | 'template-dua' | 'card-atm';
+  previewRoute: 'template-satu' | 'template-dua' | 'template-tiga' | 'template-empat' | 'wisuda-satu' | 'wisuda-dua' | 'card-atm' | string;
   image: string;
   desc: string;
   badgeText: string;
@@ -90,7 +90,7 @@ export const TEMPLATES: TemplateOption[] = [
   {
     id: 'rustic-blossom',
     name: 'Rustic Blossom (Template 1)',
-    category: 'Elegan & Mewah',
+    category: 'Undangan Wedding',
     tag: 'Burgundy & Gold',
     previewRoute: 'template-satu',
     image: 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=600&q=80',
@@ -100,12 +100,52 @@ export const TEMPLATES: TemplateOption[] = [
   {
     id: 'dusty-rose',
     name: 'Dusty Rose Lily (Template 2)',
-    category: 'Romantis & Manis',
+    category: 'Undangan Wedding',
     tag: 'Soft Pastel Floral',
     previewRoute: 'template-dua',
     image: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=600&q=80',
     desc: 'Nuansa bunga lily merah muda dan sentuhan modern minimalis yang memancarkan kehangatan cinta.',
     badgeText: 'ROMANTIS',
+  },
+  {
+    id: 'minang-maroon',
+    name: 'Minang Maroon Gold (Template 3)',
+    category: 'Undangan Wedding',
+    tag: 'Adat Minang & Gold',
+    previewRoute: 'template-tiga',
+    image: 'https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=600&q=80',
+    desc: 'Perpaduan megah nuansa adat Minang dengan sentuhan warna maroon mewah dan detail emas berkelas.',
+    badgeText: 'GOLD',
+  },
+  {
+    id: 'sage-garden',
+    name: 'Sage Garden Blossom (Template 4)',
+    category: 'Undangan Wedding',
+    tag: 'Sage Green & White',
+    previewRoute: 'template-empat',
+    image: 'https://images.unsplash.com/photo-1545232979-8bf68ee9b1af?auto=format&fit=crop&w=600&q=80',
+    desc: 'Nuansa alam botanical sage green yang asri, tenang, dan memikat untuk pernikahan impian.',
+    badgeText: 'GOLD',
+  },
+  {
+    id: 'wisuda-satu',
+    name: 'Wisuda Karin (Template Wisuda 1)',
+    category: 'Undangan Wisuda',
+    tag: 'Wisuda & Kelulusan',
+    previewRoute: 'wisuda-satu',
+    image: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=600&q=80',
+    desc: 'Perayaan kelulusan istimewa dengan desain modern, foto wisudawan dan detail acara.',
+    badgeText: 'BRONZE',
+  },
+  {
+    id: 'wisuda-dua',
+    name: 'Wisuda Black Gold (Template Wisuda 2)',
+    category: 'Undangan Wisuda',
+    tag: 'Black Gold Luxury',
+    previewRoute: 'wisuda-dua',
+    image: 'https://images.unsplash.com/photo-1627556704290-2b1f5853ff78?auto=format&fit=crop&w=600&q=80',
+    desc: 'Tema Black & Gold mewah dan prestisius dengan countdown, live stream, galeri dan amplop ucapan selamat.',
+    badgeText: 'GOLD',
   },
   {
     id: 'card-atm',
@@ -126,7 +166,7 @@ export interface OrderFlowPageProps {
   onChangePlan?: () => void;
   onChangeTemplate?: () => void;
   onBackToHome: () => void;
-  onPreviewTemplate?: (route: 'template-satu' | 'template-dua' | 'card-atm') => void;
+  onPreviewTemplate?: (route: any) => void;
   onNavigateDashboard?: () => void;
   selectedPlan?: PlanOption;
   onSelectPlan?: (plan: PlanOption) => void;
@@ -141,15 +181,40 @@ export const OrderFlowPage: React.FC<OrderFlowPageProps> = ({
   onChangePlan,
   onChangeTemplate,
   onBackToHome,
-  onPreviewTemplate: _onPreviewTemplate,
+  onPreviewTemplate,
   onNavigateDashboard,
   selectedPlan: propSelectedPlan,
   onSelectPlan: onPropSelectPlan,
   selectedTemplate: propSelectedTemplate,
   onSelectTemplate: onPropSelectTemplate,
 }) => {
-  // Wizard step: 3 = Rincian Biaya & Pembayaran (Paket & Template dipilih di Landing Page)
+  // Wizard step: 1 = Langkah Pertama, 2 = Langkah Kedua, 3 = Pembayaran & Checkout
   const [internalStep, setInternalStep] = useState<1 | 2 | 3>(activeStep || 3);
+
+  // Flow mode: apakah user memilih Template lebih dulu ('template-first') atau Price lebih dulu ('plan-first')
+  const [flowMode, setFlowMode] = useState<'template-first' | 'plan-first'>(() => {
+    try {
+      const saved = sessionStorage.getItem('ij_flow_mode');
+      if (saved === 'plan-first' || saved === 'template-first') return saved;
+      if (sessionStorage.getItem('ij_selected_plan') && !sessionStorage.getItem('ij_selected_template')) {
+        return 'plan-first';
+      }
+    } catch {}
+    return 'template-first';
+  });
+
+  useEffect(() => {
+    const handleStorage = () => {
+      try {
+        const saved = sessionStorage.getItem('ij_flow_mode');
+        if (saved === 'plan-first' || saved === 'template-first') {
+          setFlowMode(saved);
+        }
+      } catch {}
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
 
   useEffect(() => {
     if (activeStep && activeStep !== internalStep) {
@@ -157,13 +222,16 @@ export const OrderFlowPage: React.FC<OrderFlowPageProps> = ({
     }
   }, [activeStep]);
 
-  const step = internalStep;
-
   const handleChangePlan = () => {
     if (onChangePlan) {
       onChangePlan();
     } else {
-      goToStep(2);
+      window.location.hash = '#harga';
+      onBackToHome();
+      setTimeout(() => {
+        const el = document.getElementById('harga');
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
     }
   };
 
@@ -177,24 +245,6 @@ export const OrderFlowPage: React.FC<OrderFlowPageProps> = ({
         const el = document.getElementById('template');
         if (el) el.scrollIntoView({ behavior: 'smooth' });
       }, 100);
-    }
-  };
-
-  // Jika step 1 diakses, arahkan ke landing page section #template
-  useEffect(() => {
-    if (step === 1) {
-      handleChangeTemplate();
-    }
-  }, [step]);
-
-  const goToStep = (newStep: 1 | 2 | 3) => {
-    if (newStep === 1) {
-      handleChangeTemplate();
-      return;
-    }
-    setInternalStep(newStep);
-    if (onStepChange) {
-      onStepChange(newStep);
     }
   };
 
@@ -278,6 +328,11 @@ export const OrderFlowPage: React.FC<OrderFlowPageProps> = ({
     } catch {}
     if (onPropSelectTemplate) onPropSelectTemplate(tmpl);
   };
+  void onStepChange;
+  void flowMode;
+  void availablePlans;
+  void isLoadingPlans;
+  void setSelectedPlan;
   void setSelectedTemplate;
 
   // Order Details Form
@@ -569,274 +624,21 @@ export const OrderFlowPage: React.FC<OrderFlowPageProps> = ({
         </div>
       </div>
 
-      {/* Stepper Header Bar */}
+      {/* Header Halaman Pembayaran */}
       <div className="max-w-3xl mx-auto mb-8 text-center relative z-10">
+        <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-emerald-100/90 text-emerald-800 text-xs font-bold uppercase tracking-wider mb-2.5 border border-emerald-200 shadow-xs">
+          <Sparkles className="w-3.5 h-3.5 text-amber-500 fill-amber-400" />
+          <span>Konfirmasi &amp; Selesaikan Pesanan</span>
+        </div>
         <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-emerald-950 tracking-tight mb-2">
-          {step === 2 
-            ? 'Langkah 2: Pilih Paket Harga Undangan' 
-            : step === 3 
-            ? 'Langkah Terakhir: Rincian Biaya & Pembayaran' 
-            : 'Pemesanan Undangan Digital'}
+          Rincian Pesanan &amp; Pembayaran
         </h1>
         <p className="text-xs sm:text-sm text-slate-600 max-w-lg mx-auto">
-          {step === 2
-            ? 'Pilih paket fitur terbaik yang sesuai dengan kebutuhan acara bahagia Anda.'
-            : 'Periksa rincian pesanan dan selesaikan transaksi dengan aman melalui sistem pembayaran instan.'}
+          Periksa rincian template dan paket yang telah Anda pilih di beranda, lalu selesaikan pembayaran dengan cepat, aman, dan otomatis.
         </p>
-
-        {/* Stepper Capsule (Step 1: Desain Template -> Step 2: Paket Harga -> Step 3: Pembayaran) */}
-        <div className="flex items-center justify-center gap-3 sm:gap-5 mt-6 max-w-xl mx-auto px-5 py-2.5 rounded-full bg-[#072418]/90 border border-emerald-500/40 backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.18)]">
-          {/* STEP 1: DESAIN TEMPLATE (HIJAU CENTANG DENGAN TEKS 2 BARIS) */}
-          <div 
-            onClick={handleChangeTemplate}
-            className="flex items-center gap-2 cursor-pointer group"
-            title="Klik untuk ubah pilihan Desain Template"
-          >
-            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#00c078] flex items-center justify-center text-white shadow-md shadow-emerald-950/30 group-hover:scale-110 transition-transform shrink-0">
-              <Check className="w-4 h-4 stroke-[3]" />
-            </div>
-            <div className="text-[11px] sm:text-xs font-bold text-[#00d68f] leading-tight text-left">
-              <div>Desain</div>
-              <div>Template</div>
-            </div>
-          </div>
-
-          {/* CONNECTOR LINE 1 */}
-          <div className="h-[2px] w-8 sm:w-14 bg-[#00d68f] rounded-full shrink-0" />
-
-          {/* STEP 2: PAKET HARGA */}
-          <div 
-            onClick={() => goToStep(2)}
-            className="flex items-center gap-2 cursor-pointer group"
-            title="Klik untuk ubah pilihan Paket Harga"
-          >
-            {step === 2 ? (
-              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#ffb800] ring-4 ring-amber-400/25 flex items-center justify-center text-slate-950 font-black text-xs sm:text-sm shadow-md shadow-amber-950/30 animate-pulse">
-                2
-              </div>
-            ) : (
-              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#00c078] flex items-center justify-center text-white shadow-md shadow-emerald-950/30 group-hover:scale-110 transition-transform shrink-0">
-                <Check className="w-4 h-4 stroke-[3]" />
-              </div>
-            )}
-            <div className={`text-[11px] sm:text-xs font-bold leading-tight text-left ${
-              step === 2 ? 'text-[#ffb800]' : 'text-[#00d68f]'
-            }`}>
-              <div>Paket</div>
-              <div>Harga</div>
-            </div>
-          </div>
-
-          {/* CONNECTOR LINE 2 */}
-          <div className={`h-[2px] w-8 sm:w-14 rounded-full shrink-0 transition-colors ${
-            step === 3 ? 'bg-[#00d68f]' : 'bg-emerald-500/30'
-          }`} />
-
-          {/* STEP 3: PEMBAYARAN */}
-          <div 
-            onClick={() => goToStep(3)}
-            className="flex items-center gap-2 cursor-pointer group shrink-0"
-            title="Langkah Pembayaran"
-          >
-            {step === 3 ? (
-              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#ffb800] ring-4 ring-amber-400/25 flex items-center justify-center text-slate-950 font-black text-xs sm:text-sm shadow-md shadow-amber-950/30">
-                3
-              </div>
-            ) : (
-              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-400 font-bold text-xs sm:text-sm">
-                3
-              </div>
-            )}
-            <div className={`text-[11px] sm:text-xs font-bold leading-tight text-left ${
-              step === 3 ? 'text-[#ffb800]' : 'text-slate-400'
-            }`}>
-              <div>Pembayaran</div>
-            </div>
-          </div>
-        </div>
       </div>
 
-      {/* STEP 1: JIKA TERBUKA, REDIRECT KE LANDING PAGE SECTION #TEMPLATE */}
-      {step === 1 && (
-        <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="max-w-md mx-auto text-center py-16 bg-white/80 rounded-3xl border border-white/95 p-8 relative z-10 shadow-2xl backdrop-blur-2xl"
-        >
-          <div className="w-12 h-12 rounded-full border-4 border-amber-500 border-t-transparent animate-spin mx-auto mb-4" />
-          <h3 className="text-lg font-black text-emerald-950 mb-2">Mengarahkan ke Pilihan Desain Template...</h3>
-          <p className="text-xs text-slate-600 mb-6">Pilihan desain template tersedia interaktif pada beranda landing page kami.</p>
-          <button
-            onClick={handleChangeTemplate}
-            className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:brightness-105 text-slate-950 text-xs font-black cursor-pointer shadow-lg inline-flex items-center gap-2"
-          >
-            <span>Buka Pilihan Desain di Beranda</span>
-            <ArrowRight className="w-4 h-4" />
-          </button>
-        </motion.div>
-      )}
 
-      {/* STEP 2: PILIHAN PAKET HARGA (DARI MASTER BACKEND DATABASE) */}
-      {step === 2 && (
-        <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -15 }}
-          transition={{ duration: 0.35 }}
-          className="max-w-6xl mx-auto relative z-10 space-y-8"
-        >
-          {isLoadingPlans ? (
-            <div className="py-24 text-center bg-white/70 backdrop-blur-xl rounded-3xl border border-white/90 p-8 shadow-xl">
-              <div className="w-12 h-12 rounded-full border-4 border-emerald-500 border-t-transparent animate-spin mx-auto mb-4" />
-              <h3 className="text-base font-extrabold text-emerald-950 mb-1">Memuat Paket Harga...</h3>
-              <p className="text-xs text-slate-500">Mengambil data paket harga resmi dari sistem.</p>
-            </div>
-          ) : (
-            <>
-              <div className="text-center max-w-xl mx-auto mb-2">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold uppercase tracking-wider mb-2">
-                  <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                  <span>Pilihan Paket Resmi</span>
-                </span>
-                <h2 className="text-xl sm:text-2xl font-black text-emerald-950">
-                  Pilih Paket yang Sesuai Kebutuhan Anda
-                </h2>
-                <p className="text-xs sm:text-sm text-slate-600 mt-1">
-                  Semua paket sudah termasuk masa aktif dan fitur interaktif sesuai pilihan.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 items-stretch">
-                {availablePlans.map((plan) => {
-                  const isSelected = selectedPlan.id === plan.id;
-                  const isGoldOrPopular = plan.isPopular;
-
-                  return (
-                    <div
-                      key={plan.id}
-                      className={`relative rounded-3xl p-6 sm:p-7 flex flex-col justify-between transition-all duration-300 backdrop-blur-2xl ${
-                        isSelected
-                          ? 'bg-white border-2 border-emerald-600 shadow-[0_20px_50px_rgba(16,185,129,0.22)] ring-4 ring-emerald-500/25 md:-translate-y-2'
-                          : isGoldOrPopular
-                          ? 'bg-white/95 border-2 border-emerald-500/80 shadow-[0_20px_50px_rgba(16,185,129,0.14)] md:-translate-y-1'
-                          : 'bg-white/85 border border-white/95 hover:border-emerald-300 shadow-sm hover:shadow-md'
-                      }`}
-                    >
-                      {/* Top Badge */}
-                      <div>
-                        <div className="flex items-center justify-between gap-2 mb-4">
-                          {plan.badge ? (
-                            <span
-                              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-wider ${
-                                isGoldOrPopular
-                                  ? 'bg-[#165b39] text-white shadow-sm font-black'
-                                  : 'bg-slate-100 text-slate-700 border border-slate-200'
-                              }`}
-                            >
-                              {plan.badge}
-                            </span>
-                          ) : <span />}
-
-                          {isSelected && (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500 text-white text-[10px] font-black uppercase tracking-wider">
-                              <Check className="w-3 h-3 stroke-[3]" />
-                              <span>Paket Terpilih</span>
-                            </span>
-                          )}
-                        </div>
-
-                        {/* Title & Subtitle */}
-                        <h3 className="text-lg font-black text-slate-900 mb-1">{plan.name}</h3>
-                        <p className="text-xs text-slate-500 mb-5 min-h-[32px] leading-relaxed">
-                          {plan.subtitle}
-                        </p>
-
-                        {/* Price */}
-                        <div className="mb-6 pb-6 border-b border-slate-100">
-                          {plan.originalPrice ? (
-                            <div className="text-xs text-slate-400 line-through font-semibold mb-0.5">
-                              Rp {plan.originalPrice.toLocaleString('id-ID')}
-                            </div>
-                          ) : null}
-                          <div className="flex items-baseline gap-1.5">
-                            <span className="text-xs font-bold text-slate-600">Rp</span>
-                            <span className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
-                              {plan.price.toLocaleString('id-ID')}
-                            </span>
-                            <span className="text-xs text-slate-500 font-medium">/ paket</span>
-                          </div>
-                          <p className="text-[11px] text-emerald-700 font-semibold mt-1.5 flex items-center gap-1">
-                            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                            <span>Bayar 1x tanpa biaya langganan bulanan</span>
-                          </p>
-                        </div>
-
-                        {/* Features List */}
-                        <div className="space-y-3 mb-8">
-                          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                            Fitur Termasuk:
-                          </p>
-                          {plan.features.map((feat, idx) => (
-                            <div key={idx} className="flex items-start gap-2.5 text-xs text-slate-700">
-                              <div className="w-4 h-4 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5">
-                                <Check className="w-2.5 h-2.5 stroke-[3]" />
-                              </div>
-                              <span className="leading-snug">{feat}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Action CTA Button */}
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setSelectedPlan(plan);
-                          goToStep(3);
-                        }}
-                        className={`w-full py-3.5 px-4 rounded-2xl text-xs sm:text-sm font-black transition-all cursor-pointer flex items-center justify-center gap-2 shadow-md ${
-                          isSelected
-                            ? 'bg-[#165b39] text-white hover:bg-[#124b2f] ring-2 ring-emerald-600/30'
-                            : isGoldOrPopular
-                            ? 'bg-gradient-to-r from-[#175b39] via-[#226c48] to-[#9e7a2b] hover:brightness-105 text-white'
-                            : 'bg-slate-900 hover:bg-slate-800 text-white'
-                        }`}
-                      >
-                        <span>{isSelected ? 'Lanjutkan dengan Paket Ini' : `Pilih ${plan.name}`}</span>
-                        <ArrowRight className="w-4 h-4" />
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Bottom Nav */}
-              <div className="flex justify-between items-center pt-4">
-                <button
-                  type="button"
-                  onClick={handleChangeTemplate}
-                  className="flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-emerald-800 cursor-pointer px-4 py-2 rounded-xl bg-white/70 hover:bg-white border border-slate-200 transition-all shadow-xs"
-                >
-                  <ArrowLeft className="w-3.5 h-3.5" />
-                  <span>Ubah Desain Template</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => goToStep(3)}
-                  className="flex items-center gap-2 text-xs font-black text-white px-5 py-2.5 rounded-xl bg-[#165b39] hover:bg-[#124b2f] transition-all shadow-md cursor-pointer"
-                >
-                  <span>Lanjut ke Pembayaran</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-              </div>
-            </>
-          )}
-        </motion.div>
-      )}
-
-      {/* STEP 3: RINCIAN BIAYA & PEMBAYARAN DENGAN 3D GLASSMOCKUP & FROSTED GLASS CARDS */}
-      {step === 3 && (
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
@@ -851,6 +653,101 @@ export const OrderFlowPage: React.FC<OrderFlowPageProps> = ({
             
             {/* Left Column: Detail Pesanan & Pembayaran (7 cols) */}
             <div className="lg:col-span-7 space-y-6">
+              
+              {/* Frosted Glass Card: Desain Template & Paket yang Dipilih di Beranda */}
+              <div className="bg-white/85 backdrop-blur-2xl border-2 border-white/90 rounded-3xl p-6 sm:p-7 shadow-[0_16px_40px_rgba(16,185,129,0.08)] relative overflow-hidden">
+                <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
+                  <h3 className="text-base font-black text-emerald-950 flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shadow-xs">
+                      <Sparkles className="w-4 h-4 text-emerald-600" />
+                    </div>
+                    <span>Pilihan Anda di Beranda</span>
+                  </h3>
+                  <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    Terpilih
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Desain Template */}
+                  <div className="p-4 rounded-2xl bg-gradient-to-br from-white to-emerald-50/50 border border-emerald-200/80 shadow-xs flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center justify-between text-[11px] text-slate-500 font-semibold mb-2">
+                        <span>Desain Template</span>
+                        <span className="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 font-bold text-[10px]">
+                          {selectedTemplate.badgeText || 'FAVORIT'}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-3 mb-3">
+                        <img 
+                          src={selectedTemplate.image} 
+                          alt={selectedTemplate.name}
+                          className="w-14 h-14 rounded-xl object-cover border border-emerald-200 shrink-0 shadow-xs" 
+                        />
+                        <div className="min-w-0">
+                          <h4 className="font-extrabold text-xs sm:text-sm text-slate-900 truncate">
+                            {selectedTemplate.name}
+                          </h4>
+                          <p className="text-[11px] text-emerald-700 font-medium truncate">
+                            {selectedTemplate.category}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 pt-2.5 border-t border-slate-100">
+                      {onPreviewTemplate && (
+                        <button
+                          type="button"
+                          onClick={() => onPreviewTemplate(selectedTemplate.previewRoute)}
+                          className="flex-1 py-1.5 px-2 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-[11px] font-bold transition-all text-center cursor-pointer"
+                        >
+                          Lihat Demo
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={handleChangeTemplate}
+                        className="flex-1 py-1.5 px-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-[11px] font-bold transition-all text-center cursor-pointer shadow-xs"
+                      >
+                        Ganti Desain
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Paket Harga */}
+                  <div className="p-4 rounded-2xl bg-gradient-to-br from-white to-amber-50/40 border border-amber-200/80 shadow-xs flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center justify-between text-[11px] text-slate-500 font-semibold mb-2">
+                        <span>Paket Layanan</span>
+                        <span className="px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 font-bold text-[10px]">
+                          {selectedPlan.badge || 'TERBAIK'}
+                        </span>
+                      </div>
+                      <div className="mb-3">
+                        <h4 className="font-extrabold text-xs sm:text-sm text-slate-900">
+                          {selectedPlan.name}
+                        </h4>
+                        <div className="flex items-baseline gap-1 mt-1">
+                          <span className="text-xs font-bold text-slate-500">Rp</span>
+                          <span className="text-xl font-black text-slate-900">
+                            {selectedPlan.price.toLocaleString('id-ID')}
+                          </span>
+                          <span className="text-[10px] text-slate-500">/ selamanya</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="pt-2.5 border-t border-slate-100">
+                      <button
+                        type="button"
+                        onClick={handleChangePlan}
+                        className="w-full py-1.5 px-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-[11px] font-bold transition-all text-center cursor-pointer shadow-xs"
+                      >
+                        Ganti Paket
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
               
               {/* Frosted Glass Card 1: Data Calon Pengantin & Kontak */}
               <div className="bg-white/80 backdrop-blur-2xl border-2 border-white/90 rounded-3xl p-6 sm:p-7 shadow-[0_16px_40px_rgba(16,185,129,0.08)] relative overflow-hidden">
@@ -1085,18 +982,17 @@ export const OrderFlowPage: React.FC<OrderFlowPageProps> = ({
               className="px-6 py-3 rounded-2xl font-bold text-xs sm:text-sm bg-white/80 hover:bg-white border border-emerald-200 text-emerald-950 flex items-center gap-2 cursor-pointer transition-all shadow-sm"
             >
               <ArrowLeft className="w-4 h-4 text-emerald-700" />
-              <span>Kembali ke Langkah 2: Paket Harga</span>
+              <span>Ganti Paket Harga di Beranda</span>
             </button>
             <button
               onClick={handleChangeTemplate}
               className="px-6 py-3 rounded-2xl font-bold text-xs sm:text-sm bg-white/80 hover:bg-white border border-emerald-200 text-emerald-950 flex items-center gap-2 cursor-pointer transition-all shadow-sm"
             >
-              <span>Ubah Desain Template (Langkah 1)</span>
+              <span>Ganti Desain Template di Beranda</span>
               <ArrowRight className="w-4 h-4 text-emerald-700" />
             </button>
           </div>
         </motion.div>
-      )}
 
       {/* Success Modal dengan Glass Luxury Effect */}
       <AnimatePresence>

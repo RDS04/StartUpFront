@@ -130,6 +130,7 @@ export const PricingSection: React.FC<PricingSectionProps> = ({ onSelectPlan }) 
       onSelectPlan(plan.id as any);
     } else {
       try {
+        sessionStorage.setItem('ij_flow_mode', 'plan-first');
         sessionStorage.setItem('ij_selected_plan', JSON.stringify({
           id: plan.id,
           name: plan.name,

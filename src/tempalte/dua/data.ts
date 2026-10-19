@@ -66,6 +66,8 @@ export const AKAD = {
   monthYear: 'Oktober 2026',
   time: 'Pukul 08.00 WIB s/d Selesai',
   venue: 'Masjid Raya Ampalu',
+  address: 'Jorong Guguak, Nagari Ampalu',
+  mapsUrl: 'https://maps.app.goo.gl/FPBejhMU7zuZFPw59',
 };
 
 export interface ResepsiItem {
