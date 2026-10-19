@@ -421,6 +421,7 @@ export function App() {
         onChangeTemplate={() => navigateTo('pilih-template')}
         onBackToHome={() => navigateTo('landing')}
         onPreviewTemplate={(previewRoute) => navigateTo(previewRoute)}
+        onNavigateDashboard={() => navigateTo('dashboard')}
       />
     );
   }

@@ -5,7 +5,8 @@ export const INITIAL_DATA: DashboardData = {
   slug: '',
   isPublished: true,
   themeColor: '#82694D',
-  activeTemplateId: 'template-empat',
+  activeTemplateId: 'template-satu',
+  purchasedTemplateIds: [],
   groom: {
     nickName: '',
     fullName: '',
@@ -64,6 +65,7 @@ export const getSavedDashboardData = (userId?: string | number): DashboardData =
       return {
         ...INITIAL_DATA,
         ...parsed,
+        purchasedTemplateIds: Array.isArray(parsed.purchasedTemplateIds) ? parsed.purchasedTemplateIds : [],
         groom: { ...INITIAL_DATA.groom, ...(parsed.groom || {}) },
         bride: { ...INITIAL_DATA.bride, ...(parsed.bride || {}) },
         event: { ...INITIAL_DATA.event, ...(parsed.event || {}) },

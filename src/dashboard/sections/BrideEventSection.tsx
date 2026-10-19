@@ -1,12 +1,15 @@
-import React, { useRef } from 'react';
-import { Calendar, Music, MapPin, Lock, Save, Camera, Globe, Copy, ExternalLink, Sparkles, RefreshCw, User } from 'lucide-react';
+import React, { useRef, useMemo, useEffect } from 'react';
+import { Calendar, Music, MapPin, Lock, Save, Camera, Globe, Copy, ExternalLink, Sparkles, RefreshCw, User, CheckCircle2 } from 'lucide-react';
 import type { DashboardData, TierConfig } from '../types';
+import { normalizeTemplateId, MASTER_TEMPLATES } from '../templateHelpers';
 
 interface BrideEventSectionProps {
   data: DashboardData;
   setData: React.Dispatch<React.SetStateAction<DashboardData>>;
   tierConfig: TierConfig;
   onShowToast: (msg: string) => void;
+  purchasedTemplateIds?: string[];
+  onNavigateTemplates?: () => void;
 }
 
 export function createSlugFromNames(groom: string, bride: string): string {
@@ -18,21 +21,77 @@ export function createSlugFromNames(groom: string, bride: string): string {
   return cleanGroom || cleanBride || '';
 }
 
-const TEMPLATE_OPTIONS = [
-  { id: 'template-empat', name: 'Template 4 - Sage Blossom (Green Botanical)' },
-  { id: 'template-tiga', name: 'Template 3 - Minang Maroon (Adat Tradisional)' },
-  { id: 'template-dua', name: 'Template 2 - Dusty Rose (Modern Minimalist)' },
-  { id: 'template-satu', name: 'Template 1 - Rustic Blossom (Floral Rose)' },
-];
+export const TEMPLATE_OPTIONS = MASTER_TEMPLATES.map((t) => ({ id: t.id, name: t.name }));
 
 export const BrideEventSection: React.FC<BrideEventSectionProps> = ({
   data,
   setData,
   tierConfig,
   onShowToast,
+  purchasedTemplateIds,
+  onNavigateTemplates,
 }) => {
   const groomFileRef = useRef<HTMLInputElement | null>(null);
   const brideFileRef = useRef<HTMLInputElement | null>(null);
+
+  // Kumpulan ID template yang valid dan telah dibeli/dipilih oleh user
+  const purchasedIds = useMemo(() => {
+    const list: string[] = [];
+
+    // 1. Dari data.purchasedTemplateIds di database/localStorage dashboard
+    if (Array.isArray(data.purchasedTemplateIds) && data.purchasedTemplateIds.length > 0) {
+      data.purchasedTemplateIds.forEach((id) => {
+        if (id) list.push(normalizeTemplateId(id));
+      });
+    }
+
+    // 2. Dari props purchasedTemplateIds (riwayat pesanan live dari getMyOrders backend)
+    if (Array.isArray(purchasedTemplateIds) && purchasedTemplateIds.length > 0) {
+      purchasedTemplateIds.forEach((id) => {
+        if (id) list.push(normalizeTemplateId(id));
+      });
+    }
+
+    // 3. Dari data.activeTemplateId yang aktif saat ini
+    if (data.activeTemplateId) {
+      list.push(normalizeTemplateId(data.activeTemplateId));
+    }
+
+    // 4. Dari sessionStorage ij_selected_template jika baru saja memilih di landing/order flow
+    try {
+      const raw = sessionStorage.getItem('ij_selected_template');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        const tid = parsed?.previewRoute || parsed?.id;
+        if (tid) list.push(normalizeTemplateId(tid));
+      }
+    } catch {}
+
+    const unique = Array.from(new Set(list));
+    return unique.length > 0 ? unique : ['template-satu'];
+  }, [purchasedTemplateIds, data.purchasedTemplateIds, data.activeTemplateId]);
+
+  // Hanya template yang benar-benar dibeli/dipilih oleh user
+  const availableTemplates = useMemo(() => {
+    const matched = MASTER_TEMPLATES.filter((tpl) => purchasedIds.includes(tpl.id));
+    if (matched.length > 0) return matched;
+    const current = MASTER_TEMPLATES.find((tpl) => tpl.id === normalizeTemplateId(data.activeTemplateId));
+    return [current || MASTER_TEMPLATES[0]];
+  }, [purchasedIds, data.activeTemplateId]);
+
+  // Otomatis sinkronkan activeTemplateId jika template saat ini tidak ada di daftar yang dibeli
+  useEffect(() => {
+    const normActive = normalizeTemplateId(data.activeTemplateId);
+    const exists = availableTemplates.some((t) => t.id === normActive);
+    if (!exists && availableTemplates.length > 0) {
+      const fallbackId = availableTemplates[0].id;
+      setData((prev) => ({
+        ...prev,
+        activeTemplateId: fallbackId,
+        purchasedTemplateIds: Array.from(new Set([...(prev.purchasedTemplateIds || []), fallbackId])),
+      }));
+    }
+  }, [availableTemplates, data.activeTemplateId, setData]);
 
   const baseUrl = typeof window !== 'undefined' 
     ? `${window.location.protocol}//${window.location.host}` 
@@ -166,7 +225,7 @@ export const BrideEventSection: React.FC<BrideEventSectionProps> = ({
         </div>
       </div>
 
-      {/* Info Template Undangan Yang Digunakan */}
+      {/* Info Template Undangan Yang Digunakan (Hanya yang Dipilih & Dibeli) */}
       <div className="p-4 sm:p-5 rounded-2xl bg-white border border-stone-200/90 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-start gap-3">
           <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center shrink-0 text-amber-700">
@@ -186,30 +245,74 @@ export const BrideEventSection: React.FC<BrideEventSectionProps> = ({
               Foto mempelai pria &amp; wanita serta seluruh data yang Anda simpan di bawah ini akan <strong>otomatis diterapkan</strong> pada template yang aktif di tautan undangan tamu Anda.
             </p>
             <p className="text-[11px] text-stone-400 italic mt-0.5">
-              *Catatan: Tampilan preview katalog template tetap menyajikan foto sampel pajangan sebagai display contoh pembeli.
+              *Hanya memunculkan desain template yang telah Anda pilih dan beli.
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0 self-start md:self-auto">
-          <select
-            value={data.activeTemplateId || 'template-empat'}
-            onChange={(e) => {
-              const newTpl = e.target.value;
-              setData((prev) => ({ ...prev, activeTemplateId: newTpl }));
-              const tplObj = TEMPLATE_OPTIONS.find((t) => t.id === newTpl);
-              onShowToast(`Template aktif beralih ke: ${tplObj?.name || newTpl}`);
-            }}
-            aria-label="Pilih Template Aktif"
-            className="text-xs font-semibold bg-stone-50 hover:bg-stone-100 border border-stone-300 rounded-xl px-3 py-2 text-stone-800 focus:outline-none focus:ring-2 focus:ring-[#2D6A4F] cursor-pointer shadow-xs"
-          >
-            {TEMPLATE_OPTIONS.map((opt) => (
-              <option key={opt.id} value={opt.id}>
-                {opt.name}
-              </option>
-            ))}
-          </select>
-        </div>
+        {/* Tampilkan Hanya Template Yang Dipilih & Dibeli */}
+        {availableTemplates.length <= 1 ? (
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 shrink-0 self-start md:self-auto">
+            <div className="flex items-center gap-2.5 px-3.5 py-2.5 bg-emerald-50 border border-emerald-200 rounded-xl shadow-xs">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+              <div className="flex flex-col">
+                <span className="text-xs font-bold text-emerald-950">
+                  {availableTemplates[0]?.name || 'Template 1 - Rustic Blossom (Floral Rose)'}
+                </span>
+                <span className="text-[10px] font-semibold text-emerald-700 flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />
+                  Template Terpilih &amp; Dibeli
+                </span>
+              </div>
+            </div>
+            {onNavigateTemplates && (
+              <button
+                type="button"
+                onClick={onNavigateTemplates}
+                className="text-[11px] font-semibold text-stone-600 hover:text-emerald-800 bg-stone-100 hover:bg-stone-200/80 px-2.5 py-2 rounded-xl transition cursor-pointer flex items-center justify-center gap-1 border border-stone-200"
+                title="Beli atau tambah template baru dari katalog"
+              >
+                + Beli Desain Lain
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 shrink-0 self-start md:self-auto">
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-1 text-[11px] font-semibold text-stone-600">
+                <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                <span>Template Anda ({availableTemplates.length} Dibeli):</span>
+              </div>
+              <select
+                value={normalizeTemplateId(data.activeTemplateId)}
+                onChange={(e) => {
+                  const newTpl = e.target.value;
+                  setData((prev) => ({ ...prev, activeTemplateId: newTpl }));
+                  const tplObj = availableTemplates.find((t) => t.id === newTpl);
+                  onShowToast(`Template aktif beralih ke: ${tplObj?.name || newTpl}`);
+                }}
+                aria-label="Pilih Template Aktif"
+                className="text-xs font-semibold bg-emerald-50/60 hover:bg-emerald-50 border border-emerald-300 rounded-xl px-3 py-2 text-stone-800 focus:outline-none focus:ring-2 focus:ring-[#2D6A4F] cursor-pointer shadow-xs"
+              >
+                {availableTemplates.map((opt) => (
+                  <option key={opt.id} value={opt.id}>
+                    ✓ {opt.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            {onNavigateTemplates && (
+              <button
+                type="button"
+                onClick={onNavigateTemplates}
+                className="text-[11px] font-semibold text-stone-600 hover:text-emerald-800 bg-stone-100 hover:bg-stone-200/80 px-2.5 py-2 rounded-xl transition cursor-pointer flex items-center justify-center gap-1 border border-stone-200 self-end sm:self-auto mt-auto"
+                title="Beli atau tambah template baru dari katalog"
+              >
+                + Beli Desain Lain
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Profil Mempelai Pria & Wanita */}

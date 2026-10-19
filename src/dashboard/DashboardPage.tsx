@@ -3,6 +3,7 @@ import { Sparkles } from 'lucide-react';
 import type { DashboardTab, DashboardData, GuestItem, WishItem, TierConfig, DashboardPageProps } from './types';
 import { INITIAL_GUESTS, INITIAL_WISHES, getSavedDashboardData, saveDashboardData } from './initialData';
 import { getMyOrders } from '../services/orderService';
+import { normalizeTemplateId } from './templateHelpers';
 
 // Sub Components
 import { DashboardNavbar } from './components/DashboardNavbar';
@@ -48,11 +49,12 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
     setData(getSavedDashboardData(userKey));
   }, [userKey]);
 
-  // Deteksi dan sinkronkan paket yang dipilih dari sessionStorage atau pesanan user di backend
+  // Deteksi dan sinkronkan paket & template yang dipilih/dibeli dari sessionStorage atau pesanan user di backend
   useEffect(() => {
     let chosenTier: 'silver' | 'premium' | 'gold' | 'platinum' | null = null;
+    let chosenTemplateId: string | null = null;
 
-    // 1. Cek dari sessionStorage ij_selected_plan
+    // 1. Cek dari sessionStorage ij_selected_plan & ij_selected_template
     try {
       const rawPlan = sessionStorage.getItem('ij_selected_plan');
       if (rawPlan) {
@@ -64,41 +66,115 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
       }
     } catch {}
 
-    // 2. Cek juga dari riwayat pesanan (getMyOrders) jika user sudah pernah checkout
-    getMyOrders().then((orders) => {
-      if (orders && orders.length > 0) {
-        const validOrder = orders.find((o) => o.status === 'paid') || orders[0];
-        if (validOrder?.plan_name) {
-          const lower = validOrder.plan_name.toLowerCase();
-          if (lower.includes('silver')) chosenTier = 'silver';
-          else if (lower.includes('platinum')) chosenTier = 'platinum';
-          else if (lower.includes('premium')) chosenTier = 'premium';
-          else if (lower.includes('gold')) chosenTier = 'gold';
+    try {
+      const rawTmpl = sessionStorage.getItem('ij_selected_template');
+      if (rawTmpl) {
+        const parsedTmpl = JSON.parse(rawTmpl);
+        const tid = parsedTmpl?.previewRoute || parsedTmpl?.id;
+        if (tid) {
+          chosenTemplateId = normalizeTemplateId(tid);
         }
       }
+    } catch {}
 
-      if (chosenTier) {
+    // 2. Cek juga dari riwayat pesanan (getMyOrders) jika user sudah pernah checkout / bayar
+    getMyOrders()
+      .then((orders) => {
+        let purchasedFromOrders: string[] = [];
+
+        if (orders && orders.length > 0) {
+          // Ambil pesanan yang berstatus 'paid', atau gunakan semua pesanan user
+          const paidOrders = orders.filter((o) => o.status === 'paid');
+          const orderPool = paidOrders.length > 0 ? paidOrders : orders;
+
+          purchasedFromOrders = orderPool
+            .map((o) => o.template_id || o.template_name)
+            .filter(Boolean)
+            .map((id) => normalizeTemplateId(id));
+
+          const validOrder = orderPool[0];
+          if (validOrder?.template_id || validOrder?.template_name) {
+            const orderTpl = normalizeTemplateId(validOrder.template_id || validOrder.template_name);
+            if (!chosenTemplateId) {
+              chosenTemplateId = orderTpl;
+            }
+          }
+
+          if (validOrder?.plan_name) {
+            const lower = validOrder.plan_name.toLowerCase();
+            if (lower.includes('silver')) chosenTier = 'silver';
+            else if (lower.includes('platinum')) chosenTier = 'platinum';
+            else if (lower.includes('premium')) chosenTier = 'premium';
+            else if (lower.includes('gold')) chosenTier = 'gold';
+          }
+        }
+
         setData((prev) => {
-          if (prev.tier !== chosenTier) {
-            const updated = { ...prev, tier: chosenTier! };
+          let hasChanges = false;
+          const updated = { ...prev };
+
+          if (chosenTier && updated.tier !== chosenTier) {
+            updated.tier = chosenTier;
+            hasChanges = true;
+          }
+
+          const currentPurchased = Array.isArray(prev.purchasedTemplateIds) ? prev.purchasedTemplateIds : [];
+          const mergedList = [...currentPurchased, ...purchasedFromOrders];
+          if (chosenTemplateId) mergedList.push(chosenTemplateId);
+          const uniquePurchased = Array.from(new Set(mergedList.filter(Boolean)));
+
+          if (uniquePurchased.length > currentPurchased.length) {
+            updated.purchasedTemplateIds = uniquePurchased;
+            hasChanges = true;
+          }
+
+          const effectiveTpl = chosenTemplateId || (uniquePurchased.length > 0 ? uniquePurchased[0] : null);
+          if (
+            effectiveTpl &&
+            (!updated.activeTemplateId ||
+              !uniquePurchased.includes(normalizeTemplateId(updated.activeTemplateId)) ||
+              (chosenTemplateId && normalizeTemplateId(updated.activeTemplateId) !== chosenTemplateId))
+          ) {
+            updated.activeTemplateId = effectiveTpl;
+            hasChanges = true;
+          }
+
+          if (hasChanges) {
             saveDashboardData(updated, userKey);
             return updated;
           }
           return prev;
         });
-      }
-    }).catch(() => {
-      if (chosenTier) {
+      })
+      .catch(() => {
         setData((prev) => {
-          if (prev.tier !== chosenTier) {
-            const updated = { ...prev, tier: chosenTier! };
+          let hasChanges = false;
+          const updated = { ...prev };
+
+          if (chosenTier && updated.tier !== chosenTier) {
+            updated.tier = chosenTier;
+            hasChanges = true;
+          }
+
+          if (chosenTemplateId) {
+            const currentPurchased = Array.isArray(prev.purchasedTemplateIds) ? prev.purchasedTemplateIds : [];
+            if (!currentPurchased.includes(chosenTemplateId)) {
+              updated.purchasedTemplateIds = [...currentPurchased, chosenTemplateId];
+              hasChanges = true;
+            }
+            if (normalizeTemplateId(updated.activeTemplateId) !== chosenTemplateId) {
+              updated.activeTemplateId = chosenTemplateId;
+              hasChanges = true;
+            }
+          }
+
+          if (hasChanges) {
             saveDashboardData(updated, userKey);
             return updated;
           }
           return prev;
         });
-      }
-    });
+      });
   }, [userKey]);
 
   // Modal Dialogs & Simulator State
@@ -281,6 +357,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
               setData={setData}
               tierConfig={tierConfig}
               onShowToast={showToast}
+              purchasedTemplateIds={data.purchasedTemplateIds}
+              onNavigateTemplates={onNavigateTemplates}
             />
           )}
 

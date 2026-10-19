@@ -7,14 +7,14 @@ import {
   ShieldCheck, 
   ArrowRight, 
   ArrowLeft, 
-  Eye, 
   CheckCircle2, 
   Tag, 
   Heart, 
   ChevronRight, 
   Home,
   AlertCircle,
-  Clock
+  Clock,
+  LayoutDashboard
 } from 'lucide-react';
 import { createOrder, markOrderPaid } from '../services/orderService';
 import { getPricingPlans } from '../services/pricingService';
@@ -126,7 +126,8 @@ export interface OrderFlowPageProps {
   onChangePlan?: () => void;
   onChangeTemplate?: () => void;
   onBackToHome: () => void;
-  onPreviewTemplate: (route: 'template-satu' | 'template-dua' | 'card-atm') => void;
+  onPreviewTemplate?: (route: 'template-satu' | 'template-dua' | 'card-atm') => void;
+  onNavigateDashboard?: () => void;
   selectedPlan?: PlanOption;
   onSelectPlan?: (plan: PlanOption) => void;
   selectedTemplate?: TemplateOption;
@@ -140,7 +141,8 @@ export const OrderFlowPage: React.FC<OrderFlowPageProps> = ({
   onChangePlan,
   onChangeTemplate,
   onBackToHome,
-  onPreviewTemplate,
+  onPreviewTemplate: _onPreviewTemplate,
+  onNavigateDashboard,
   selectedPlan: propSelectedPlan,
   onSelectPlan: onPropSelectPlan,
   selectedTemplate: propSelectedTemplate,
@@ -344,8 +346,31 @@ export const OrderFlowPage: React.FC<OrderFlowPageProps> = ({
       setIsSuccessModalOpen(true);
       triggerConfetti();
 
-      // Pastikan state transaksi dibersihkan karena pesanan telah dibayar
+      // Pastikan state transaksi dibersihkan karena pesanan telah dibayar dan simpan template yang dibeli
       try {
+        const rawTmpl = sessionStorage.getItem('ij_selected_template');
+        const rawPlan = sessionStorage.getItem('ij_selected_plan');
+        const dashObj = getSavedDashboardData();
+        if (rawPlan) {
+          try {
+            const p = JSON.parse(rawPlan);
+            if (p?.id) dashObj.tier = p.id;
+          } catch {}
+        }
+        if (rawTmpl) {
+          try {
+            const t = JSON.parse(rawTmpl);
+            const tid = t?.previewRoute || t?.id;
+            if (tid) {
+              dashObj.activeTemplateId = tid;
+              const currentPurchased = Array.isArray(dashObj.purchasedTemplateIds) ? dashObj.purchasedTemplateIds : [];
+              if (!currentPurchased.includes(tid)) {
+                dashObj.purchasedTemplateIds = [...currentPurchased, tid];
+              }
+            }
+          } catch {}
+        }
+        saveDashboardData(dashObj);
         sessionStorage.removeItem('ij_transaction_active');
         sessionStorage.removeItem('ij_selected_plan');
         sessionStorage.removeItem('ij_selected_template');
@@ -424,8 +449,13 @@ export const OrderFlowPage: React.FC<OrderFlowPageProps> = ({
       if (selectedPlan?.id) {
         dashObj.tier = selectedPlan.id as any;
       }
-      if (selectedTemplate?.previewRoute || selectedTemplate?.id) {
-        dashObj.activeTemplateId = selectedTemplate.previewRoute || selectedTemplate.id;
+      const tId = selectedTemplate?.previewRoute || selectedTemplate?.id;
+      if (tId) {
+        dashObj.activeTemplateId = tId;
+        const currentPurchased = Array.isArray(dashObj.purchasedTemplateIds) ? dashObj.purchasedTemplateIds : [];
+        if (!currentPurchased.includes(tId)) {
+          dashObj.purchasedTemplateIds = [...currentPurchased, tId];
+        }
       }
       saveDashboardData(dashObj);
       sessionStorage.removeItem('ij_transaction_active');
@@ -1113,12 +1143,31 @@ export const OrderFlowPage: React.FC<OrderFlowPageProps> = ({
                 <button
                   onClick={() => {
                     setIsSuccessModalOpen(false);
-                    onPreviewTemplate(selectedTemplate.previewRoute);
+                    try {
+                      sessionStorage.removeItem('ij_transaction_active');
+                      sessionStorage.removeItem('ij_selected_plan');
+                      sessionStorage.removeItem('ij_selected_template');
+                      sessionStorage.setItem('ij_order_paid', 'true');
+                      // Simpan template dan paket yang baru saja dibeli ke dashboard
+                      const dashObj = getSavedDashboardData();
+                      dashObj.activeTemplateId = selectedTemplate.previewRoute || selectedTemplate.id;
+                      if (selectedPlan?.id) {
+                        dashObj.tier = selectedPlan.id as any;
+                      }
+                      saveDashboardData(dashObj);
+                      window.dispatchEvent(new Event('storage'));
+                      window.dispatchEvent(new CustomEvent('ij_order_state_change', { detail: { isPaid: true } }));
+                    } catch {}
+                    if (onNavigateDashboard) {
+                      onNavigateDashboard();
+                    } else {
+                      window.location.hash = '#/dashboard';
+                    }
                   }}
-                  className="w-full py-3.5 rounded-xl font-black text-xs sm:text-sm bg-[#134e35] hover:bg-[#0c3926] text-white flex items-center justify-center gap-2 cursor-pointer shadow-lg"
+                  className="w-full py-3.5 rounded-xl font-black text-xs sm:text-sm bg-[#134e35] hover:bg-[#0c3926] text-white flex items-center justify-center gap-2 cursor-pointer shadow-lg transition-all"
                 >
-                  <Eye className="w-4 h-4" />
-                  <span>Buka Preview Hasil Undangan</span>
+                  <LayoutDashboard className="w-4 h-4" />
+                  <span>Akses Dashboard</span>
                 </button>
 
                 <button

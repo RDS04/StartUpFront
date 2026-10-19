@@ -34,6 +34,7 @@ export interface DashboardData {
   isPublished: boolean;
   themeColor: string;
   activeTemplateId?: string;
+  purchasedTemplateIds?: string[];
   groom: GroomBrideInfo;
   bride: GroomBrideInfo;
   event: EventInfo;
