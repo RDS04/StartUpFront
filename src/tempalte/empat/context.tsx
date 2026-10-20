@@ -1,9 +1,9 @@
 import React, { createContext, useContext } from 'react';
 import { getSavedDashboardData } from '../../dashboard/initialData';
-import { ASSETS, BANK_ACCOUNTS } from './data';
-import type { CoupleBio, EventDetail, BankAccount } from './types';
+import { ASSETS, BANK_ACCOUNTS, GALLERY_PHOTOS } from './data';
+import type { CoupleBio, EventDetail, BankAccount, GalleryPhoto } from './types';
+import { getBankCardDetails } from '../CardAtm/bankCardCatalog';
 
-// Original showcase demo data for Template Empat (Sage Blossom)
 export const SAMPLE_EMPAT_DATA = {
   groom: {
     name: 'Ilham',
@@ -79,6 +79,7 @@ export interface TemplateEmpatData {
   assets: typeof SAMPLE_EMPAT_DATA.assets;
   events: EventDetail[];
   bankAccounts: BankAccount[];
+  galleryPhotos: GalleryPhoto[];
 }
 
 const defaultContext: TemplateEmpatData = {
@@ -89,6 +90,7 @@ const defaultContext: TemplateEmpatData = {
   assets: SAMPLE_EMPAT_DATA.assets,
   events: SAMPLE_EMPAT_DATA.events,
   bankAccounts: SAMPLE_EMPAT_DATA.bankAccounts,
+  galleryPhotos: GALLERY_PHOTOS,
 };
 
 const TemplateEmpatContext = createContext<TemplateEmpatData>(defaultContext);
@@ -172,15 +174,28 @@ export const TemplateEmpatProvider: React.FC<{
         },
       ],
       bankAccounts: dash.bankAccounts?.length
-        ? dash.bankAccounts.map((b, i) => ({
-            id: `acc-${i}`,
-            bankName: b.bank,
-            accountNumber: b.number,
-            accountHolder: b.holder,
-            logoUrl: ASSETS.bankNagariLogo,
-            type: 'bank' as const,
-          }))
+        ? dash.bankAccounts.map((b, i) => {
+            const cardInfo = getBankCardDetails(b.bank, b.cardTheme);
+            return {
+              id: `acc-${i}`,
+              bankName: b.bank || cardInfo.bankName,
+              accountNumber: b.number,
+              accountHolder: b.holder,
+              logoUrl: b.logoUrl || cardInfo.logoUrl || ASSETS.bankNagariLogo,
+              type: (b.type || cardInfo.type) as 'bank' | 'wallet',
+              cardTheme: b.cardTheme || cardInfo.cardTheme,
+            };
+          })
         : BANK_ACCOUNTS,
+      galleryPhotos: dash.gallery?.length
+        ? dash.gallery.map((g, idx) => ({
+            id: String(g.id || idx),
+            url: g.url,
+            thumbnail: g.thumbnail || g.url,
+            caption: g.caption || '',
+            orientation: g.orientation || (idx === 4 ? 'landscape' : 'portrait'),
+          }))
+        : GALLERY_PHOTOS,
     };
   }
 

@@ -1,6 +1,6 @@
 import React, { createContext, useContext } from 'react';
 import { getSavedDashboardData } from '../../dashboard/initialData';
-import { COUPLE, PHOTOS, AKAD, RESEPSI, GIFT, type ResepsiItem } from './data';
+import { COUPLE, PHOTOS, AKAD, RESEPSI, GIFT, GALLERY, type ResepsiItem } from './data';
 
 export interface TemplateDuaData {
   isPreview: boolean;
@@ -9,6 +9,7 @@ export interface TemplateDuaData {
   akad: typeof AKAD;
   resepsi: ResepsiItem[];
   gift: typeof GIFT;
+  gallery: string[];
 }
 
 const defaultContext: TemplateDuaData = {
@@ -18,6 +19,7 @@ const defaultContext: TemplateDuaData = {
   akad: AKAD,
   resepsi: RESEPSI,
   gift: GIFT,
+  gallery: GALLERY,
 };
 
 const TemplateDuaContext = createContext<TemplateDuaData>(defaultContext);
@@ -94,6 +96,7 @@ export const TemplateDuaProvider: React.FC<{
           : GIFT.accounts,
         address: dash.giftAddress?.address || GIFT.address,
       },
+      gallery: dash.gallery?.length ? dash.gallery.map((g) => g.url) : GALLERY,
     };
   }
 

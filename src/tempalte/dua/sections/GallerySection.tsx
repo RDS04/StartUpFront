@@ -3,15 +3,18 @@ import { createPortal } from 'react-dom';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { Reveal } from '../components/Reveal';
 import { ScriptTitle, Section } from '../components/Shared';
+import { useTemplateDuaData } from '../context';
 import { GALLERY } from '../data';
 
 const GallerySection: React.FC = () => {
+  const { gallery } = useTemplateDuaData();
+  const galleryList = gallery && gallery.length > 0 ? gallery : GALLERY;
   const [active, setActive] = useState<number | null>(null);
 
   const close = useCallback(() => setActive(null), []);
   const step = useCallback(
-    (dir: number) => setActive((i) => (i === null ? i : (i + dir + GALLERY.length) % GALLERY.length)),
-    []
+    (dir: number) => setActive((i) => (i === null ? i : (i + dir + galleryList.length) % galleryList.length)),
+    [galleryList.length]
   );
 
   useEffect(() => {
@@ -30,7 +33,7 @@ const GallerySection: React.FC = () => {
       <ScriptTitle className="text-[2.6rem]">Our Moment</ScriptTitle>
 
       <div className="mt-8 grid w-full grid-cols-3 gap-2">
-        {GALLERY.map((src, i) => (
+        {galleryList.map((src, i) => (
           <Reveal key={src} anim="zoom" delay={(i % 3) * 120 + Math.floor(i / 3) * 80}>
             <button
               onClick={() => setActive(i)}
@@ -73,7 +76,7 @@ const GallerySection: React.FC = () => {
           </button>
           <img
             key={active}
-            src={GALLERY[active]}
+            src={galleryList[active]}
             alt={`Momen ${active + 1}`}
             onClick={(e) => e.stopPropagation()}
             className="dr-modal-panel max-h-[85vh] max-w-full rounded-lg object-contain shadow-2xl"
@@ -89,7 +92,7 @@ const GallerySection: React.FC = () => {
             <ChevronRight className="h-6 w-6" />
           </button>
           <p className="absolute bottom-5 text-xs tracking-widest text-white/70">
-            {active + 1} / {GALLERY.length}
+            {active + 1} / {galleryList.length}
           </p>
         </div>,
         document.body

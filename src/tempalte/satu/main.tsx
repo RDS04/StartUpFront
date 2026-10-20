@@ -29,6 +29,8 @@ import FooterSection from './sections/FooterSection';
 // Types
 import type { RSVPItem } from './types';
 import { TemplateSatuProvider, useTemplateSatuData } from './context';
+import { submitRsvp, getPublicRsvps } from '../../services/rsvpService';
+import { getSavedDashboardData } from '../../dashboard/initialData';
 
 export interface RusticBlossomTemplateProps {
   isEmbedded?: boolean;
@@ -314,29 +316,84 @@ const RusticBlossomTemplateInner: React.FC<{ isEmbedded?: boolean; defaultOpen?:
     }, 3000);
   };
 
+  // Fetch public rsvps on mount
+  useEffect(() => {
+    const getSlug = () => {
+      const hash = window.location.hash || '';
+      if (hash.startsWith('#/')) {
+        const parts = hash.slice(2).split('?')[0].split('/');
+        if (parts[0] && parts[0] !== 'dashboard' && parts[0] !== 'order' && parts[0] !== 'admin') {
+          return parts[0];
+        }
+      }
+      const saved = getSavedDashboardData();
+      return saved?.slug || 'andi-rosna';
+    };
+
+    getPublicRsvps(getSlug())
+      .then((res) => {
+        if (res.messages && Array.isArray(res.messages) && res.messages.length > 0) {
+          const loaded: RSVPItem[] = res.messages.map((r: any) => ({
+            id: String(r.id),
+            name: r.name,
+            attendance: (r.status === 'hadir' ? 'hadir' : r.status === 'tidak' ? 'tidak_hadir' : 'ragu'),
+            guestsCount: Number(r.pax) || 1,
+            message: r.message || '',
+            timestamp: 'Terkini',
+          }));
+          setWishesList(loaded);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   // Handle RSVP Submit
-  const handleRsvpSubmit = (e: React.FormEvent) => {
+  const handleRsvpSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!rsvpName.trim() || !wishesMessage.trim()) return;
+    if (!rsvpName.trim() || !wishesMessage.trim() || isSubmitting) return;
 
     setIsSubmitting(true);
-    setTimeout(() => {
-      const newEntry: RSVPItem = {
-        id: Date.now().toString(),
-        name: rsvpName.trim(),
-        attendance,
-        guestsCount,
-        message: wishesMessage.trim(),
-        timestamp: 'Baru saja'
-      };
+    const getSlug = () => {
+      const hash = window.location.hash || '';
+      if (hash.startsWith('#/')) {
+        const parts = hash.slice(2).split('?')[0].split('/');
+        if (parts[0] && parts[0] !== 'dashboard' && parts[0] !== 'order' && parts[0] !== 'admin') {
+          return parts[0];
+        }
+      }
+      const saved = getSavedDashboardData();
+      return saved?.slug || 'andi-rosna';
+    };
 
-      setWishesList([newEntry, ...wishesList]);
+    const newEntry: RSVPItem = {
+      id: Date.now().toString(),
+      name: rsvpName.trim(),
+      attendance,
+      guestsCount,
+      message: wishesMessage.trim(),
+      timestamp: 'Baru saja'
+    };
+
+    setWishesList((prev) => [newEntry, ...prev]);
+    setRsvpSuccess(true);
+    const msgToSend = wishesMessage.trim();
+    setWishesMessage('');
+    setToastMessage('Terima kasih atas konfirmasi & doa restu Anda!');
+    setTimeout(() => setToastMessage(null), 3500);
+
+    try {
+      await submitRsvp({
+        slug: getSlug(),
+        name: rsvpName.trim(),
+        pax: attendance === 'hadir' ? guestsCount : 1,
+        status: attendance === 'tidak_hadir' ? 'tidak' : attendance,
+        message: msgToSend,
+      });
+    } catch (err) {
+      console.warn('Gagal menyimpan rsvp ke server:', err);
+    } finally {
       setIsSubmitting(false);
-      setRsvpSuccess(true);
-      setWishesMessage('');
-      setToastMessage('Terima kasih atas konfirmasi & doa restu Anda!');
-      setTimeout(() => setToastMessage(null), 3500);
-    }, 600);
+    }
   };
 
   return (

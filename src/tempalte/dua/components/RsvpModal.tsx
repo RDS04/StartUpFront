@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Check, Send, Users, X } from 'lucide-react';
 import { COUPLE } from '../data';
+import { submitRsvp, getPublicRsvps } from '../../../services/rsvpService';
+import { getSavedDashboardData } from '../../../dashboard/initialData';
 
 export interface Wish {
   id: string;
@@ -71,6 +73,36 @@ const RsvpModal: React.FC<RsvpModalProps> = ({ open, onClose, defaultName, onToa
   }, [wishes]);
 
   useEffect(() => {
+    const getInvitationSlug = () => {
+      const hash = window.location.hash || '';
+      if (hash.startsWith('#/')) {
+        const parts = hash.slice(2).split('?')[0].split('/');
+        if (parts[0] && parts[0] !== 'dashboard' && parts[0] !== 'order' && parts[0] !== 'admin') {
+          return parts[0];
+        }
+      }
+      const saved = getSavedDashboardData();
+      return saved?.slug || 'vani-rahmat';
+    };
+
+    getPublicRsvps(getInvitationSlug())
+      .then((res) => {
+        if (res.messages && Array.isArray(res.messages) && res.messages.length > 0) {
+          const loaded: Wish[] = res.messages.map((r) => ({
+            id: String(r.id),
+            name: r.name,
+            attendance: (r.status === 'hadir' ? 'hadir' : r.status === 'tidak' ? 'tidak' : 'ragu') as Wish['attendance'],
+            guests: Number(r.pax) || 1,
+            message: r.message || '',
+            time: Date.now(),
+          }));
+          setWishes(loaded);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
     window.addEventListener('keydown', onKey);
@@ -79,19 +111,49 @@ const RsvpModal: React.FC<RsvpModalProps> = ({ open, onClose, defaultName, onToa
 
   if (!open) return null;
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !message.trim()) return;
+    if (!name.trim() || !message.trim() || sending) return;
     setSending(true);
-    setTimeout(() => {
-      setWishes((w) => [
-        { id: String(Date.now()), name: name.trim(), attendance, guests, message: message.trim(), time: Date.now() },
-        ...w,
-      ]);
-      setMessage('');
+
+    const getInvitationSlug = () => {
+      const hash = window.location.hash || '';
+      if (hash.startsWith('#/')) {
+        const parts = hash.slice(2).split('?')[0].split('/');
+        if (parts[0] && parts[0] !== 'dashboard' && parts[0] !== 'order' && parts[0] !== 'admin') {
+          return parts[0];
+        }
+      }
+      const saved = getSavedDashboardData();
+      return saved?.slug || 'vani-rahmat';
+    };
+
+    const newWish: Wish = {
+      id: String(Date.now()),
+      name: name.trim(),
+      attendance,
+      guests,
+      message: message.trim(),
+      time: Date.now(),
+    };
+
+    setWishes((w) => [newWish, ...w]);
+    setMessage('');
+
+    try {
+      await submitRsvp({
+        slug: getInvitationSlug(),
+        name: name.trim(),
+        pax: attendance === 'hadir' ? guests : 1,
+        status: attendance,
+        message: message.trim(),
+      });
+    } catch (err) {
+      console.warn('Gagal menyimpan rsvp ke server:', err);
+    } finally {
       setSending(false);
       onToast('Terima kasih atas ucapan & konfirmasinya 🤍');
-    }, 500);
+    }
   };
 
   const hadirCount = wishes.filter((w) => w.attendance === 'hadir').length;

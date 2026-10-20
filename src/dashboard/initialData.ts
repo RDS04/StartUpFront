@@ -42,6 +42,7 @@ export const INITIAL_DATA: DashboardData = {
     address: '',
     notes: '',
   },
+  gallery: [],
 };
 
 export const getStorageKey = (userId?: string | number): string => {
@@ -73,6 +74,7 @@ export const getSavedDashboardData = (userId?: string | number): DashboardData =
         event: { ...INITIAL_DATA.event, ...(parsed.event || {}) },
         bankAccounts: Array.isArray(parsed.bankAccounts) ? parsed.bankAccounts : [],
         giftAddress: { ...INITIAL_DATA.giftAddress, ...(parsed.giftAddress || {}) },
+        gallery: Array.isArray(parsed.gallery) ? parsed.gallery : [],
       };
     }
   } catch {}
@@ -127,3 +129,24 @@ export const saveGuests = (guests: GuestItem[], userId?: string | number): void 
 };
 
 export const INITIAL_WISHES: WishItem[] = [];
+
+export const getSavedWishes = (userId?: string | number): WishItem[] => {
+  if (typeof window === 'undefined') return INITIAL_WISHES;
+  try {
+    const key = userId ? `ij_wishes_${userId}` : 'ij_wishes_guest';
+    const raw = localStorage.getItem(key);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch {}
+  return INITIAL_WISHES;
+};
+
+export const saveWishes = (wishes: WishItem[], userId?: string | number): void => {
+  if (typeof window === 'undefined') return;
+  try {
+    const key = userId ? `ij_wishes_${userId}` : 'ij_wishes_guest';
+    localStorage.setItem(key, JSON.stringify(wishes));
+  } catch {}
+};

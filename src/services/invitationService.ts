@@ -66,6 +66,7 @@ export async function getMyInvitation(): Promise<DashboardData | null> {
           address: inv.gift_address?.address || '',
           notes: inv.gift_address?.notes || '',
         },
+        gallery: Array.isArray(inv.gallery) ? inv.gallery : [],
       };
     }
     return null;
@@ -96,6 +97,7 @@ export async function saveMyInvitation(data: DashboardData): Promise<{ status: b
     event: data.event,
     bank_accounts: data.bankAccounts,
     gift_address: data.giftAddress,
+    gallery: data.gallery || [],
   };
 
   const response = await fetch(`${API_BASE_URL}/my-invitation`, {
@@ -111,6 +113,35 @@ export async function saveMyInvitation(data: DashboardData): Promise<{ status: b
   const res = await response.json();
   if (!response.ok || !res.status) {
     throw new Error(res.message || 'Gagal menyimpan perubahan ke database backend.');
+  }
+
+  return res;
+}
+
+/**
+ * Upload file foto galeri ke backend Laravel storage
+ */
+export async function uploadGalleryImage(file: File): Promise<{ status: boolean; url: string; filename?: string; message?: string }> {
+  const token = getAuthToken();
+  if (!token) {
+    throw new Error('Sesi Anda telah berakhir. Silakan login kembali.');
+  }
+
+  const formData = new FormData();
+  formData.append('photo', file);
+
+  const response = await fetch(`${API_BASE_URL}/gallery/upload`, {
+    method: 'POST',
+    headers: {
+      'Accept': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: formData,
+  });
+
+  const res = await response.json();
+  if (!response.ok || !res.status) {
+    throw new Error(res.message || 'Gagal mengunggah foto ke server backend.');
   }
 
   return res;

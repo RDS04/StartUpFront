@@ -9,7 +9,7 @@ export interface AtmCardProps {
   bankName: string;
   expiry?: string;
   cvv?: string;
-  cardTheme?: "bca" | "mandiri" | "bsi" | "bni" | "neo" | "muamalat" | "nagari" | "btn" | "btn-gold" | "btn-premium" | "cmniaga" | "danamon" | "permata" | "mega" | "ocbc" | "sinarmas" | "maybank" | "bptn" | "bukopin" | "chartered" | "default";
+  cardTheme?: "bca" | "mandiri" | "bsi" | "bni" | "neo" | "muamalat" | "nagari" | "btn" | "btn-gold" | "btn-premium" | "cmniaga" | "danamon" | "permata" | "mega" | "ocbc" | "sinarmas" | "maybank" | "bptn" | "bukopin" | "chartered" | "bri" | "dana" | "gopay" | "default" | string;
   onCopy?: (text: string, label: string) => void;
   showForm?: boolean;
 }
@@ -55,6 +55,9 @@ export const AtmCard: React.FC<AtmCardProps> = ({
     if (cardTheme === "bptn") return "btpn-theme";
     if (cardTheme === "bukopin") return "bukopin-theme";
     if (cardTheme === "chartered") return "chartered-theme";
+    if (cardTheme === "bri") return "bri-theme";
+    if (cardTheme === "dana") return "dana-theme";
+    if (cardTheme === "gopay") return "gopay-theme";
     return "";
   };
 

@@ -20,6 +20,7 @@ import { CardBukopin } from "./bukopin";
 import { CardChartered } from "./carthered";
 import { CardBca } from "./Bca";
 import { CardMandiri } from "./Mandiri";
+import { CardBri } from "./Bri";
 import { AtmCard } from "./AtmCard";
 
 interface CardAtmPreviewPageProps {
@@ -27,7 +28,7 @@ interface CardAtmPreviewPageProps {
 }
 
 export const CardAtmPreviewPage: React.FC<CardAtmPreviewPageProps> = ({ onBack }) => {
-  const [activeTab, setActiveTab] = useState<"all" | "chartered" | "bukopin" | "bptn" | "maybank" | "sinarmas" | "ocbc" | "mega" | "permata" | "danamon" | "cmniaga" | "btn-premium" | "btn-gold" | "btn" | "nagari" | "muamalat" | "neo" | "bsi" | "bni" | "bca" | "mandiri" | "custom">("all");
+  const [activeTab, setActiveTab] = useState<"all" | "chartered" | "bukopin" | "bptn" | "maybank" | "sinarmas" | "ocbc" | "mega" | "permata" | "danamon" | "cmniaga" | "btn-premium" | "btn-gold" | "btn" | "nagari" | "muamalat" | "neo" | "bsi" | "bni" | "bca" | "mandiri" | "bri" | "custom">("all");
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const handleCopy = (text: string, label: string) => {
@@ -111,6 +112,7 @@ export const CardAtmPreviewPage: React.FC<CardAtmPreviewPageProps> = ({ onBack }
             { id: "bni", label: "BNI Batik" },
             { id: "bca", label: "BCA" },
             { id: "mandiri", label: "Mandiri" },
+            { id: "bri", label: "Bank BRI" },
             { id: "custom", label: "Custom Form" },
           ].map((tab) => (
             <button
@@ -535,6 +537,26 @@ export const CardAtmPreviewPage: React.FC<CardAtmPreviewPageProps> = ({ onBack }
               <CardMandiri
                 accountNumber="1370 0192 8491 2"
                 holderName="ROSNA LINNY"
+                expiry="12/28"
+                onCopy={handleCopy}
+              />
+            </div>
+          )}
+
+          {/* BANK BRI CARD */}
+          {(activeTab === "all" || activeTab === "bri") && (
+            <div className="bg-slate-900/60 rounded-3xl border border-slate-800/80 p-6 flex flex-col items-center backdrop-blur-xs hover:border-blue-500/30 transition-all shadow-xl">
+              <div className="flex items-center justify-between w-full mb-4 px-2">
+                <span className="text-xs font-bold tracking-wider text-blue-400 uppercase">
+                  Bank BRI
+                </span>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-300 border border-blue-500/20">
+                  BritAma Debit
+                </span>
+              </div>
+              <CardBri
+                accountNumber="1005 0213 0511 01"
+                holderName="YANTI S.PD"
                 expiry="12/28"
                 onCopy={handleCopy}
               />

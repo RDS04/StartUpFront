@@ -1,4 +1,12 @@
-export type DashboardTab = 'overview' | 'bride_event' | 'guests' | 'rsvps' | 'accounts';
+export type DashboardTab = 'overview' | 'bride_event' | 'guests' | 'rsvps' | 'accounts' | 'gallery';
+
+export interface GalleryPhotoItem {
+  id: string | number;
+  url: string;
+  thumbnail?: string;
+  caption?: string;
+  orientation?: 'portrait' | 'landscape';
+}
 
 export interface GroomBrideInfo {
   nickName: string;
@@ -28,6 +36,9 @@ export interface BankAccount {
   number: string;
   holder: string;
   qrCodeUrl?: string;
+  cardTheme?: string;
+  type?: 'bank' | 'wallet';
+  logoUrl?: string;
 }
 
 export interface DashboardData {
@@ -48,6 +59,7 @@ export interface DashboardData {
     address: string;
     notes?: string;
   };
+  gallery?: GalleryPhotoItem[];
 }
 
 export interface GuestItem {
@@ -66,6 +78,7 @@ export interface WishItem {
   text: string;
   time: string;
   status: 'hadir' | 'tidak' | 'ragu';
+  pax?: number;
 }
 
 export interface TierConfig {

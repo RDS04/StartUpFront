@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
-import { Send, CheckCircle2, MessageSquare, User, Users } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Send, CheckCircle2, MessageSquare, User, Users, Loader2 } from 'lucide-react';
 import { INITIAL_GUEST_BOOK, WEDDING_INFO } from '../data';
 import type { GuestBookMessage } from '../types';
+import { submitRsvp, getPublicRsvps } from '../../../services/rsvpService';
+import { getSavedDashboardData } from '../../../dashboard/initialData';
 
 export const GuestBookSection: React.FC = () => {
   const [messages, setMessages] = useState<GuestBookMessage[]>(INITIAL_GUEST_BOOK);
@@ -10,15 +12,40 @@ export const GuestBookSection: React.FC = () => {
   const [attendance, setAttendance] = useState<'Hadir' | 'Tidak hadir' | 'Masih Ragu'>('Hadir');
   const [comment, setComment] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const getSlug = () => {
+    if (typeof window !== 'undefined') {
+      const hash = window.location.hash.replace(/^#\/?/, '').split('?')[0].trim();
+      const path = window.location.pathname.replace(/^\//, '').split('?')[0].trim();
+      const s = hash || path;
+      if (s && s !== 'invitation' && s !== 'dashboard') return s;
+    }
+    return getSavedDashboardData().slug || '';
+  };
+
+  useEffect(() => {
+    const slug = getSlug();
+    if (slug) {
+      getPublicRsvps(slug).then((res) => {
+        if (res.status && Array.isArray(res.messages) && res.messages.length > 0) {
+          setMessages(res.messages as any);
+        }
+      }).catch(() => {});
+    }
+  }, []);
 
   // Hitung jumlah statistik
   const countHadir = messages.filter((m) => m.attendance === 'Hadir').length;
   const countTidakHadir = messages.filter((m) => m.attendance === 'Tidak hadir').length;
   const countRagu = messages.filter((m) => m.attendance === 'Masih Ragu').length;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !comment.trim()) return;
+    if (!name.trim() || !comment.trim() || isSubmitting) return;
+
+    setIsSubmitting(true);
+    const slug = getSlug();
 
     const newMessage: GuestBookMessage = {
       id: `gb-${Date.now()}`,
@@ -30,13 +57,36 @@ export const GuestBookSection: React.FC = () => {
 
     setMessages([newMessage, ...messages]);
     setSubmitted(true);
-    setName('');
-    setComment('');
-    setTimeout(() => setSubmitted(false), 3500);
+
+    try {
+      await submitRsvp({
+        slug,
+        name: name.trim(),
+        pax: pax === '5+' ? 5 : parseInt(pax, 10),
+        status: attendance,
+        message: comment.trim(),
+      });
+    } catch (err) {
+      console.warn('Gagal menyimpan rsvp ke server:', err);
+    } finally {
+      setIsSubmitting(false);
+      setName('');
+      setComment('');
+      setTimeout(() => setSubmitted(false), 4000);
+    }
   };
 
   const handleSendToWhatsApp = () => {
     if (!name.trim()) return;
+    const slug = getSlug();
+    submitRsvp({
+      slug,
+      name: name.trim(),
+      pax: pax === '5+' ? 5 : parseInt(pax, 10),
+      status: attendance,
+      message: comment.trim() || 'Selamat berbahagia untuk kedua mempelai!',
+    }).catch(() => {});
+
     const text = encodeURIComponent(
       `Hai, saya ${name} ingin konfirmasi kehadiran pada undangan pernikahan digital Eza & Islammy bahwa: ${attendance} bersama ${pax} orang. Ucapan: "${comment || 'Selamat berbahagia'}". Terima kasih!`
     );
@@ -170,10 +220,20 @@ export const GuestBookSection: React.FC = () => {
             <div className="flex flex-col sm:flex-row gap-2 pt-2">
               <button
                 type="submit"
-                className="flex-1 py-2.5 px-4 rounded-xl bg-[#5b6e55] hover:bg-[#475742] text-white text-xs font-bold transition-all shadow-md flex items-center justify-center gap-1.5 cursor-pointer"
+                disabled={isSubmitting}
+                className="flex-1 py-2.5 px-4 rounded-xl bg-[#5b6e55] hover:bg-[#475742] disabled:opacity-60 text-white text-xs font-bold transition-all shadow-md flex items-center justify-center gap-1.5 cursor-pointer"
               >
-                <Send className="w-3.5 h-3.5" />
-                <span>Kirim Ucapan</span>
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <span>Mengirim...</span>
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-3.5 h-3.5" />
+                    <span>Kirim Ucapan</span>
+                  </>
+                )}
               </button>
 
               <button

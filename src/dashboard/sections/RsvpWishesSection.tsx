@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { MessageSquare, Check, X, HelpCircle, Trash2 } from 'lucide-react';
 import type { WishItem } from '../types';
+import { deleteWish } from '../../services/rsvpService';
 
 interface RsvpWishesSectionProps {
   wishes: WishItem[];
@@ -22,8 +23,9 @@ export const RsvpWishesSection: React.FC<RsvpWishesSectionProps> = ({
 }) => {
   const [filterStatus, setFilterStatus] = useState<'all' | 'hadir' | 'tidak' | 'ragu'>('all');
 
-  const handleDeleteWish = (id: number) => {
-    setWishes(wishes.filter((w) => w.id !== id));
+  const handleDeleteWish = async (id: number) => {
+    setWishes((prev) => prev.filter((w) => w.id !== id));
+    await deleteWish(id);
     onShowToast('Ucapan berhasil dihapus dari buku tamu');
   };
 

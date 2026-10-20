@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Send, CheckCircle2, XCircle, HelpCircle } from 'lucide-react';
 import { SongketBorder } from '../components/SongketBorder';
 import { GoldenSparkles } from '../components/GoldenSparkles';
 import { INITIAL_GUEST_MESSAGES } from '../data';
 import type { GuestBookMessage } from '../types';
+import { submitRsvp, getPublicRsvps } from '../../../services/rsvpService';
+import { getSavedDashboardData } from '../../../dashboard/initialData';
 
 interface GuestBookSectionProps {
   defaultGuestName?: string;
@@ -16,11 +18,42 @@ export const GuestBookSection: React.FC<GuestBookSectionProps> = ({ defaultGuest
   const [status, setStatus] = useState<'hadir' | 'tidak_hadir' | 'masih_ragu'>('hadir');
   const [comment, setComment] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const getSlug = () => {
+    const hash = window.location.hash || '';
+    if (hash.startsWith('#/')) {
+      const parts = hash.slice(2).split('?')[0].split('/');
+      if (parts[0] && parts[0] !== 'dashboard' && parts[0] !== 'order' && parts[0] !== 'admin') {
+        return parts[0];
+      }
+    }
+    const saved = getSavedDashboardData();
+    return saved?.slug || 'reyhan-yanti';
+  };
+
+  useEffect(() => {
+    getPublicRsvps(getSlug())
+      .then((res) => {
+        if (res.messages && Array.isArray(res.messages) && res.messages.length > 0) {
+          const loaded: GuestBookMessage[] = res.messages.map((r: any) => ({
+            id: String(r.id),
+            name: r.name,
+            status: (r.status === 'hadir' ? 'hadir' : r.status === 'tidak' ? 'tidak_hadir' : 'masih_ragu') as any,
+            message: r.message || '',
+            createdAt: 'Terkini',
+          }));
+          setMessages(loaded);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !comment.trim()) return;
+    if (!name.trim() || !comment.trim() || isSubmitting) return;
 
+    setIsSubmitting(true);
     const newMsg: GuestBookMessage = {
       id: Date.now().toString(),
       name: name.trim(),
@@ -29,10 +62,25 @@ export const GuestBookSection: React.FC<GuestBookSectionProps> = ({ defaultGuest
       createdAt: 'Baru saja',
     };
 
-    setMessages([newMsg, ...messages]);
+    setMessages((prev) => [newMsg, ...prev]);
+    const sentMsg = comment.trim();
     setComment('');
     setSubmitted(true);
     setTimeout(() => setSubmitted(false), 3000);
+
+    try {
+      await submitRsvp({
+        slug: getSlug(),
+        name: name.trim(),
+        pax: 1,
+        status: status === 'tidak_hadir' ? 'tidak' : status === 'masih_ragu' ? 'ragu' : 'hadir',
+        message: sentMsg,
+      });
+    } catch (err) {
+      console.warn('Gagal menyimpan rsvp ke server:', err);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const counts = {

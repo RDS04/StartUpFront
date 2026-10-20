@@ -20,7 +20,7 @@ import { ClosingSection } from './sections/ClosingSection';
 
 // Data
 import { ASSETS, GALLERY_PHOTOS, WEDDING_INFO } from './data';
-import { TemplateEmpatProvider } from './context';
+import { TemplateEmpatProvider, useTemplateEmpatData } from './context';
 
 export interface SageBlossomTemplateProps {
   isEmbedded?: boolean;
@@ -67,6 +67,9 @@ const SageBlossomTemplateInner: React.FC<{ isEmbedded?: boolean; defaultOpen?: b
   const [isPlaying, setIsPlaying] = useState(false);
   const [guestName] = useState(() => getGuestNameFromUrl(guestNameProp));
   const [activePhotoIndex, setActivePhotoIndex] = useState<number | null>(null);
+
+  const { galleryPhotos } = useTemplateEmpatData();
+  const photos = galleryPhotos && galleryPhotos.length > 0 ? galleryPhotos : GALLERY_PHOTOS;
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -135,18 +138,18 @@ const SageBlossomTemplateInner: React.FC<{ isEmbedded?: boolean; defaultOpen?: b
 
       {/* Lightbox Modal untuk Galeri Foto */}
       <LightboxModal
-        photos={GALLERY_PHOTOS}
+        photos={photos}
         currentIndex={activePhotoIndex}
         onClose={() => setActivePhotoIndex(null)}
         onNext={() => {
           if (activePhotoIndex !== null) {
-            setActivePhotoIndex((activePhotoIndex + 1) % GALLERY_PHOTOS.length);
+            setActivePhotoIndex((activePhotoIndex + 1) % photos.length);
           }
         }}
         onPrev={() => {
           if (activePhotoIndex !== null) {
             setActivePhotoIndex(
-              (activePhotoIndex - 1 + GALLERY_PHOTOS.length) % GALLERY_PHOTOS.length
+              (activePhotoIndex - 1 + photos.length) % photos.length
             );
           }
         }}

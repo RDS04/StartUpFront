@@ -1,10 +1,11 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Sparkles } from 'lucide-react';
 import type { DashboardTab, DashboardData, GuestItem, WishItem, TierConfig, DashboardPageProps } from './types';
-import { INITIAL_WISHES, getSavedDashboardData, saveDashboardData, getSavedGuests, saveGuests } from './initialData';
+import { getSavedDashboardData, saveDashboardData, getSavedGuests, saveGuests, getSavedWishes, saveWishes } from './initialData';
 import { getMyOrders } from '../services/orderService';
 import { getMyInvitation } from '../services/invitationService';
 import { getGuests, createGuest } from '../services/guestService';
+import { getMyWishes } from '../services/rsvpService';
 import { normalizeTemplateId } from './templateHelpers';
 
 // Sub Components
@@ -20,6 +21,7 @@ import { BrideEventSection } from './sections/BrideEventSection';
 import { GuestsSection } from './sections/GuestsSection';
 import { RsvpWishesSection } from './sections/RsvpWishesSection';
 import { AccountsSection } from './sections/AccountsSection';
+import { GallerySection } from './sections/GallerySection';
 
 export const DashboardPage: React.FC<DashboardPageProps> = ({
   currentUser,
@@ -40,7 +42,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   const [data, setData] = useState<DashboardData>(() => getSavedDashboardData(userKey));
   const [guests, setGuests] = useState<GuestItem[]>(() => getSavedGuests(userKey));
   const [isSavingGuest, setIsSavingGuest] = useState(false);
-  const [wishes, setWishes] = useState<WishItem[]>(INITIAL_WISHES);
+  const [wishes, setWishes] = useState<WishItem[]>(() => getSavedWishes(userKey));
 
   // Sync data ke localStorage setiap ada perubahan
   useEffect(() => {
@@ -51,6 +53,11 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   useEffect(() => {
     saveGuests(guests, userKey);
   }, [guests, userKey]);
+
+  // Sync wishes ke localStorage setiap ada perubahan
+  useEffect(() => {
+    saveWishes(wishes, userKey);
+  }, [wishes, userKey]);
 
   // Reload data jika akun user berubah & sinkronkan dari database backend
   useEffect(() => {
@@ -72,6 +79,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
               address: serverData.giftAddress?.address ?? prev.giftAddress?.address ?? '',
               notes: serverData.giftAddress?.notes ?? prev.giftAddress?.notes ?? '',
             },
+            gallery: Array.isArray(serverData.gallery) ? serverData.gallery : prev.gallery,
           };
           saveDashboardData(merged, userKey);
           return merged;
@@ -84,6 +92,14 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
       if (serverGuests && serverGuests.length > 0) {
         setGuests(serverGuests);
         saveGuests(serverGuests, userKey);
+      }
+    }).catch(() => {});
+
+    // Sinkronkan ucapan doa & konfirmasi kehadiran buku tamu dari database backend
+    getMyWishes().then((res) => {
+      if (res && Array.isArray(res.wishes)) {
+        setWishes(res.wishes);
+        saveWishes(res.wishes, userKey);
       }
     }).catch(() => {});
   }, [userKey]);
@@ -286,13 +302,24 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
     }
   }, [data.tier]);
 
-  // Statistics Calculation
+  // Statistics Calculation (Gabungan konfirmasi dari Guests list & Buku Tamu RSVP)
   const stats = useMemo(() => {
-    const hadir = guests
+    const wishHadirPax = wishes
+      .filter((w) => w.status === 'hadir')
+      .reduce((acc, curr) => acc + (curr.pax || 1), 0);
+    const guestHadirPax = guests
       .filter((g) => g.rsvp === 'hadir')
       .reduce((acc, curr) => acc + (curr.pax || 1), 0);
-    const tidak = guests.filter((g) => g.rsvp === 'tidak').length;
-    const menunggu = guests.filter((g) => g.rsvp === 'menunggu' || g.rsvp === 'ragu').length;
+    const hadir = wishHadirPax > 0 ? wishHadirPax : guestHadirPax;
+
+    const wishTidak = wishes.filter((w) => w.status === 'tidak').length;
+    const guestTidak = guests.filter((g) => g.rsvp === 'tidak').length;
+    const tidak = wishTidak > 0 ? wishTidak : guestTidak;
+
+    const wishRagu = wishes.filter((w) => w.status === 'ragu').length;
+    const guestRagu = guests.filter((g) => g.rsvp === 'menunggu' || g.rsvp === 'ragu').length;
+    const menunggu = wishRagu > 0 ? wishRagu : guestRagu;
+
     return { hadir, tidak, menunggu, totalWishes: wishes.length };
   }, [guests, wishes]);
 
@@ -438,6 +465,15 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
               setData={setData}
               tierConfig={tierConfig}
               onCopyText={copyToClipboard}
+              onShowToast={showToast}
+            />
+          )}
+
+          {activeTab === 'gallery' && (
+            <GallerySection
+              data={data}
+              setData={setData}
+              tierConfig={tierConfig}
               onShowToast={showToast}
             />
           )}

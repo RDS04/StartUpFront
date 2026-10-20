@@ -34,6 +34,7 @@ export interface BankAccount {
   accountHolder: string;
   logoUrl?: string;
   type: 'bank' | 'wallet';
+  cardTheme?: string;
 }
 
 export interface GuestBookMessage {

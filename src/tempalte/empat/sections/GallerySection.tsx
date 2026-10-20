@@ -1,5 +1,6 @@
 import React from 'react';
 import { Image as ImageIcon, ZoomIn, Heart } from 'lucide-react';
+import { useTemplateEmpatData } from '../context';
 import { GALLERY_PHOTOS } from '../data';
 
 interface GallerySectionProps {
@@ -7,6 +8,9 @@ interface GallerySectionProps {
 }
 
 export const GallerySection: React.FC<GallerySectionProps> = ({ onPhotoClick }) => {
+  const { galleryPhotos } = useTemplateEmpatData();
+  const photos = galleryPhotos && galleryPhotos.length > 0 ? galleryPhotos : GALLERY_PHOTOS;
+
   return (
     <section id="gallery-section" className="relative px-6 py-16 bg-[#f3f6ee] text-[#2c3d2f] overflow-hidden">
       <div className="max-w-sm sm:max-w-md mx-auto space-y-8">
@@ -31,8 +35,8 @@ export const GallerySection: React.FC<GallerySectionProps> = ({ onPhotoClick }) 
 
         {/* Gallery Grid */}
         <div className="grid grid-cols-2 gap-3 sm:gap-4">
-          {GALLERY_PHOTOS.map((photo, index) => {
-            const isWide = photo.orientation === 'landscape' || index === 4;
+          {photos.map((photo, index) => {
+            const isWide = photo.orientation === 'landscape' || (photos.length === 5 && index === 4);
             return (
               <div
                 key={photo.id}
