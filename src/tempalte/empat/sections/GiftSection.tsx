@@ -79,7 +79,7 @@ export const GiftSection: React.FC = () => {
             </button>
 
             <a
-              href={`https://api.whatsapp.com/send?phone=${WEDDING_INFO.whatsappRsvpNumber}&text=Halo%20Eza%20%26%20Islammy%2C%20saya%20ingin%20mengirimkan%20kado%20pernikahan`}
+              href={`https://api.whatsapp.com/send?phone=${WEDDING_INFO.whatsappRsvpNumber}&text=${encodeURIComponent(`Halo ${WEDDING_INFO.coupleDisplay}, saya ingin mengirimkan kado pernikahan`)}`}
               target="_blank"
               rel="noopener noreferrer"
               className="py-2 px-3.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-xs transition-all"

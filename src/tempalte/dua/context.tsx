@@ -36,13 +36,44 @@ export const TemplateDuaProvider: React.FC<{
     const bridePhoto = dash.bride.avatar || PHOTOS.bride;
     const coverPhoto = dash.groom.avatar || dash.bride.avatar || PHOTOS.cover;
 
+    const startDateStr = dash.event.startDate || dash.event.date || '';
+    const endDateStr = dash.event.endDate || dash.event.date || '';
+    const startTimeStr = dash.event.startTime || '08:00';
+    const endTimeStr = dash.event.countdownTime || '11:00';
+    const targetType = dash.event.countdownTarget || 'end';
+
+    let resolvedTarget = COUPLE.targetDate;
+    if (startDateStr || endDateStr) {
+      if (targetType === 'start' && startDateStr) {
+        resolvedTarget = `${startDateStr}T${startTimeStr}:00+07:00`;
+      } else if (targetType === 'end' && endDateStr) {
+        resolvedTarget = `${endDateStr}T${endTimeStr}:00+07:00`;
+      } else if (targetType === 'auto') {
+        const now = Date.now();
+        const startMs = startDateStr ? new Date(`${startDateStr}T${startTimeStr}:00+07:00`).getTime() : 0;
+        const endMs = endDateStr ? new Date(`${endDateStr}T${endTimeStr}:00+07:00`).getTime() : 0;
+        if (startMs > now) {
+          resolvedTarget = `${startDateStr}T${startTimeStr}:00+07:00`;
+        } else if (endMs > 0) {
+          resolvedTarget = `${endDateStr}T${endTimeStr}:00+07:00`;
+        } else if (startMs > 0) {
+          resolvedTarget = `${startDateStr}T${startTimeStr}:00+07:00`;
+        }
+      } else if (endDateStr) {
+        resolvedTarget = `${endDateStr}T${endTimeStr}:00+07:00`;
+      } else if (startDateStr) {
+        resolvedTarget = `${startDateStr}T${startTimeStr}:00+07:00`;
+      }
+    }
+
     value = {
       isPreview: false,
       couple: {
         shortBride: dash.bride.nickName || COUPLE.shortBride,
         shortGroom: dash.groom.nickName || COUPLE.shortGroom,
         dateShort: dash.event.dateDisplay ? (dash.event.dateDisplay.split(',')[1]?.trim() || COUPLE.dateShort) : COUPLE.dateShort,
-        targetDate: dash.event.date ? `${dash.event.date}T11:00:00+07:00` : COUPLE.targetDate,
+        targetDate: resolvedTarget || '2026-11-23T11:00:00+07:00',
+        hasCountdown: true,
         bride: {
           name: dash.bride.fullName || COUPLE.bride.name,
           parents: 'Putri dari',
@@ -96,7 +127,9 @@ export const TemplateDuaProvider: React.FC<{
           : GIFT.accounts,
         address: dash.giftAddress?.address || GIFT.address,
       },
-      gallery: dash.gallery?.length ? dash.gallery.map((g) => g.url) : GALLERY,
+      gallery: dash.gallery?.length
+        ? dash.gallery.map((g) => (typeof g === 'string' ? g : (g.url || g.thumbnail || ''))).filter(Boolean)
+        : GALLERY,
     };
   }
 

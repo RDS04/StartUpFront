@@ -80,24 +80,31 @@ export const AkadSection: React.FC = () => {
         )}
       </Reveal>
 
-      {/* Countdown */}
-      <Reveal anim="up" delay={420} className="mt-10 w-full">
-        <p className="mb-3 text-[11px] uppercase tracking-[0.4em] text-white/80">Menuju Hari Bahagia</p>
-        <div className="mx-auto grid max-w-[320px] grid-cols-4 gap-2.5">
-          {Object.entries(t).map(([label, val]) => (
-            <div
-              key={label}
-              className="rounded-2xl border border-white/30 bg-white/15 py-3 backdrop-blur-md shadow-[0_8px_24px_rgba(0,0,0,.12)]"
-            >
-              <div className="dr-display text-2xl font-semibold tabular-nums">{String(val).padStart(2, '0')}</div>
-              <div className="text-[10px] uppercase tracking-widest text-white/80">{label}</div>
-            </div>
-          ))}
-        </div>
-        <Pill href={buildCalendarUrl()} variant="glass" className="mt-6">
-          <CalendarHeart className="h-4 w-4" /> Simpan ke Kalender
-        </Pill>
-      </Reveal>
+      {/* Countdown (Tampilan Di Undangan) */}
+      {couple.hasCountdown && (
+        <Reveal anim="up" delay={420} className="mt-10 w-full">
+          <div className="flex items-center justify-center gap-2 mb-3">
+            <span className="w-2 h-2 rounded-full bg-amber-300 animate-pulse"></span>
+            <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-white">
+              HITUNG MUNDUR ACARA
+            </p>
+          </div>
+          <div className="mx-auto grid max-w-[320px] grid-cols-4 gap-2.5">
+            {Object.entries(t).map(([label, val]) => (
+              <div
+                key={label}
+                className="rounded-2xl border border-white/30 bg-white/15 py-3 backdrop-blur-md shadow-[0_8px_24px_rgba(0,0,0,.12)]"
+              >
+                <div className="dr-display text-2xl font-semibold tabular-nums">{String(val).padStart(2, '0')}</div>
+                <div className="text-[10px] uppercase tracking-widest text-white/80">{label}</div>
+              </div>
+            ))}
+          </div>
+          <Pill href={buildCalendarUrl()} variant="glass" className="mt-6">
+            <CalendarHeart className="h-4 w-4" /> Simpan ke Kalender
+          </Pill>
+        </Reveal>
+      )}
     </Section>
   );
 };

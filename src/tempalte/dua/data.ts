@@ -39,7 +39,8 @@ export const COUPLE = {
   shortGroom: 'Rahmat',
   dateShort: '10.10.26',
   // Dipakai untuk countdown (Resepsi I)
-  targetDate: '2026-10-10T11:00:00+07:00',
+  targetDate: '2026-11-23T11:00:00+07:00',
+  hasCountdown: true,
   bride: {
     name: 'Listia Rivani, S.Pd',
     parents: 'Putri pertama dari',

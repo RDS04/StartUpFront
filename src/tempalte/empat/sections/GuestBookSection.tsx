@@ -88,7 +88,7 @@ export const GuestBookSection: React.FC = () => {
     }).catch(() => {});
 
     const text = encodeURIComponent(
-      `Hai, saya ${name} ingin konfirmasi kehadiran pada undangan pernikahan digital Eza & Islammy bahwa: ${attendance} bersama ${pax} orang. Ucapan: "${comment || 'Selamat berbahagia'}". Terima kasih!`
+      `Hai, saya ${name} ingin konfirmasi kehadiran pada undangan pernikahan digital ${WEDDING_INFO.coupleDisplay} bahwa: ${attendance} bersama ${pax} orang. Ucapan: "${comment || 'Selamat berbahagia'}". Terima kasih!`
     );
     window.open(`https://api.whatsapp.com/send?phone=${WEDDING_INFO.whatsappRsvpNumber}&text=${text}`, '_blank');
   };

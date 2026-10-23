@@ -1,8 +1,19 @@
 import React from 'react';
 import { Sparkles } from 'lucide-react';
 import { STORIES } from '../data';
+import { getSavedDashboardData } from '../../../dashboard/initialData';
 
 export const LoveStorySection: React.FC = () => {
+  const dashData = getSavedDashboardData();
+  const storiesList = (dashData.stories && dashData.stories.length > 0)
+    ? dashData.stories.map((s, idx) => ({
+        year: s.year || '',
+        title: s.title || '',
+        story: s.story || '',
+        chapter: s.chapter || `Chapter 0${idx + 1}`,
+      }))
+    : STORIES;
+
   return (
     <section id="story-section" className="relative px-6 py-16 bg-[#fafbf7] text-[#2c3d2f] overflow-hidden">
       <div className="max-w-sm sm:max-w-md mx-auto space-y-10">
@@ -19,7 +30,7 @@ export const LoveStorySection: React.FC = () => {
 
         {/* Timeline List */}
         <div className="relative pl-6 sm:pl-8 space-y-8 before:absolute before:top-2 before:bottom-2 before:left-2 sm:before:left-3 before:w-0.5 before:bg-[#8f9e7b]/30">
-          {STORIES.map((item, idx) => (
+          {storiesList.map((item, idx) => (
             <div key={idx} className="relative group">
               {/* Timeline Pin Indicator */}
               <div className="absolute -left-6 sm:-left-8 top-1.5 w-5 h-5 rounded-full bg-[#5b6e55] border-2 border-white shadow-md flex items-center justify-center text-white">
@@ -33,7 +44,7 @@ export const LoveStorySection: React.FC = () => {
                     {item.year}
                   </span>
                   <span className="text-[10px] uppercase tracking-wider text-[#8f9e7b] font-semibold">
-                    Chapter 0{idx + 1}
+                    {(item as any).chapter || `Chapter 0${idx + 1}`}
                   </span>
                 </div>
 

@@ -20,7 +20,7 @@ import { ClosingSection } from './sections/ClosingSection';
 
 // Data
 import { ASSETS, GALLERY_PHOTOS } from './data';
-import { TemplateTigaProvider } from './context';
+import { TemplateTigaProvider, useTemplateTigaData } from './context';
 
 export interface MinangMaroonTemplateProps {
   isEmbedded?: boolean;
@@ -67,6 +67,9 @@ const MinangMaroonTemplateInner: React.FC<{ isEmbedded?: boolean; defaultOpen?: 
   const [guestName] = useState(() => getGuestNameFromUrl(guestNameProp));
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [activePhotoIndex, setActivePhotoIndex] = useState<number | null>(null);
+
+  const { gallery } = useTemplateTigaData();
+  const photos = gallery && gallery.length > 0 ? gallery : GALLERY_PHOTOS;
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -170,18 +173,18 @@ const MinangMaroonTemplateInner: React.FC<{ isEmbedded?: boolean; defaultOpen?: 
         {/* Lightbox Modal Foto */}
         {activePhotoIndex !== null && (
           <LightboxModal
-            photoUrl={GALLERY_PHOTOS[activePhotoIndex]}
-            photos={GALLERY_PHOTOS}
+            photoUrl={photos[activePhotoIndex]}
+            photos={photos}
             currentIndex={activePhotoIndex}
             onClose={() => setActivePhotoIndex(null)}
             onPrev={() =>
               setActivePhotoIndex((prev) =>
-                prev !== null && prev > 0 ? prev - 1 : GALLERY_PHOTOS.length - 1
+                prev !== null && prev > 0 ? prev - 1 : photos.length - 1
               )
             }
             onNext={() =>
               setActivePhotoIndex((prev) =>
-                prev !== null && prev < GALLERY_PHOTOS.length - 1 ? prev + 1 : 0
+                prev !== null && prev < photos.length - 1 ? prev + 1 : 0
               )
             }
           />

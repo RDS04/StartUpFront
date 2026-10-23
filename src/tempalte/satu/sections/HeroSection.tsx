@@ -52,40 +52,43 @@ const HeroSection: React.FC<HeroSectionProps> = ({ timeLeft }) => {
         </div>
       </ScrollReveal>
 
-      {/* Realtime Countdown Timer Card */}
-      <ScrollReveal variant="flip" delay={120}>
-        <div className="rounded-3xl p-6 sm:p-7 border border-[#E0D5C4] shadow-md space-y-4 text-center bg-white/85 backdrop-blur-md transition-all">
-          <div className="flex items-center justify-center gap-2 text-[#8B263E]">
-            <Clock className="w-4 h-4" />
-            <span className="text-xs uppercase tracking-widest font-semibold">Menghitung Hari Bahagia</span>
-          </div>
+      {/* Realtime Countdown Timer Card (Tampilan Di Undangan) */}
+      {(dashData.event as any).hasCountdown && (
+        <ScrollReveal variant="flip" delay={120}>
+          <div className="rounded-3xl p-6 sm:p-7 border border-[#E0D5C4] shadow-md space-y-4 text-center bg-white/85 backdrop-blur-md transition-all">
+            <div className="flex items-center justify-center gap-2 text-[#8B263E]">
+              <span className="w-2 h-2 rounded-full bg-[#8B263E] animate-pulse"></span>
+              <Clock className="w-4 h-4" />
+              <span className="text-xs uppercase tracking-widest font-bold">HITUNG MUNDUR ACARA</span>
+            </div>
 
-          <div className="grid grid-cols-4 gap-2.5 sm:gap-3">
-            {[
-              { label: 'HARI', value: timeLeft.days },
-              { label: 'JAM', value: timeLeft.hours },
-              { label: 'MENIT', value: timeLeft.minutes },
-              { label: 'DETIK', value: timeLeft.seconds }
-            ].map((item, idx) => (
-              <div
-                key={idx}
-                className="bg-[#FAF7F2]/90 backdrop-blur-xs rounded-2xl py-3 px-1 border border-[#EFE8DC] flex flex-col items-center shadow-xs"
-              >
-                <span className="font-serif-wedding text-xl sm:text-2xl font-bold text-[#4A1521]">
-                  {String(item.value).padStart(2, '0')}
-                </span>
-                <span className="text-[9px] font-bold text-[#8C7A65] tracking-wider mt-0.5">
-                  {item.label}
-                </span>
-              </div>
-            ))}
-          </div>
+            <div className="grid grid-cols-4 gap-2.5 sm:gap-3">
+              {[
+                { label: 'HARI', value: timeLeft.days },
+                { label: 'JAM', value: timeLeft.hours },
+                { label: 'MENIT', value: timeLeft.minutes },
+                { label: 'DETIK', value: timeLeft.seconds }
+              ].map((item, idx) => (
+                <div
+                  key={idx}
+                  className="bg-[#FAF7F2]/90 backdrop-blur-xs rounded-2xl py-3 px-1 border border-[#EFE8DC] flex flex-col items-center shadow-xs"
+                >
+                  <span className="font-serif-wedding text-xl sm:text-2xl font-bold text-[#4A1521]">
+                    {String(item.value).padStart(2, '0')}
+                  </span>
+                  <span className="text-[9px] font-bold text-[#8C7A65] tracking-wider mt-0.5">
+                    {item.label}
+                  </span>
+                </div>
+              ))}
+            </div>
 
-          <p className="text-[11px] text-[#7A6D5E] italic">
-            Jakarta, Indonesia
-          </p>
-        </div>
-      </ScrollReveal>
+            <p className="text-[11px] text-[#7A6D5E] italic">
+              Jakarta, Indonesia
+            </p>
+          </div>
+        </ScrollReveal>
+      )}
 
       {/* Ayat Suci QS. Ar-Rum: 21 Card */}
       <ScrollReveal variant="zoom" delay={150}>

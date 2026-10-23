@@ -24,7 +24,8 @@ export const WEDDING_INFO = {
   groomNickname: 'Yusron',
   brideNickname: 'Putri',
   weddingDateDisplay: 'Sabtu & Minggu - 19,20 September 2026',
-  targetDate: '2026-09-19T10:00:00', // Untuk countdown timer
+  targetDate: '2026-11-23T10:00:00', // Untuk countdown timer
+  hasCountdown: true,
   googleCalendarUrl:
     'https://www.google.com/calendar/render?action=TEMPLATE&text=The+Wedding+Of+Yusron+%26+Putri&details=Terima+Kasih+telah+memberikan+doa+dan+restu+dalam+acara+pernikahan+kami&dates=20260919T030000Z/20260920T100000Z&ctz=Asia/Jakarta',
   physicalGiftAddress: 'Jl jati gaung no 142, Rt 005 Rw 008 Padang timur',

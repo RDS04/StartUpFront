@@ -1,4 +1,31 @@
-import type { DashboardData, GuestItem, WishItem } from './types';
+import type { DashboardData, GuestItem, WishItem, StoryItem } from './types';
+
+export const INITIAL_STORIES: StoryItem[] = [
+  {
+    id: 'story-1',
+    year: '2019',
+    chapter: 'CHAPTER 01',
+    title: 'AWAL PERTEMUAN',
+    story: 'Berawal dari perkenalan yang sederhana di bangku perkuliahan, kami mulai saling bertukar cerita dan menyadari adanya kesamaan mimpi serta visi kehidupan.',
+    image: '',
+  },
+  {
+    id: 'story-2',
+    year: '2021',
+    chapter: 'CHAPTER 02',
+    title: 'MASA PENDEWASAAN & KOMITMEN',
+    story: 'Waktu demi waktu menguji kesabaran dan ketulusan hati. Kami bertekad untuk saling menjaga, saling mendukung dalam meraih cita-cita, dan mempererat komitmen bersama.',
+    image: '',
+  },
+  {
+    id: 'story-3',
+    year: '2023',
+    chapter: 'CHAPTER 03',
+    title: 'MENUJU IKATAN SUCI',
+    story: 'Dengan restu kedua orang tua dan keyakinan hati atas izin Allah SWT, kami melangkah menuju hari bahagia pernikahan untuk menyempurnakan separuh agama.',
+    image: '',
+  },
+];
 
 export const INITIAL_DATA: DashboardData = {
   tier: 'premium',
@@ -22,7 +49,12 @@ export const INITIAL_DATA: DashboardData = {
     instagram: '',
   },
   event: {
+    startDate: '',
+    startTime: '08:00',
     date: '',
+    endDate: '',
+    countdownTime: '08:00',
+    countdownTarget: 'end',
     dateDisplay: '',
     akadTime: '',
     akadPlace: '',
@@ -43,6 +75,7 @@ export const INITIAL_DATA: DashboardData = {
     notes: '',
   },
   gallery: [],
+  stories: INITIAL_STORIES,
 };
 
 export const getStorageKey = (userId?: string | number): string => {
@@ -75,6 +108,7 @@ export const getSavedDashboardData = (userId?: string | number): DashboardData =
         bankAccounts: Array.isArray(parsed.bankAccounts) ? parsed.bankAccounts : [],
         giftAddress: { ...INITIAL_DATA.giftAddress, ...(parsed.giftAddress || {}) },
         gallery: Array.isArray(parsed.gallery) ? parsed.gallery : [],
+        stories: Array.isArray(parsed.stories) ? parsed.stories : INITIAL_STORIES,
       };
     }
   } catch {}

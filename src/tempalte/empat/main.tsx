@@ -68,8 +68,10 @@ const SageBlossomTemplateInner: React.FC<{ isEmbedded?: boolean; defaultOpen?: b
   const [guestName] = useState(() => getGuestNameFromUrl(guestNameProp));
   const [activePhotoIndex, setActivePhotoIndex] = useState<number | null>(null);
 
-  const { galleryPhotos } = useTemplateEmpatData();
+  const { galleryPhotos, weddingInfo: contextWeddingInfo, assets: contextAssets } = useTemplateEmpatData();
   const photos = galleryPhotos && galleryPhotos.length > 0 ? galleryPhotos : GALLERY_PHOTOS;
+  const activeWeddingInfo = contextWeddingInfo || WEDDING_INFO;
+  const activeAssets = contextAssets || ASSETS;
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -169,15 +171,15 @@ const SageBlossomTemplateInner: React.FC<{ isEmbedded?: boolean; defaultOpen?: b
         {!isEmbedded && (
           <div className="empat-desktop-cover relative bg-[#1c271e] text-white">
             <img
-              src={ASSETS.coupleCover}
-              alt="Eza & Islammy Desktop Cover"
+              src={activeAssets.coupleCover}
+              alt={`${activeWeddingInfo.coupleDisplay} Desktop Cover`}
               className="w-full h-full object-cover object-center opacity-65 animate-ken-burns"
             />
             <div className="absolute inset-0 bg-gradient-to-r from-[#172218]/90 via-[#213023]/70 to-[#1b261d]/90" />
 
             {/* Daun Goyang Desktop */}
             <div className="absolute top-0 left-0 w-64 origin-top-left animate-goyang-kiri opacity-90 pointer-events-none">
-              <img src={ASSETS.leafCorner} alt="Daun" className="w-full h-auto" />
+              <img src={activeAssets.leafCorner} alt="Daun" className="w-full h-auto" />
             </div>
 
             <div className="absolute inset-0 flex flex-col justify-between p-12 z-20">
@@ -190,10 +192,10 @@ const SageBlossomTemplateInner: React.FC<{ isEmbedded?: boolean; defaultOpen?: b
 
               <div className="space-y-3">
                 <h2 className="font-sage-script text-6xl xl:text-7xl text-[#f4f7f0] leading-none drop-shadow-lg">
-                  Eza &amp; Islammy
+                  {activeWeddingInfo.coupleDisplay}
                 </h2>
                 <p className="font-sage-serif text-sm uppercase tracking-[0.25em] text-[#cad7c1]">
-                  {WEDDING_INFO.weddingDateDisplay}
+                  {activeWeddingInfo.weddingDateDisplay}
                 </p>
                 <p className="text-xs text-[#a4b59b] max-w-md font-light leading-relaxed">
                   Kami mengundang Anda untuk merayakan momen bahagia dan sakral penyatuan
@@ -202,7 +204,7 @@ const SageBlossomTemplateInner: React.FC<{ isEmbedded?: boolean; defaultOpen?: b
               </div>
 
               <div className="text-xs text-white/50 tracking-widest font-mono">
-                &copy; {new Date().getFullYear()} Eza &amp; Islammy &bull; Sage Garden
+                &copy; {new Date().getFullYear()} {activeWeddingInfo.coupleDisplay} &bull; Sage Garden
               </div>
             </div>
           </div>

@@ -35,7 +35,7 @@ export const EventSection: React.FC = () => {
     calculateTime();
     const interval = setInterval(calculateTime, 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [WEDDING_INFO.targetDate]);
 
   return (
     <section id="event-section" className="relative px-6 py-16 bg-[#f3f6ee] text-[#2c3d2f] overflow-hidden">
@@ -55,45 +55,50 @@ export const EventSection: React.FC = () => {
           </p>
         </div>
 
-        {/* Live Countdown Box */}
-        <div className="bg-white/90 backdrop-blur-md rounded-2xl p-5 border border-[#8f9e7b]/30 shadow-lg text-center space-y-3">
-          <p className="text-[11px] font-sage-serif font-bold tracking-widest text-[#50634c] uppercase">
-            Hitung Mundur Acara
-          </p>
+        {/* Live Countdown Box (Tampilan Di Undangan) */}
+        {WEDDING_INFO.hasCountdown && (
+          <div className="bg-white/90 backdrop-blur-md rounded-2xl p-5 border border-[#8f9e7b]/30 shadow-lg text-center space-y-3">
+            <div className="flex items-center justify-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse"></span>
+              <p className="text-[11px] sm:text-xs font-sage-serif font-bold tracking-widest text-[#2f4031] uppercase">
+                HITUNG MUNDUR ACARA
+              </p>
+            </div>
 
-          <div className="grid grid-cols-4 gap-2">
-            {[
-              { label: 'Hari', value: timeLeft.days },
-              { label: 'Jam', value: timeLeft.hours },
-              { label: 'Menit', value: timeLeft.minutes },
-              { label: 'Detik', value: timeLeft.seconds },
-            ].map((unit) => (
-              <div
-                key={unit.label}
-                className="bg-[#2f4031] text-white rounded-xl p-2.5 flex flex-col items-center shadow-xs"
+            <div className="grid grid-cols-4 gap-2">
+              {[
+                { label: 'Hari', value: timeLeft.days },
+                { label: 'Jam', value: timeLeft.hours },
+                { label: 'Menit', value: timeLeft.minutes },
+                { label: 'Detik', value: timeLeft.seconds },
+              ].map((unit) => (
+                <div
+                  key={unit.label}
+                  className="bg-[#2f4031] text-white rounded-xl p-2.5 flex flex-col items-center shadow-xs"
+                >
+                  <span className="font-mono text-lg sm:text-xl font-bold text-[#f5f8f1]">
+                    {String(unit.value).padStart(2, '0')}
+                  </span>
+                  <span className="text-[9px] uppercase tracking-wider text-[#cbd7c3] mt-0.5">
+                    {unit.label}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            <div className="pt-2">
+              <a
+                href={WEDDING_INFO.googleCalendarUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#c5a454] hover:bg-[#d4b566] text-[#1f2b20] text-xs font-bold transition-all shadow-xs hover:scale-105"
               >
-                <span className="font-mono text-lg sm:text-xl font-bold text-[#f5f8f1]">
-                  {String(unit.value).padStart(2, '0')}
-                </span>
-                <span className="text-[9px] uppercase tracking-wider text-[#cbd7c3] mt-0.5">
-                  {unit.label}
-                </span>
-              </div>
-            ))}
+                <CalendarPlus className="w-3.5 h-3.5" />
+                <span>Simpan ke Google Calendar</span>
+              </a>
+            </div>
           </div>
-
-          <div className="pt-2">
-            <a
-              href={WEDDING_INFO.googleCalendarUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#c5a454] hover:bg-[#d4b566] text-[#1f2b20] text-xs font-bold transition-all shadow-xs hover:scale-105"
-            >
-              <CalendarPlus className="w-3.5 h-3.5" />
-              <span>Simpan ke Google Calendar</span>
-            </a>
-          </div>
-        </div>
+        )}
 
         {/* Event Cards (Akad & Resepsi) */}
         <div className="space-y-6">

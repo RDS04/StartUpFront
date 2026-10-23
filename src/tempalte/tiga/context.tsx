@@ -1,6 +1,6 @@
 import React, { createContext, useContext } from 'react';
 import { getSavedDashboardData } from '../../dashboard/initialData';
-import { ASSETS, GROOM_DATA, BRIDE_DATA, WEDDING_INFO, BANK_ACCOUNTS, EVENTS } from './data';
+import { ASSETS, GROOM_DATA, BRIDE_DATA, WEDDING_INFO, BANK_ACCOUNTS, EVENTS, GALLERY_PHOTOS } from './data';
 import type { CoupleBio, EventDetail, BankAccount } from './types';
 
 export interface TemplateTigaData {
@@ -11,6 +11,7 @@ export interface TemplateTigaData {
   assets: typeof ASSETS;
   bankAccounts: BankAccount[];
   events: EventDetail[];
+  gallery: string[];
 }
 
 const defaultContext: TemplateTigaData = {
@@ -21,6 +22,7 @@ const defaultContext: TemplateTigaData = {
   assets: ASSETS,
   bankAccounts: BANK_ACCOUNTS,
   events: EVENTS,
+  gallery: GALLERY_PHOTOS,
 };
 
 const TemplateTigaContext = createContext<TemplateTigaData>(defaultContext);
@@ -36,6 +38,36 @@ export const TemplateTigaProvider: React.FC<{
     const groomPhoto = dash.groom.avatar || ASSETS.groomPhoto;
     const bridePhoto = dash.bride.avatar || ASSETS.bridePhoto;
     const coupleCover = dash.bride.avatar || dash.groom.avatar || ASSETS.coupleCover;
+
+    const startDateStr = dash.event.startDate || dash.event.date || '';
+    const endDateStr = dash.event.endDate || dash.event.date || '';
+    const startTimeStr = dash.event.startTime || '08:00';
+    const endTimeStr = dash.event.countdownTime || '10:00';
+    const targetType = dash.event.countdownTarget || 'end';
+
+    let resolvedTarget = WEDDING_INFO.targetDate;
+    if (startDateStr || endDateStr) {
+      if (targetType === 'start' && startDateStr) {
+        resolvedTarget = `${startDateStr}T${startTimeStr}:00`;
+      } else if (targetType === 'end' && endDateStr) {
+        resolvedTarget = `${endDateStr}T${endTimeStr}:00`;
+      } else if (targetType === 'auto') {
+        const now = Date.now();
+        const startMs = startDateStr ? new Date(`${startDateStr}T${startTimeStr}:00`).getTime() : 0;
+        const endMs = endDateStr ? new Date(`${endDateStr}T${endTimeStr}:00`).getTime() : 0;
+        if (startMs > now) {
+          resolvedTarget = `${startDateStr}T${startTimeStr}:00`;
+        } else if (endMs > 0) {
+          resolvedTarget = `${endDateStr}T${endTimeStr}:00`;
+        } else if (startMs > 0) {
+          resolvedTarget = `${startDateStr}T${startTimeStr}:00`;
+        }
+      } else if (endDateStr) {
+        resolvedTarget = `${endDateStr}T${endTimeStr}:00`;
+      } else if (startDateStr) {
+        resolvedTarget = `${startDateStr}T${startTimeStr}:00`;
+      }
+    }
 
     value = {
       isPreview: false,
@@ -60,7 +92,8 @@ export const TemplateTigaProvider: React.FC<{
         groomNickname: dash.groom.nickName || WEDDING_INFO.groomNickname,
         brideNickname: dash.bride.nickName || WEDDING_INFO.brideNickname,
         weddingDateDisplay: dash.event.dateDisplay || WEDDING_INFO.weddingDateDisplay,
-        targetDate: dash.event.date ? `${dash.event.date}T10:00:00` : WEDDING_INFO.targetDate,
+        targetDate: resolvedTarget || '2026-11-23T10:00:00',
+        hasCountdown: true,
         physicalGiftAddress: dash.giftAddress?.address || WEDDING_INFO.physicalGiftAddress,
       },
       assets: {
@@ -99,6 +132,9 @@ export const TemplateTigaProvider: React.FC<{
         }
         return ev;
       }),
+      gallery: dash.gallery?.length
+        ? dash.gallery.map((g) => (typeof g === 'string' ? g : (g.url || g.thumbnail || ''))).filter(Boolean)
+        : GALLERY_PHOTOS,
     };
   }
 

@@ -4,8 +4,19 @@ import { Heart } from 'lucide-react';
 import { SongketBorder } from '../components/SongketBorder';
 import { GoldenSparkles } from '../components/GoldenSparkles';
 import { TIMELINE_STORIES } from '../data';
+import { getSavedDashboardData } from '../../../dashboard/initialData';
 
 export const LoveStorySection: React.FC = () => {
+  const dashData = getSavedDashboardData();
+  const storiesList = (dashData.stories && dashData.stories.length > 0)
+    ? dashData.stories.map((s, idx) => ({
+        id: s.id,
+        period: s.year || `Tahun ${idx + 1}`,
+        title: s.title || '',
+        description: s.story || '',
+      }))
+    : TIMELINE_STORIES;
+
   return (
     <section className="relative w-full bg-[#4a0910] text-[#3a060d] overflow-hidden flex flex-col justify-between items-center text-center px-4 py-4">
       <GoldenSparkles />
@@ -33,7 +44,7 @@ export const LoveStorySection: React.FC = () => {
           </motion.h3>
 
           <div className="relative w-full space-y-6 before:absolute before:inset-0 before:left-1/2 before:-translate-x-1/2 before:w-0.5 before:bg-[#4a0910]/30 before:top-4 before:bottom-4">
-            {TIMELINE_STORIES.map((story, index) => (
+            {storiesList.map((story, index) => (
               <motion.div
                 key={story.id}
                 initial={{ opacity: 0, y: 30 }}

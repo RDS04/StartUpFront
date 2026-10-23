@@ -46,7 +46,7 @@ export const GallerySection: React.FC<GallerySectionProps> = ({ onPhotoClick }) 
                 }`}
               >
                 <img
-                  src={photo.thumbnail}
+                  src={photo.thumbnail || photo.url}
                   alt={photo.caption || `Foto ${index + 1}`}
                   className="w-full h-full object-cover object-center group-hover:scale-108 transition-transform duration-500"
                   loading="lazy"

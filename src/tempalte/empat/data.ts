@@ -39,17 +39,28 @@ export const ASSETS = {
 
 export const WEDDING_INFO = {
   get groomNickname() {
-    return getSavedDashboardData().groom.nickName || 'Andi';
+    const d = getSavedDashboardData();
+    return d.groom.nickName || d.groom.fullName?.split(' ')?.[0] || 'Andi';
   },
   get brideNickname() {
-    return getSavedDashboardData().bride.nickName || 'Rosna';
+    const d = getSavedDashboardData();
+    return d.bride.nickName || d.bride.fullName?.split(' ')?.[0] || 'Rosna';
   },
   get coupleDisplay() {
     const d = getSavedDashboardData();
-    return `${d.groom.nickName} & ${d.bride.nickName}`;
+    const g = d.groom.nickName || d.groom.fullName?.split(' ')?.[0] || 'Andi';
+    const b = d.bride.nickName || d.bride.fullName?.split(' ')?.[0] || 'Rosna';
+    if (d.groom.nickName && d.bride.nickName) {
+      return `${d.groom.nickName} & ${d.bride.nickName}`;
+    }
+    if (d.groom.fullName && d.bride.fullName) {
+      return `${d.groom.fullName} & ${d.bride.fullName}`;
+    }
+    return `${g} & ${b}`;
   },
   get weddingDateDisplay() {
-    return getSavedDashboardData().event.dateDisplay || 'Sabtu, 24 Oktober 2026';
+    const d = getSavedDashboardData();
+    return d.event.dateDisplay || 'Sabtu, 24 Oktober 2026';
   },
   get targetDate() {
     const d = getSavedDashboardData();
@@ -190,7 +201,7 @@ export const GALLERY_PHOTOS: GalleryPhoto[] = [
     id: 'p1',
     url: 'https://undangandigitalhbkomp.com/wp-content/uploads/2023/11/WhatsApp-Image-2023-11-14-at-09.11.56.jpeg',
     thumbnail: 'https://undangandigitalhbkomp.com/wp-content/uploads/2023/11/WhatsApp-Image-2023-11-14-at-09.11.56.jpeg',
-    caption: 'Momen penuh kebahagiaan Eza & Islammy',
+    caption: 'Momen penuh kebahagiaan kedua mempelai',
     orientation: 'portrait',
   },
   {
@@ -242,14 +253,14 @@ export const INITIAL_GUEST_BOOK: GuestBookMessage[] = [
     id: 'gb-1',
     name: 'Reyhan & Partner',
     attendance: 'Hadir',
-    message: 'Barakallahu lakum wa baraka alaikum! Selamat menempuh hidup baru Eza & Islammy, semoga menjadi keluarga sakinah, mawaddah, warahmah sampai ke surga-Nya. Aamiin ya rabbal alamin.',
+    message: 'Barakallahu lakum wa baraka alaikum! Selamat menempuh hidup baru untuk kedua mempelai, semoga menjadi keluarga sakinah, mawaddah, warahmah sampai ke surga-Nya. Aamiin ya rabbal alamin.',
     timeAgo: '2 jam yang lalu',
   },
   {
     id: 'gb-2',
     name: 'Dinda Rahmadani',
     attendance: 'Hadir',
-    message: 'Selamat ya Kak Eza dan Bang Islammy! Cantik dan ganteng banget, lancar sampai hari H dan bahagia selalu! 💐✨',
+    message: 'Selamat ya untuk kedua mempelai! Cantik dan ganteng banget, lancar sampai hari H dan bahagia selalu! 💐✨',
     timeAgo: '4 jam yang lalu',
   },
   {

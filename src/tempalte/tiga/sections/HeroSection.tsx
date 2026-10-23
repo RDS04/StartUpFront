@@ -39,7 +39,7 @@ export const HeroSection: React.FC = () => {
     calculateTime();
     const interval = setInterval(calculateTime, 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [WEDDING_INFO.targetDate]);
 
   return (
     <section id="undangan" className="relative w-full bg-[#4a0910] text-[#f0e6d2] overflow-hidden flex flex-col justify-between items-center text-center px-4 py-2">
@@ -104,32 +104,42 @@ export const HeroSection: React.FC = () => {
           Kami akan menikah, kami ingin anda menjadi bagian dari hari bahagia kami
         </motion.p>
 
-        {/* Countdown Timer (4 Kotak Cream dengan Staggered Animasi) */}
-        <div className="grid grid-cols-4 gap-2.5 sm:gap-3 w-full max-w-xs my-4">
-          {[
-            { label: 'Hari', value: timeLeft.days },
-            { label: 'Jam', value: timeLeft.hours },
-            { label: 'Menit', value: timeLeft.minutes },
-            { label: 'Detik', value: timeLeft.seconds },
-          ].map((item, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 20, scale: 0.8 }}
-              whileInView={{ opacity: 1, y: 0, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.4 + index * 0.1 }}
-              whileHover={{ y: -3, scale: 1.05 }}
-              className="bg-[#ded0b4] rounded-lg py-2.5 px-1 shadow-[0_4px_12px_rgba(0,0,0,0.35)] border border-[#cfa84a]/50 flex flex-col items-center justify-center cursor-default"
-            >
-              <span className="text-xl sm:text-2xl font-bold text-[#4a0910] font-serif-royal leading-none">
-                {String(item.value).padStart(2, '0')}
+        {/* Countdown Timer (Tampilan Di Undangan) */}
+        {WEDDING_INFO.hasCountdown && (
+          <div className="w-full max-w-xs my-4 flex flex-col items-center">
+            <div className="flex items-center justify-center gap-2 mb-2.5">
+              <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+              <span className="text-[11px] sm:text-xs font-bold tracking-[0.2em] text-[#ded0b4] uppercase font-serif-royal">
+                HITUNG MUNDUR ACARA
               </span>
-              <span className="text-[10px] sm:text-xs font-semibold text-[#4a0910] mt-1 font-serif-royal">
-                {item.label}
-              </span>
-            </motion.div>
-          ))}
-        </div>
+            </div>
+            <div className="grid grid-cols-4 gap-2.5 sm:gap-3 w-full">
+              {[
+                { label: 'Hari', value: timeLeft.days },
+                { label: 'Jam', value: timeLeft.hours },
+                { label: 'Menit', value: timeLeft.minutes },
+                { label: 'Detik', value: timeLeft.seconds },
+              ].map((item, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20, scale: 0.8 }}
+                  whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: 0.4 + index * 0.1 }}
+                  whileHover={{ y: -3, scale: 1.05 }}
+                  className="bg-[#ded0b4] rounded-lg py-2.5 px-1 shadow-[0_4px_12px_rgba(0,0,0,0.35)] border border-[#cfa84a]/50 flex flex-col items-center justify-center cursor-default"
+                >
+                  <span className="text-xl sm:text-2xl font-bold text-[#4a0910] font-serif-royal leading-none">
+                    {String(item.value).padStart(2, '0')}
+                  </span>
+                  <span className="text-[10px] sm:text-xs font-semibold text-[#4a0910] mt-1 font-serif-royal">
+                    {item.label}
+                  </span>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Tanggal Pernikahan */}
         <motion.p

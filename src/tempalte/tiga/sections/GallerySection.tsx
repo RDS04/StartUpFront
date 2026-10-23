@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { SongketBorder } from '../components/SongketBorder';
 import { GoldenSparkles } from '../components/GoldenSparkles';
+import { useTemplateTigaData } from '../context';
 import { GALLERY_PHOTOS } from '../data';
 
 interface GallerySectionProps {
@@ -9,6 +10,8 @@ interface GallerySectionProps {
 }
 
 export const GallerySection: React.FC<GallerySectionProps> = ({ onOpenPhoto }) => {
+  const { gallery } = useTemplateTigaData();
+  const photos = gallery && gallery.length > 0 ? gallery : GALLERY_PHOTOS;
   return (
     <section id="galeri" className="relative w-full bg-[#4a0910] text-[#3a060d] overflow-hidden flex flex-col justify-between items-center text-center px-4 py-4">
       <GoldenSparkles />
@@ -37,7 +40,7 @@ export const GallerySection: React.FC<GallerySectionProps> = ({ onOpenPhoto }) =
 
           {/* Grid Foto 2 Kolom dengan Staggered Animasi */}
           <div className="grid grid-cols-2 gap-2.5 sm:gap-3 w-full">
-            {GALLERY_PHOTOS.map((url, idx) => (
+            {photos.map((url, idx) => (
               <motion.div
                 key={idx}
                 initial={{ opacity: 0, scale: 0.85 }}

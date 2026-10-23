@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   Heart,
   Volume2,
@@ -141,7 +141,42 @@ const RusticBlossomTemplateInner: React.FC<{ isEmbedded?: boolean; defaultOpen?:
   ]);
 
   // Realtime Countdown State
-  const targetDate = new Date('2026-10-24T08:00:00+07:00').getTime();
+  const targetDate = useMemo(() => {
+    const ev = tplData?.event as any;
+    const startDateStr = ev?.startDate || ev?.date || '';
+    const endDateStr = ev?.endDate || ev?.date || '';
+    const startTimeStr = ev?.startTime || '08:00';
+    const endTimeStr = ev?.countdownTime || '08:00';
+    const targetType = ev?.countdownTarget || 'end';
+
+    if (startDateStr || endDateStr) {
+      if (targetType === 'start' && startDateStr) {
+        return new Date(`${startDateStr}T${startTimeStr}:00+07:00`).getTime();
+      }
+      if (targetType === 'end' && endDateStr) {
+        return new Date(`${endDateStr}T${endTimeStr}:00+07:00`).getTime();
+      }
+      if (targetType === 'auto') {
+        const now = Date.now();
+        const startMs = startDateStr ? new Date(`${startDateStr}T${startTimeStr}:00+07:00`).getTime() : 0;
+        const endMs = endDateStr ? new Date(`${endDateStr}T${endTimeStr}:00+07:00`).getTime() : 0;
+        if (startMs > now) {
+          return startMs;
+        } else if (endMs > 0) {
+          return endMs;
+        } else if (startMs > 0) {
+          return startMs;
+        }
+      }
+      if (endDateStr) {
+        return new Date(`${endDateStr}T${endTimeStr}:00+07:00`).getTime();
+      }
+      if (startDateStr) {
+        return new Date(`${startDateStr}T${startTimeStr}:00+07:00`).getTime();
+      }
+    }
+    return new Date('2026-11-23T08:00:00+07:00').getTime();
+  }, [tplData?.event]);
   const [timeLeft, setTimeLeft] = useState({
     days: 0,
     hours: 0,

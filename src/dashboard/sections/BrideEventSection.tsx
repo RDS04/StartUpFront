@@ -1,8 +1,9 @@
 import React, { useState, useRef, useMemo, useEffect } from 'react';
-import { Calendar, Music, MapPin, Lock, Save, Camera, Globe, Copy, ExternalLink, Sparkles, RefreshCw, User, CheckCircle2, Loader2, Clipboard } from 'lucide-react';
+import { Calendar, Music, MapPin, Lock, Save, Camera, Globe, Copy, ExternalLink, Sparkles, RefreshCw, User, CheckCircle2, Loader2, Clipboard, Clock, AlertTriangle, CalendarRange, Hourglass, Flag, Play } from 'lucide-react';
 import type { DashboardData, TierConfig } from '../types';
 import { normalizeTemplateId, MASTER_TEMPLATES } from '../templateHelpers';
 import { saveMyInvitation } from '../../services/invitationService';
+import { saveDashboardData } from '../initialData';
 
 interface BrideEventSectionProps {
   data: DashboardData;
@@ -20,6 +21,59 @@ export function createSlugFromNames(groom: string, bride: string): string {
     return `${cleanGroom}-${cleanBride}`;
   }
   return cleanGroom || cleanBride || '';
+}
+
+export function formatIndonesianDate(dateString: string): string {
+  if (!dateString) return '';
+  try {
+    const d = new Date(dateString + 'T00:00:00');
+    if (isNaN(d.getTime())) return '';
+    const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+    const months = [
+      'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+    ];
+    return `${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+  } catch {
+    return '';
+  }
+}
+
+export function formatDateRange(start?: string, end?: string): string {
+  if (!start && !end) return '';
+  if (!start && end) return formatIndonesianDate(end);
+  if (start && !end) return formatIndonesianDate(start);
+  if (start === end) return formatIndonesianDate(start!);
+
+  try {
+    const dStart = new Date(start + 'T00:00:00');
+    const dEnd = new Date(end + 'T00:00:00');
+    if (isNaN(dStart.getTime()) || isNaN(dEnd.getTime())) return formatIndonesianDate(end || start || '');
+
+    const months = [
+      'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+    ];
+    const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+
+    if (dStart.getFullYear() === dEnd.getFullYear() && dStart.getMonth() === dEnd.getMonth()) {
+      return `${days[dStart.getDay()]}, ${dStart.getDate()} - ${days[dEnd.getDay()]}, ${dEnd.getDate()} ${months[dStart.getMonth()]} ${dStart.getFullYear()}`;
+    }
+    if (dStart.getFullYear() === dEnd.getFullYear()) {
+      return `${dStart.getDate()} ${months[dStart.getMonth()]} - ${dEnd.getDate()} ${months[dEnd.getMonth()]} ${dStart.getFullYear()}`;
+    }
+    return `${formatIndonesianDate(start!)} s/d ${formatIndonesianDate(end!)}`;
+  } catch {
+    return formatIndonesianDate(end || start || '');
+  }
+}
+
+export function calculateDurationDays(start?: string, end?: string): number {
+  if (!start || !end) return 1;
+  const s = new Date(start + 'T00:00:00').getTime();
+  const e = new Date(end + 'T00:00:00').getTime();
+  if (isNaN(s) || isNaN(e) || e < s) return 1;
+  return Math.round((e - s) / (1000 * 60 * 60 * 24)) + 1;
 }
 
 export const TEMPLATE_OPTIONS = MASTER_TEMPLATES.map((t) => ({ id: t.id, name: t.name }));
@@ -160,15 +214,49 @@ export const BrideEventSection: React.FC<BrideEventSectionProps> = ({
   };
 
   const [isSaving, setIsSaving] = useState(false);
+  const [savedDates, setSavedDates] = useState<{ startDate: string; endDate: string }>(() => ({
+    startDate: data.event.startDate || '',
+    endDate: data.event.endDate || '',
+  }));
+
+  // Jika data.event.startDate/endDate pertama kali dimuat dari backend, catat sebagai tersimpan
+  useEffect(() => {
+    if (data.event.startDate && data.event.endDate && !savedDates.startDate && !savedDates.endDate) {
+      setSavedDates({
+        startDate: data.event.startDate,
+        endDate: data.event.endDate,
+      });
+    }
+  }, [data.event.startDate, data.event.endDate]);
 
   const handleSave = async () => {
     setIsSaving(true);
     try {
       const res = await saveMyInvitation(data);
-      if (res.invitation?.slug) {
-        setData((prev) => ({ ...prev, slug: res.invitation.slug }));
+      if (res.invitation) {
+        const inv = res.invitation;
+        setData((prev) => {
+          const next = {
+            ...prev,
+            slug: inv.slug || prev.slug,
+            event: {
+              ...prev.event,
+              ...(inv.event || {}),
+              startDate: inv.event?.startDate || prev.event.startDate || '',
+              endDate: inv.event?.endDate || prev.event.endDate || '',
+              countdownTime: inv.event?.countdownTime || prev.event.countdownTime || '08:00',
+            },
+          };
+          saveDashboardData(next);
+          return next;
+        });
+        setSavedDates({
+          startDate: data.event.startDate || '',
+          endDate: data.event.endDate || '',
+        });
+        window.dispatchEvent(new Event('storage'));
       }
-      onShowToast('✓ Data mempelai & acara berhasil disimpan ke database backend!');
+      onShowToast('✓ Data tanggal, jam acara & mempelai berhasil disimpan ke database!');
     } catch (err: any) {
       onShowToast(err.message || 'Gagal menyimpan ke database backend.');
     } finally {
@@ -190,6 +278,181 @@ export const BrideEventSection: React.FC<BrideEventSectionProps> = ({
     } catch {
       onShowToast('Tidak dapat membaca clipboard otomatis. Silakan paste manual (Ctrl+V).');
     }
+  };
+
+  // Live Countdown Simulator Preview State di Dashboard (Mendukung Custom Tanggal Mulai & Berakhir)
+  const [countdownPreview, setCountdownPreview] = useState<{
+    days: number;
+    hours: number;
+    minutes: number;
+    seconds: number;
+    isPast: boolean;
+    isLive: boolean;
+    hasDate: boolean;
+    targetLabel: string;
+    targetDateStr: string;
+  }>({
+    days: 0,
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
+    isPast: false,
+    isLive: false,
+    hasDate: false,
+    targetLabel: 'Puncak Acara',
+    targetDateStr: '',
+  });
+
+  const hasBothDates = Boolean(data.event.startDate && data.event.endDate);
+  const isDatesSaved = hasBothDates && savedDates.startDate === data.event.startDate && savedDates.endDate === data.event.endDate;
+
+  useEffect(() => {
+    const calc = () => {
+      const startD = data.event.startDate;
+      const startT = data.event.startTime || '08:00';
+      const endD = data.event.endDate;
+      const endT = data.event.countdownTime || '08:00';
+      const targetMode = data.event.countdownTarget || 'end';
+
+      if (!startD || !endD || !isDatesSaved) {
+        setCountdownPreview({
+          days: 0,
+          hours: 0,
+          minutes: 0,
+          seconds: 0,
+          isPast: false,
+          isLive: false,
+          hasDate: false,
+          targetLabel: !startD || !endD ? 'Belum diisi' : 'Belum disimpan',
+          targetDateStr: '',
+        });
+        return;
+      }
+
+      const now = new Date().getTime();
+      const startMs = new Date(`${startD}T${startT}:00`).getTime();
+      const endMs = new Date(`${endD}T${endT}:00`).getTime();
+
+      let targetMs = endMs;
+      let label = 'Puncak / Selesai Acara';
+      let live = false;
+      let targetDateStr = `${endD} ${endT} WIB`;
+
+      if (targetMode === 'start') {
+        targetMs = startMs;
+        label = 'Pembukaan / Mulai Acara';
+        targetDateStr = `${startD} ${startT} WIB`;
+      } else if (targetMode === 'auto') {
+        if (startMs && now < startMs) {
+          targetMs = startMs;
+          label = 'Mulai Acara (Pembukaan)';
+          targetDateStr = `${startD} ${startT} WIB`;
+        } else if (endMs && now <= endMs) {
+          targetMs = endMs;
+          label = 'Selesai Acara (Sedang Berlangsung)';
+          targetDateStr = `${endD} ${endT} WIB`;
+          live = true;
+        } else {
+          targetMs = endMs;
+          label = 'Selesai Acara';
+          targetDateStr = `${endD} ${endT} WIB`;
+        }
+      } else {
+        // targetMode === 'end'
+        if (startMs && now >= startMs && now <= endMs) {
+          live = true;
+        }
+        targetMs = endMs;
+        label = 'Puncak / Selesai Acara';
+        targetDateStr = `${endD} ${endT} WIB`;
+      }
+
+      const diff = targetMs - now;
+
+      if (diff > 0) {
+        setCountdownPreview({
+          days: Math.floor(diff / (1000 * 60 * 60 * 24)),
+          hours: Math.floor((diff / (1000 * 60 * 60)) % 24),
+          minutes: Math.floor((diff / 1000 / 60) % 60),
+          seconds: Math.floor((diff / 1000) % 60),
+          isPast: false,
+          isLive: live,
+          hasDate: true,
+          targetLabel: label,
+          targetDateStr,
+        });
+      } else {
+        setCountdownPreview({
+          days: 0,
+          hours: 0,
+          minutes: 0,
+          seconds: 0,
+          isPast: true,
+          isLive: false,
+          hasDate: true,
+          targetLabel: label,
+          targetDateStr,
+        });
+      }
+    };
+
+    calc();
+    const interval = setInterval(calc, 1000);
+    return () => clearInterval(interval);
+  }, [
+    data.event.startDate,
+    data.event.startTime,
+    data.event.endDate,
+    data.event.countdownTime,
+    data.event.countdownTarget,
+    isDatesSaved,
+  ]);
+
+  const handleStartDateChange = (val: string) => {
+    setData((prev) => {
+      const currentEnd = prev.event.endDate;
+      const formattedRange = val && currentEnd ? formatDateRange(val, currentEnd) : (val ? formatIndonesianDate(val) : '');
+      return {
+        ...prev,
+        event: {
+          ...prev.event,
+          startDate: val,
+          date: currentEnd || val,
+          dateDisplay: formattedRange || prev.event.dateDisplay,
+        },
+      };
+    });
+  };
+
+  const handleEndDateChange = (val: string) => {
+    setData((prev) => {
+      const currentStart = prev.event.startDate;
+      const formattedRange = currentStart && val ? formatDateRange(currentStart, val) : (val ? formatIndonesianDate(val) : '');
+      return {
+        ...prev,
+        event: {
+          ...prev.event,
+          endDate: val,
+          date: val,
+          dateDisplay: formattedRange || prev.event.dateDisplay,
+        },
+      };
+    });
+  };
+
+  const handleClearDates = () => {
+    setData((prev) => ({
+      ...prev,
+      event: {
+        ...prev.event,
+        startDate: '',
+        endDate: '',
+        date: '',
+        dateDisplay: '',
+      },
+    }));
+    setSavedDates({ startDate: '', endDate: '' });
+    onShowToast('Tanggal acara dan hitung mundur telah dikosongkan.');
   };
 
   return (
@@ -616,43 +879,368 @@ export const BrideEventSection: React.FC<BrideEventSectionProps> = ({
         </div>
       </div>
 
-      {/* Detail Waktu & Tempat Acara */}
-      <div className="p-6 rounded-3xl border border-stone-200 bg-white space-y-5 shadow-xs">
-        <h2 className="font-bold text-stone-900 text-sm flex items-center gap-2">
-          <Calendar className="w-4 h-4 text-[#2D6A4F]" /> Waktu & Tempat Pelaksanaan
-        </h2>
+      {/* Detail Waktu, Tanggal Mulai & Tanggal Berakhir Acara (Custom Countdown) */}
+      <div className="p-6 rounded-3xl border border-stone-200 bg-white space-y-6 shadow-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-stone-100">
+          <div>
+            <h2 className="font-bold text-stone-900 text-sm flex items-center gap-2">
+              <CalendarRange className="w-4 h-4 text-[#2D6A4F]" /> Waktu, Tanggal Mulai &amp; Berakhir Acara (Custom Countdown)
+            </h2>
+            <p className="text-xs text-stone-500 mt-0.5">
+              Atur tanggal mulai pembukaan acara hingga tanggal berakhir/puncak acara untuk mengaktifkan countdown timer kustom di undangan digital.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 w-fit flex items-center gap-1">
+              <Hourglass className="w-3 h-3 text-emerald-600" />
+              Durasi: {calculateDurationDays(data.event.startDate || data.event.date, data.event.endDate || data.event.date)} Hari
+            </span>
+          </div>
+        </div>
 
+        {/* Pilihan Patokan Target Hitung Mundur */}
+        <div className="space-y-1.5">
+          <label className="text-xs font-semibold text-stone-700 flex items-center gap-1.5">
+            <Clock className="w-3.5 h-3.5 text-[#2D6A4F]" />
+            <span>Pilih Patokan Hitung Mundur (Mode Countdown):</span>
+          </label>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            {[
+              {
+                id: 'end' as const,
+                title: 'Tanggal Berakhir / Puncak',
+                desc: 'Hitung mundur menuju puncak/selesai acara',
+                icon: Flag,
+              },
+              {
+                id: 'start' as const,
+                title: 'Tanggal Mulai Acara',
+                desc: 'Hitung mundur menuju hari pembukaan acara',
+                icon: Play,
+              },
+              {
+                id: 'auto' as const,
+                title: 'Mode Otomatis Rentang',
+                desc: 'Ke tanggal mulai, lalu Live s/d selesai',
+                icon: Sparkles,
+              },
+            ].map((mode) => {
+              const active = (data.event.countdownTarget || 'end') === mode.id;
+              const IconComp = mode.icon;
+              return (
+                <button
+                  key={mode.id}
+                  type="button"
+                  onClick={() =>
+                    setData((prev) => ({
+                      ...prev,
+                      event: { ...prev.event, countdownTarget: mode.id },
+                    }))
+                  }
+                  className={`p-3 rounded-2xl border text-left transition cursor-pointer ${
+                    active
+                      ? 'bg-emerald-50 border-emerald-500 ring-2 ring-emerald-500/20 shadow-xs'
+                      : 'bg-white border-stone-200 hover:bg-stone-50 hover:border-stone-300'
+                  }`}
+                >
+                  <div className="flex items-center gap-1.5">
+                    <IconComp className={`w-3.5 h-3.5 ${active ? 'text-[#2D6A4F]' : 'text-stone-400'}`} />
+                    <span className={`text-xs font-bold ${active ? 'text-emerald-950' : 'text-stone-800'}`}>
+                      {mode.title}
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-stone-500 mt-0.5 leading-tight">{mode.desc}</p>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Input Fields: Dua Kolom Rentang Tanggal Mulai & Tanggal Berakhir */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="text-xs font-semibold text-stone-700 block mb-1">Tanggal Acara</label>
-            <input
-              type="date"
-              value={data.event.date}
-              onChange={(e) =>
-                setData({
-                  ...data,
-                  event: { ...data.event, date: e.target.value },
-                })
-              }
-              className="w-full text-xs bg-white border border-stone-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#2D6A4F]"
-            />
+          {/* Kolom 1: Tanggal & Jam Mulai Acara */}
+          <div className="p-4 rounded-2xl bg-emerald-50/60 border border-emerald-200/80 space-y-3 shadow-2xs">
+            <div className="flex items-center justify-between pb-1.5 border-b border-emerald-200/60">
+              <span className="font-bold text-xs text-emerald-900 flex items-center gap-1.5">
+                <Play className="w-3.5 h-3.5 text-emerald-700" /> Tanggal &amp; Jam Mulai Acara
+              </span>
+              <span className="text-[10px] bg-emerald-200/60 text-emerald-900 font-semibold px-2 py-0.5 rounded-full">
+                Pembukaan
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <div>
+                <label className="text-[11px] font-semibold text-stone-700 block mb-1">
+                  Tanggal Mulai <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="date"
+                  value={data.event.startDate || ''}
+                  onChange={(e) => handleStartDateChange(e.target.value)}
+                  className="w-full text-xs bg-white border border-stone-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#2D6A4F] font-medium text-stone-900"
+                />
+              </div>
+
+              <div>
+                <label className="text-[11px] font-semibold text-stone-700 block mb-1">
+                  Jam Mulai (WIB)
+                </label>
+                <input
+                  type="time"
+                  value={data.event.startTime || '08:00'}
+                  onChange={(e) =>
+                    setData((prev) => ({
+                      ...prev,
+                      event: { ...prev.event, startTime: e.target.value },
+                    }))
+                  }
+                  className="w-full text-xs bg-white border border-stone-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#2D6A4F] font-medium text-stone-900"
+                />
+              </div>
+            </div>
           </div>
 
-          <div>
-            <label className="text-xs font-semibold text-stone-700 block mb-1">Teks Format Tanggal</label>
-            <input
-              type="text"
-              value={data.event.dateDisplay}
-              onChange={(e) =>
-                setData({
-                  ...data,
-                  event: { ...data.event, dateDisplay: e.target.value },
-                })
-              }
-              placeholder="Contoh: Sabtu, 24 Oktober 2026"
-              className="w-full text-xs bg-white border border-stone-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#2D6A4F]"
-            />
+          {/* Kolom 2: Tanggal & Jam Berakhir / Puncak Acara */}
+          <div className="p-4 rounded-2xl bg-amber-50/60 border border-amber-200/80 space-y-3 shadow-2xs">
+            <div className="flex items-center justify-between pb-1.5 border-b border-amber-200/60">
+              <span className="font-bold text-xs text-amber-950 flex items-center gap-1.5">
+                <Flag className="w-3.5 h-3.5 text-amber-700" /> Tanggal &amp; Jam Berakhir Acara
+              </span>
+              <span className="text-[10px] bg-amber-200/60 text-amber-950 font-semibold px-2 py-0.5 rounded-full">
+                Puncak / Selesai
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <div>
+                <label className="text-[11px] font-semibold text-stone-700 block mb-1">
+                  Tanggal Berakhir <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="date"
+                  value={data.event.endDate || ''}
+                  onChange={(e) => handleEndDateChange(e.target.value)}
+                  className="w-full text-xs bg-white border border-stone-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#2D6A4F] font-medium text-stone-900"
+                />
+              </div>
+
+              <div>
+                <label className="text-[11px] font-semibold text-stone-700 block mb-1">
+                  Jam Selesai (WIB)
+                </label>
+                <input
+                  type="time"
+                  value={data.event.countdownTime || '08:00'}
+                  onChange={(e) =>
+                    setData((prev) => ({
+                      ...prev,
+                      event: { ...prev.event, countdownTime: e.target.value },
+                    }))
+                  }
+                  className="w-full text-xs bg-white border border-stone-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#2D6A4F] font-medium text-stone-900"
+                />
+              </div>
+            </div>
           </div>
+        </div>
+
+        {/* Input Teks Format Tanggal Display di Undangan */}
+        <div className="space-y-1">
+          <div className="flex items-center justify-between mb-1">
+            <label className="text-xs font-semibold text-stone-700 flex items-center gap-1.5">
+              <span>Teks Tampilan Tanggal di Undangan Digital:</span>
+            </label>
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={handleClearDates}
+                className="text-[10px] font-semibold text-rose-700 hover:text-rose-900 flex items-center gap-1 cursor-pointer transition active:scale-95 px-2 py-0.5 rounded-md hover:bg-rose-50 border border-rose-200"
+                title="Kosongkan tanggal mulai, tanggal selesai, dan hitung mundur"
+              >
+                <RefreshCw className="w-3 h-3 text-rose-500" /> Kosongkan Tanggal
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const s = data.event.startDate;
+                  const e = data.event.endDate;
+                  if (s && e) {
+                    const formatted = formatDateRange(s, e);
+                    setData((prev) => ({
+                      ...prev,
+                      event: { ...prev.event, dateDisplay: formatted },
+                    }));
+                    onShowToast(`Teks tanggal rentang diformat: ${formatted}`);
+                  } else if (s || e) {
+                    const formatted = formatIndonesianDate(s || e || '');
+                    setData((prev) => ({
+                      ...prev,
+                      event: { ...prev.event, dateDisplay: formatted },
+                    }));
+                    onShowToast(`Teks tanggal diformat: ${formatted}`);
+                  } else {
+                    onShowToast('Pilih tanggal mulai atau berakhir terlebih dahulu!');
+                  }
+                }}
+                className="text-[10px] font-semibold text-[#2D6A4F] hover:text-[#1B4332] flex items-center gap-1 cursor-pointer transition active:scale-95 px-2 py-0.5 rounded-md hover:bg-emerald-50 border border-emerald-200/60"
+                title="Format otomatis rentang tanggal ke Bahasa Indonesia"
+              >
+                <Sparkles className="w-3 h-3 text-amber-600" /> Format Otomatis Rentang
+              </button>
+            </div>
+          </div>
+          <input
+            type="text"
+            value={data.event.dateDisplay}
+            onChange={(e) =>
+              setData({
+                ...data,
+                event: { ...data.event, dateDisplay: e.target.value },
+              })
+            }
+            placeholder="Contoh: Jumat, 20 November 2026 s/d Senin, 23 November 2026"
+            className="w-full text-xs bg-white border border-stone-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#2D6A4F]"
+          />
+          <span className="text-[10px] text-stone-400 mt-1 block">
+            Teks ini yang akan tertulis di kartu undangan (Cover, Hero, dan Kartu Acara)
+          </span>
+        </div>
+
+        {/* Live Simulator Widget Hitung Mundur Acara (Preview Langsung) */}
+        <div className="p-5 rounded-2xl bg-gradient-to-br from-[#1b4332] via-[#24523d] to-[#2d6a4f] text-white shadow-md border border-emerald-700/50 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <span className="text-[10px] uppercase font-bold tracking-widest text-emerald-300 flex items-center gap-1">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Live Simulator
+              </span>
+              <h3 className="text-sm font-bold text-white tracking-wide">
+                HITUNG MUNDUR ACARA (TAMPILAN DI UNDANGAN)
+              </h3>
+            </div>
+            <div className="flex flex-col sm:items-end text-xs font-mono text-emerald-200">
+              <span className="bg-white/10 px-2.5 py-1 rounded-lg border border-white/10 w-fit">
+                Patokan: <strong>{countdownPreview.targetLabel}</strong> {isDatesSaved && countdownPreview.targetDateStr ? `(${countdownPreview.targetDateStr})` : ''}
+              </span>
+              <span className="text-[10px] text-emerald-300/80 mt-1">
+                Rentang: {data.event.startDate || '-'} s/d {data.event.endDate || '-'}
+              </span>
+            </div>
+          </div>
+
+          {!hasBothDates ? (
+            <div className="p-6 rounded-2xl bg-black/25 border border-white/10 text-center space-y-2.5">
+              <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center mx-auto text-emerald-300">
+                <Hourglass className="w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-white">Hitung Mundur Belum Aktif (Kosong)</h4>
+                <p className="text-xs text-emerald-100/90 max-w-sm mx-auto mt-1 leading-relaxed">
+                  Hitung mundur (hari, jam, menit, detik) akan <strong>otomatis muncul</strong> setelah Anda memasukkan <strong>Tanggal Mulai</strong> dan <strong>Tanggal Selesai</strong> acara di atas, lalu mengklik <strong>Simpan Tanggal</strong>.
+                </p>
+              </div>
+              <div className="pt-1 flex items-center justify-center gap-2 text-[11px] text-emerald-300/80">
+                <span className="w-2 h-2 rounded-full bg-amber-400"></span>
+                <span>Status: Tanggal Mulai &amp; Tanggal Selesai belum diinput</span>
+              </div>
+            </div>
+          ) : !isDatesSaved ? (
+            <div className="p-6 rounded-2xl bg-amber-500/20 border border-amber-400/40 text-center space-y-3">
+              <div className="w-10 h-10 rounded-full bg-amber-400/20 flex items-center justify-center mx-auto text-amber-300">
+                <Save className="w-5 h-5 animate-pulse" />
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-amber-200">Tanggal Telah Diinput — Belum Disimpan</h4>
+                <p className="text-xs text-amber-100/90 max-w-md mx-auto mt-1 leading-relaxed">
+                  Rentang tanggal <strong>{data.event.startDate}</strong> s/d <strong>{data.event.endDate}</strong> telah Anda isi. Tekan tombol <strong>Simpan Tanggal</strong> di bawah untuk mengaktifkan dan memunculkan hitung mundur di undangan digital.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handleSave}
+                disabled={isSaving}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#D4AF37] hover:bg-[#c49f2e] text-stone-950 font-bold text-xs shadow-md transition active:scale-95 cursor-pointer"
+              >
+                {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                <span>Simpan Tanggal &amp; Aktifkan Hitung Mundur</span>
+              </button>
+            </div>
+          ) : (
+            <>
+              {/* 4 Tile Countdown: Hari, Jam, Menit, Detik */}
+              <div className="grid grid-cols-4 gap-2.5 sm:gap-4 max-w-md mx-auto text-center">
+                {[
+                  { label: 'HARI', value: countdownPreview.days },
+                  { label: 'JAM', value: countdownPreview.hours },
+                  { label: 'MENIT', value: countdownPreview.minutes },
+                  { label: 'DETIK', value: countdownPreview.seconds },
+                ].map((unit) => (
+                  <div
+                    key={unit.label}
+                    className="bg-black/30 backdrop-blur-md border border-white/15 rounded-xl p-3 flex flex-col items-center shadow-inner"
+                  >
+                    <span className="font-mono text-2xl sm:text-3xl font-extrabold text-[#f5f8f1]">
+                      {String(unit.value).padStart(2, '0')}
+                    </span>
+                    <span className="text-[10px] tracking-wider text-emerald-200/90 font-semibold mt-0.5">
+                      {unit.label}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Status Message Pill */}
+              <div className="pt-1">
+                {countdownPreview.isLive ? (
+                  <div className="p-3 rounded-xl bg-emerald-500/30 border border-emerald-400 text-xs text-white flex items-center justify-between gap-2 shadow-sm">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping shrink-0"></span>
+                      <span>
+                        🎉 <strong>ACARA SEDANG BERLANGSUNG!</strong> Acara telah dimulai, hitung mundur menuju penutupan dalam <strong>{countdownPreview.days} Hari {countdownPreview.hours} Jam {countdownPreview.minutes} Menit</strong> lagi.
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleSave}
+                      disabled={isSaving}
+                      className="px-3.5 py-1.5 rounded-lg bg-[#D4AF37] hover:bg-[#c49f2e] text-stone-950 font-bold text-xs transition active:scale-95 cursor-pointer shrink-0 shadow-xs flex items-center gap-1.5"
+                    >
+                      {isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+                      <span>Simpan Tanggal</span>
+                    </button>
+                  </div>
+                ) : countdownPreview.isPast ? (
+                  <div className="p-3 rounded-xl bg-amber-500/20 border border-amber-400/40 text-xs text-amber-100 flex items-start justify-between gap-2.5">
+                    <div className="flex items-start gap-2">
+                      <AlertTriangle className="w-4 h-4 text-amber-300 shrink-0 mt-0.5" />
+                      <div>
+                        <strong className="text-amber-200">Perhatian: Tanggal acara telah terlewat dari hari ini!</strong>
+                        <p className="mt-0.5 text-amber-100/90 text-[11px]">
+                          Tanggal yang Anda pilih ({data.event.endDate}) berada di masa lampau. Silakan perbarui tanggal ke masa yang akan datang.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-3 rounded-xl bg-emerald-500/20 border border-emerald-400/30 text-xs text-emerald-100 flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-300 shrink-0" />
+                      <span>
+                        ✓ <strong>Hitung Mundur Aktif &amp; Tersimpan:</strong> Sisa <strong>{countdownPreview.days} Hari {countdownPreview.hours} Jam {countdownPreview.minutes} Menit</strong> lagi menuju {countdownPreview.targetLabel}.
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleClearDates}
+                      className="px-3 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs transition cursor-pointer shrink-0"
+                    >
+                      Reset
+                    </button>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
         </div>
 
         {/* Sesi Akad & Resepsi */}

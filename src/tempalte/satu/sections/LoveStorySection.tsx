@@ -2,6 +2,7 @@ import { Heart } from 'lucide-react';
 import { ScrollReveal } from '../components/ScrollReveal';
 import { RoseFloralDivider } from '../components/RoseFloralDivider';
 import type { StoryTimelineItem } from '../types';
+import { getSavedDashboardData } from '../../../dashboard/initialData';
 
 const storyList: StoryTimelineItem[] = [
   {
@@ -34,6 +35,18 @@ const storyList: StoryTimelineItem[] = [
 ];
 
 const LoveStorySection: React.FC = () => {
+  const dashData = getSavedDashboardData();
+  const currentStories: StoryTimelineItem[] = (dashData.stories && dashData.stories.length > 0)
+    ? dashData.stories.map((s, idx) => ({
+        id: typeof s.id === 'number' ? s.id : idx + 1,
+        date: s.year || `202${idx + 1}`,
+        badge: s.chapter || `Momen 0${idx + 1}`,
+        title: s.title || '',
+        description: s.story || '',
+        image: s.image || storyList[idx % storyList.length]?.image || 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=700&q=80',
+      }))
+    : storyList;
+
   return (
     <section className="relative py-12 px-6 z-10 space-y-8">
       <ScrollReveal variant="up">
@@ -54,7 +67,7 @@ const LoveStorySection: React.FC = () => {
       </ScrollReveal>
 
       <div className="relative pl-6 sm:pl-8 space-y-8 before:content-[''] before:absolute before:left-3 before:top-3 before:bottom-3 before:w-[1.5px] before:bg-gradient-to-b before:from-[#8B263E] before:via-[#CBB8A1] before:to-[#8B263E]">
-        {storyList.map((story, index) => (
+        {currentStories.map((story, index) => (
           <ScrollReveal key={story.id} variant="zoom" delay={index * 120}>
             <div className="relative group">
               {/* Timeline Circle Bullet */}

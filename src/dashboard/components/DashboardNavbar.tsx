@@ -11,7 +11,6 @@ interface DashboardNavbarProps {
     avatar?: string;
     role?: string;
   } | null;
-  onTierChange?: (tier: 'silver' | 'premium' | 'gold' | 'platinum') => void;
   onOpenPreview: () => void;
   onBackToHome?: () => void;
   onLogout?: () => void;
@@ -21,7 +20,6 @@ export const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
   data,
   tierConfig,
   currentUser,
-  onTierChange,
   onOpenPreview,
   onBackToHome,
   onLogout,
@@ -98,14 +96,14 @@ export const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
 
         {/* Action Controls & User Menu */}
         <div className="flex items-center space-x-1.5 sm:space-x-2.5 md:space-x-3 shrink-0">
-          {/* Paket Tier Badge */}
-          <div className="flex items-center bg-stone-100/90 rounded-lg sm:rounded-xl px-2 sm:px-3 py-1 sm:py-1.5 border border-stone-200 text-xs shadow-xs shrink-0">
+          {/* Paket Tier Badge (Hanya menampilkan paket yang dibeli) */}
+          <div className="flex items-center bg-stone-100/90 rounded-lg sm:rounded-xl px-2.5 sm:px-3 py-1 sm:py-1.5 border border-stone-200 text-xs shadow-xs shrink-0">
             <span className="font-medium text-stone-500 hidden sm:flex items-center gap-1.5 mr-1.5 sm:mr-2">
               <Crown className="w-3.5 h-3.5 text-amber-600 shrink-0" /> Paket:
             </span>
             <Crown className="w-3.5 h-3.5 text-amber-600 sm:hidden mr-1 shrink-0" />
             <span
-              className={`capitalize px-1.5 sm:px-2.5 py-0.5 rounded-md sm:rounded-lg font-bold text-[11px] sm:text-xs border shadow-xs inline-flex items-center gap-1 whitespace-nowrap ${
+              className={`capitalize px-2 sm:px-2.5 py-0.5 rounded-md sm:rounded-lg font-bold text-[11px] sm:text-xs border shadow-xs inline-flex items-center gap-1 whitespace-nowrap ${
                 tierConfig?.badge ||
                 (data.tier === 'silver'
                   ? 'bg-stone-200/90 text-stone-800 border-stone-300'
@@ -119,21 +117,6 @@ export const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
               <span className="sm:hidden">{tierShortName}</span>
               <span className="hidden sm:inline">{tierFullName}</span>
             </span>
-
-            {/* Opsi khusus Master Administrator jika ingin simulasi / ganti paket */}
-            {currentUser?.role === 'master' && onTierChange && (
-              <select
-                value={data.tier}
-                onChange={(e) => onTierChange(e.target.value as any)}
-                className="ml-1 sm:ml-2 bg-white border border-stone-300 text-stone-700 font-semibold rounded-md px-1 sm:px-1.5 py-0.5 text-[10px] sm:text-[11px] cursor-pointer focus:outline-none focus:ring-1 focus:ring-amber-500"
-                title="Ganti Paket (Simulasi Khusus Master Admin)"
-              >
-                <option value="silver">Silver</option>
-                <option value="gold">Gold</option>
-                <option value="platinum">Platinum</option>
-                <option value="premium">Premium</option>
-              </select>
-            )}
           </div>
 
           {/* Live Mobile Preview Trigger */}

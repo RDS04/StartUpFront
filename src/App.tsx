@@ -194,8 +194,13 @@ export function App() {
                 instagram: inv.bride?.instagram || '',
               },
               event: {
-                date: inv.event?.date || '',
+                startDate: inv.event?.startDate || inv.event?.date || '',
+                startTime: inv.event?.startTime || '08:00',
+                endDate: inv.event?.endDate || inv.event?.date || '',
+                date: inv.event?.endDate || inv.event?.date || '',
                 dateDisplay: inv.event?.dateDisplay || '',
+                countdownTime: inv.event?.countdownTime || '08:00',
+                countdownTarget: inv.event?.countdownTarget || 'end',
                 akadTime: inv.event?.akadTime || '',
                 akadPlace: inv.event?.akadPlace || '',
                 akadAddress: inv.event?.akadAddress || '',
@@ -214,6 +219,7 @@ export function App() {
                 address: inv.gift_address?.address || '',
                 notes: inv.gift_address?.notes || '',
               },
+              gallery: Array.isArray(inv.gallery) ? inv.gallery : [],
             };
             saveDashboardData(serverData);
             window.dispatchEvent(new Event('storage'));

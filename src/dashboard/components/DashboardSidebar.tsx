@@ -11,6 +11,7 @@ import {
   ChevronRight,
   ChevronDown,
   Zap,
+  BookHeart,
 } from 'lucide-react';
 import type { DashboardTab, TierConfig } from '../types';
 
@@ -37,8 +38,8 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
   tierConfig,
   guestCount,
   activeTemplateId,
-  currentUser,
-  onNavigateTemplates,
+  currentUser: _currentUser,
+  onNavigateTemplates: _onNavigateTemplates,
   onNavigatePricing,
   onNavigatePayment,
   onPreviewTemplate,
@@ -49,6 +50,7 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
   const navItems = [
     { id: 'overview' as DashboardTab, label: 'Ringkasan', icon: Sparkles, desc: 'Statistik & Status' },
     { id: 'bride_event' as DashboardTab, label: 'Data Acara', icon: Heart, desc: 'Mempelai & Lokasi' },
+    { id: 'stories' as DashboardTab, label: 'Kisah Cinta', icon: BookHeart, desc: 'Perjalanan & Cerita' },
     { id: 'gallery' as DashboardTab, label: 'Galeri Foto', icon: Palette, desc: 'Momen Bahagia Kami' },
     { id: 'guests' as DashboardTab, label: 'Daftar Tamu', icon: Users, desc: 'Generate Link & WA' },
     { id: 'rsvps' as DashboardTab, label: 'Buku Tamu', icon: MessageSquare, desc: 'Doa & Kehadiran' },
@@ -162,19 +164,6 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
 
               {/* Quick Actions Grid */}
               <div className="grid grid-cols-2 gap-2 text-xs">
-                {onNavigateTemplates && (
-                  <button
-                    onClick={() => {
-                      setShowMobileQuickHub(false);
-                      onNavigateTemplates();
-                    }}
-                    className="flex items-center gap-2 p-2.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 font-semibold text-left transition cursor-pointer"
-                  >
-                    <Palette className="w-4 h-4 text-amber-700 shrink-0" />
-                    <span className="truncate">Ganti Desain</span>
-                  </button>
-                )}
-
                 {onPreviewTemplate && (
                   <button
                     onClick={() => {
@@ -194,10 +183,10 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                       setShowMobileQuickHub(false);
                       onNavigatePayment();
                     }}
-                    className="flex items-center gap-2 p-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200 font-semibold text-left transition cursor-pointer col-span-2"
+                    className="flex items-center gap-2 p-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200 font-semibold text-left transition cursor-pointer"
                   >
                     <CreditCard className="w-4 h-4 text-emerald-700 shrink-0" />
-                    <span className="truncate">Status Pembayaran / Upgrade</span>
+                    <span className="truncate">Status Pembayaran</span>
                   </button>
                 )}
 
@@ -207,23 +196,11 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                       setShowMobileQuickHub(false);
                       onNavigatePricing();
                     }}
-                    className="flex items-center gap-2 p-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200 font-semibold text-left transition cursor-pointer col-span-2"
+                    className="flex items-center gap-2 p-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200 font-semibold text-left transition cursor-pointer"
                   >
                     <CreditCard className="w-4 h-4 text-emerald-700 shrink-0" />
-                    <span className="truncate">Upgrade Paket Langganan</span>
+                    <span className="truncate">Upgrade Paket</span>
                   </button>
-                )}
-
-                {(currentUser?.role === 'master' || currentUser?.role === 'admin') && (
-                  <a
-                    href="http://localhost:8000/master/login"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 p-2.5 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-900 border border-purple-200 font-semibold text-left transition cursor-pointer col-span-2"
-                  >
-                    <ShieldCheck className="w-4 h-4 text-purple-700 shrink-0" />
-                    <span>Buka Portal Master Admin</span>
-                  </a>
                 )}
               </div>
             </div>
@@ -234,7 +211,7 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
       {/* ============================================================== */}
       {/* 🖥️ DESKTOP VIEW SIDEBAR: Full Vertical Navigation Column       */}
       {/* ============================================================== */}
-      <aside className="hidden md:flex w-64 flex-shrink-0 flex-col gap-2">
+      <aside className="hidden md:flex w-64 flex-shrink-0 flex-col gap-2 md:sticky md:top-20 md:self-start md:max-h-[calc(100vh-6rem)] md:overflow-y-auto pr-1 pb-4 select-none [-ms-overflow-style:none] [scrollbar-width:thin] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-stone-300/80 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-stone-400 [&::-webkit-scrollbar-track]:bg-transparent">
         {/* Tab Navigation Buttons */}
         <div className="flex flex-col gap-1.5 w-full">
           {navItems.map((item) => {
@@ -269,17 +246,8 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
           })}
         </div>
 
-        {/* Quick Links (Ganti Template & Upgrade Paket) */}
+        {/* Quick Links (Lihat Template Aktif & Status Pembayaran) */}
         <div className="flex flex-col gap-1.5 pt-2">
-          {onNavigateTemplates && (
-            <button
-              onClick={onNavigateTemplates}
-              className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-amber-50 hover:bg-amber-100/80 text-amber-900 border border-amber-200/80 text-xs font-semibold transition cursor-pointer"
-            >
-              <Palette className="w-4 h-4 text-amber-700" />
-              <span>Ganti Desain Template</span>
-            </button>
-          )}
           {onPreviewTemplate && (
             <button
               onClick={() => onPreviewTemplate(activeTemplateId || 'template-empat')}
@@ -306,18 +274,6 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
               <CreditCard className="w-4 h-4 text-emerald-700" />
               <span>Upgrade / Perpanjang Paket</span>
             </button>
-          )}
-          {(currentUser?.role === 'master' || currentUser?.role === 'admin') && (
-            <a
-              href="http://localhost:8000/master/login"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-purple-50 hover:bg-purple-100/80 text-purple-900 border border-purple-200/80 text-xs font-semibold transition cursor-pointer"
-              title="Buka Panel Master Administrator"
-            >
-              <ShieldCheck className="w-4 h-4 text-purple-700" />
-              <span>Portal Master Admin</span>
-            </a>
           )}
         </div>
 

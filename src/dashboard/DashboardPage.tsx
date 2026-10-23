@@ -22,6 +22,7 @@ import { GuestsSection } from './sections/GuestsSection';
 import { RsvpWishesSection } from './sections/RsvpWishesSection';
 import { AccountsSection } from './sections/AccountsSection';
 import { GallerySection } from './sections/GallerySection';
+import { StoriesSection } from './sections/StoriesSection';
 
 export const DashboardPage: React.FC<DashboardPageProps> = ({
   currentUser,
@@ -80,6 +81,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
               notes: serverData.giftAddress?.notes ?? prev.giftAddress?.notes ?? '',
             },
             gallery: Array.isArray(serverData.gallery) ? serverData.gallery : prev.gallery,
+            stories: Array.isArray(serverData.stories) && serverData.stories.length > 0 ? serverData.stories : prev.stories,
           };
           saveDashboardData(merged, userKey);
           return merged;
@@ -380,10 +382,6 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         data={data}
         tierConfig={tierConfig}
         currentUser={currentUser}
-        onTierChange={(newTier) => {
-          setData({ ...data, tier: newTier });
-          showToast(`Paket beralih ke: ${newTier.toUpperCase()}`);
-        }}
         onOpenPreview={() => {
           setPreviewGuestName('Tamu Terhormat');
           setShowMobilePreview(true);
@@ -393,7 +391,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
       />
 
       {/* Main Content Layout Container */}
-      <div className="flex-1 flex flex-col md:flex-row max-w-7xl w-full mx-auto p-4 sm:p-6 gap-6">
+      <div className="flex-1 flex flex-col md:flex-row max-w-7xl w-full mx-auto p-4 sm:p-6 gap-6 items-start">
         {/* Sidebar Nav & Status Quota */}
         <DashboardSidebar
           activeTab={activeTab}
@@ -434,6 +432,15 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
               onShowToast={showToast}
               purchasedTemplateIds={data.purchasedTemplateIds}
               onNavigateTemplates={onNavigateTemplates}
+            />
+          )}
+
+          {activeTab === 'stories' && (
+            <StoriesSection
+              data={data}
+              setData={setData}
+              tierConfig={tierConfig}
+              onShowToast={showToast}
             />
           )}
 

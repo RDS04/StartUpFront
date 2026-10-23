@@ -15,7 +15,7 @@ export const CoverSection: React.FC<CoverSectionProps> = ({ guestName, onOpen })
       <div className="absolute inset-0 z-0 overflow-hidden">
         <img
           src={ASSETS.coupleCover}
-          alt="Eza & Islammy Cover"
+          alt={`${WEDDING_INFO.coupleDisplay} Cover`}
           className="w-full h-full object-cover object-center brightness-60 scale-105 animate-ken-burns"
         />
         {/* Soft Sage Gradient Overlay */}

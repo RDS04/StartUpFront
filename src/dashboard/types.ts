@@ -1,4 +1,13 @@
-export type DashboardTab = 'overview' | 'bride_event' | 'guests' | 'rsvps' | 'accounts' | 'gallery';
+export type DashboardTab = 'overview' | 'bride_event' | 'stories' | 'gallery' | 'guests' | 'rsvps' | 'accounts';
+
+export interface StoryItem {
+  id: string | number;
+  year: string;
+  chapter?: string;
+  title: string;
+  story: string;
+  image?: string;
+}
 
 export interface GalleryPhotoItem {
   id: string | number;
@@ -18,6 +27,11 @@ export interface GroomBrideInfo {
 
 export interface EventInfo {
   date: string;
+  startDate?: string;
+  startTime?: string;
+  endDate?: string;
+  countdownTime?: string;
+  countdownTarget?: 'end' | 'start' | 'auto';
   dateDisplay: string;
   akadTime: string;
   akadPlace: string;
@@ -60,6 +74,7 @@ export interface DashboardData {
     notes?: string;
   };
   gallery?: GalleryPhotoItem[];
+  stories?: StoryItem[];
 }
 
 export interface GuestItem {

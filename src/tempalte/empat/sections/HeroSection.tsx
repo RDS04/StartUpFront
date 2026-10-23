@@ -39,7 +39,7 @@ export const HeroSection: React.FC = () => {
           <div className="w-full h-full rounded-t-[132px] rounded-b-xl overflow-hidden relative shadow-inner">
             <img
               src={ASSETS.coupleHero}
-              alt="Eza & Islammy"
+              alt={WEDDING_INFO.coupleDisplay}
               className="w-full h-full object-cover object-center transform hover:scale-105 transition-transform duration-700"
             />
             {/* Soft lighting overlay */}

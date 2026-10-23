@@ -15,7 +15,13 @@ import {
 } from 'lucide-react';
 import type { DashboardData, GalleryPhotoItem, TierConfig } from '../types';
 import { saveDashboardData } from '../initialData';
-import { saveMyInvitation, uploadGalleryImage } from '../../services/invitationService';
+import {
+  saveMyInvitation,
+  uploadGalleryImage,
+  addGalleryPhotoByUrl,
+  deleteGalleryPhoto,
+  saveGalleryList,
+} from '../../services/invitationService';
 
 interface GallerySectionProps {
   data: DashboardData;
@@ -61,7 +67,8 @@ export const GallerySection: React.FC<GallerySectionProps> = ({
   const handleAddPhoto = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    let finalUrl = '';
+    const caption = captionInput.trim() || 'Momen Bahagia Kami';
+    const orientation = orientationInput;
 
     if (inputMode === 'file') {
       if (!selectedFile) {
@@ -71,13 +78,57 @@ export const GallerySection: React.FC<GallerySectionProps> = ({
 
       setIsUploading(true);
       try {
-        const uploadRes = await uploadGalleryImage(selectedFile);
-        finalUrl = uploadRes.url;
+        const uploadRes = await uploadGalleryImage(selectedFile, caption, orientation);
+        if (uploadRes.gallery && Array.isArray(uploadRes.gallery)) {
+          const updatedData: DashboardData = {
+            ...data,
+            gallery: uploadRes.gallery,
+          };
+          setData(updatedData);
+          saveDashboardData(updatedData);
+          onShowToast('Foto berhasil diunggah & tersimpan ke database!');
+
+          // Reset Form
+          setSelectedFile(null);
+          setPreviewLocalUrl(null);
+          setCaptionInput('');
+          setUrlInput('');
+          if (fileInputRef.current) fileInputRef.current.value = '';
+          return;
+        }
+
+        // Fallback jika backend mengembalikan single URL
+        const finalUrl = uploadRes.url;
+        const newPhoto: GalleryPhotoItem = {
+          id: `photo-${Date.now()}`,
+          url: finalUrl,
+          thumbnail: finalUrl,
+          caption,
+          orientation,
+        };
+        const updatedGallery = [...gallery, newPhoto];
+        const updatedData: DashboardData = { ...data, gallery: updatedGallery };
+        setData(updatedData);
+        saveDashboardData(updatedData);
+        await saveMyInvitation(updatedData);
+        onShowToast('Foto berhasil ditambahkan & tersimpan ke database!');
       } catch (err: any) {
         console.warn('Gagal upload file ke backend:', err);
-        // Fallback: gunakan blob url lokal jika backend offline
-        finalUrl = previewLocalUrl || '';
-        onShowToast('Disimpan secara lokal di perangkat.');
+        const fallbackUrl = previewLocalUrl || '';
+        if (fallbackUrl) {
+          const newPhoto: GalleryPhotoItem = {
+            id: `photo-${Date.now()}`,
+            url: fallbackUrl,
+            thumbnail: fallbackUrl,
+            caption,
+            orientation,
+          };
+          const updatedGallery = [...gallery, newPhoto];
+          const updatedData: DashboardData = { ...data, gallery: updatedGallery };
+          setData(updatedData);
+          saveDashboardData(updatedData);
+        }
+        onShowToast(err.message || 'Gagal terhubung ke backend, foto disimpan lokal.');
       } finally {
         setIsUploading(false);
       }
@@ -86,37 +137,60 @@ export const GallerySection: React.FC<GallerySectionProps> = ({
         onShowToast('Masukkan tautan URL foto.');
         return;
       }
-      finalUrl = urlInput.trim();
-    }
 
-    if (!finalUrl) {
-      onShowToast('Foto tidak valid.');
-      return;
-    }
+      setIsUploading(true);
+      try {
+        const addRes = await addGalleryPhotoByUrl(urlInput.trim(), caption, orientation);
+        if (addRes.gallery && Array.isArray(addRes.gallery)) {
+          const updatedData: DashboardData = {
+            ...data,
+            gallery: addRes.gallery,
+          };
+          setData(updatedData);
+          saveDashboardData(updatedData);
+          onShowToast('Tautan foto berhasil ditambahkan & tersimpan ke database!');
 
-    const newPhoto: GalleryPhotoItem = {
-      id: `photo-${Date.now()}`,
-      url: finalUrl,
-      thumbnail: finalUrl,
-      caption: captionInput.trim() || 'Momen Bahagia Kami',
-      orientation: orientationInput,
-    };
+          // Reset Form
+          setSelectedFile(null);
+          setPreviewLocalUrl(null);
+          setCaptionInput('');
+          setUrlInput('');
+          return;
+        }
 
-    const updatedGallery = [...gallery, newPhoto];
-    const updatedData: DashboardData = {
-      ...data,
-      gallery: updatedGallery,
-    };
-
-    setData(updatedData);
-    saveDashboardData(updatedData);
-
-    // Auto save to database
-    try {
-      await saveMyInvitation(updatedData);
-      onShowToast('Foto berhasil ditambahkan & tersimpan ke database!');
-    } catch {
-      onShowToast('Foto berhasil ditambahkan ke galeri lokal.');
+        // Fallback single item
+        const finalUrl = urlInput.trim();
+        const newPhoto: GalleryPhotoItem = {
+          id: `photo-${Date.now()}`,
+          url: finalUrl,
+          thumbnail: finalUrl,
+          caption,
+          orientation,
+        };
+        const updatedGallery = [...gallery, newPhoto];
+        const updatedData: DashboardData = { ...data, gallery: updatedGallery };
+        setData(updatedData);
+        saveDashboardData(updatedData);
+        await saveMyInvitation(updatedData);
+        onShowToast('Foto berhasil ditambahkan ke database!');
+      } catch (err: any) {
+        console.warn('Gagal simpan URL ke backend:', err);
+        const finalUrl = urlInput.trim();
+        const newPhoto: GalleryPhotoItem = {
+          id: `photo-${Date.now()}`,
+          url: finalUrl,
+          thumbnail: finalUrl,
+          caption,
+          orientation,
+        };
+        const updatedGallery = [...gallery, newPhoto];
+        const updatedData: DashboardData = { ...data, gallery: updatedGallery };
+        setData(updatedData);
+        saveDashboardData(updatedData);
+        onShowToast(err.message || 'Tersimpan secara lokal.');
+      } finally {
+        setIsUploading(false);
+      }
     }
 
     // Reset Form
@@ -128,6 +202,7 @@ export const GallerySection: React.FC<GallerySectionProps> = ({
   };
 
   const handleDeletePhoto = async (id: string | number) => {
+    // Optimistic UI update
     const updatedGallery = gallery.filter((p) => p.id !== id);
     const updatedData: DashboardData = {
       ...data,
@@ -137,10 +212,23 @@ export const GallerySection: React.FC<GallerySectionProps> = ({
     saveDashboardData(updatedData);
 
     try {
-      await saveMyInvitation(updatedData);
+      const res = await deleteGalleryPhoto(id);
+      if (res.gallery) {
+        const syncedData: DashboardData = {
+          ...data,
+          gallery: res.gallery,
+        };
+        setData(syncedData);
+        saveDashboardData(syncedData);
+      }
       onShowToast('Foto berhasil dihapus dari database.');
     } catch {
-      onShowToast('Foto dihapus.');
+      try {
+        await saveMyInvitation(updatedData);
+        onShowToast('Foto berhasil dihapus dari database.');
+      } catch {
+        onShowToast('Foto dihapus.');
+      }
     }
   };
 
@@ -166,10 +254,15 @@ export const GallerySection: React.FC<GallerySectionProps> = ({
     saveDashboardData(updatedData);
 
     try {
-      await saveMyInvitation(updatedData);
-      onShowToast('Urutan foto berhasil disimpan.');
+      await saveGalleryList(reordered);
+      onShowToast('Urutan foto berhasil disimpan ke database.');
     } catch {
-      onShowToast('Urutan foto diperbarui.');
+      try {
+        await saveMyInvitation(updatedData);
+        onShowToast('Urutan foto berhasil disimpan.');
+      } catch {
+        onShowToast('Urutan foto diperbarui.');
+      }
     }
   };
 
@@ -181,7 +274,7 @@ export const GallerySection: React.FC<GallerySectionProps> = ({
       onShowToast('Galeri foto berhasil disimpan ke database!');
     } catch (err: any) {
       console.warn('Gagal menyimpan galeri:', err);
-      onShowToast('Tersimpan di perangkat lokal.');
+      onShowToast(err.message || 'Tersimpan di perangkat lokal.');
     } finally {
       setIsSaving(false);
     }
