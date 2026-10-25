@@ -1,5 +1,6 @@
 import { getAuthToken } from './authService';
 import type { DashboardData, GalleryPhotoItem, StoryItem } from '../dashboard/types';
+import { normalizeTemplateId } from '../dashboard/templateHelpers';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
 
@@ -24,13 +25,18 @@ export async function getMyInvitation(): Promise<DashboardData | null> {
     const res = await response.json();
     if (res.status && res.invitation) {
       const inv = res.invitation;
+      const normalizedTemplate = normalizeTemplateId(inv.template_id);
+      const purchasedTemplates = Array.isArray(inv.purchased_template_ids)
+        ? inv.purchased_template_ids.map((id: string) => normalizeTemplateId(id))
+        : [normalizedTemplate];
+
       return {
         tier: inv.tier || 'premium',
         slug: inv.slug || '',
         isPublished: inv.is_published !== undefined ? Boolean(inv.is_published) : true,
         themeColor: inv.theme_color || '#82694D',
-        activeTemplateId: inv.template_id || 'template-dua',
-        purchasedTemplateIds: Array.isArray(inv.purchased_template_ids) ? inv.purchased_template_ids : [inv.template_id || 'template-dua'],
+        activeTemplateId: normalizedTemplate,
+        purchasedTemplateIds: Array.from(new Set([normalizedTemplate, ...purchasedTemplates])),
         groom: {
           nickName: inv.groom?.nickName || '',
           fullName: inv.groom?.fullName || '',
@@ -93,7 +99,7 @@ export async function saveMyInvitation(data: DashboardData): Promise<{ status: b
 
   const payload = {
     slug: data.slug,
-    template_id: data.activeTemplateId,
+    template_id: normalizeTemplateId(data.activeTemplateId),
     tier: data.tier,
     is_published: data.isPublished,
     theme_color: data.themeColor,

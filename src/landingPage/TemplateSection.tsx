@@ -1,5 +1,4 @@
 import React, { useState, useRef } from 'react';
-import { motion } from 'framer-motion';
 import {
   Search,
   Navigation,
@@ -11,9 +10,13 @@ import {
   ChevronDown
 } from 'lucide-react';
 import { BotanicalLeaves } from './DecorativeBackground';
-import karinWisudaImg from '../assets/templateWisuda/karin-wisuda.jpg';
+import templateSatuMockupImg from '../tempalte/satu/image.png';
+import templateDuaMockupImg from '../tempalte/dua/image.png';
+import templateTigaMockupImg from '../tempalte/tiga/image.png';
+import templateEmpatMockupImg from '../tempalte/empat/image.png';
 import wisudaMockupImg from '../tempalte/Wisuda/satu/image.png';
 import wisudaDuaMockupImg from '../tempalte/Wisuda/dua/image.png';
+import karinWisudaImg from '../assets/templateWisuda/karin-wisuda.jpg';
 
 export interface TemplateItem {
   id: string;
@@ -23,6 +26,8 @@ export interface TemplateItem {
   names: string;
   date?: string;
   themeStyle: 'rustic' | 'dusty-rose' | 'minang-maroon' | 'sage-garden' | 'wisuda-karin' | 'wisuda-yolanda';
+  mockupImg?: string;
+  tagSubtitle?: string;
 }
 
 const templates: TemplateItem[] = [
@@ -34,6 +39,8 @@ const templates: TemplateItem[] = [
     names: 'Andi & Rosna',
     date: '24.10.2026',
     themeStyle: 'rustic',
+    mockupImg: templateSatuMockupImg,
+    tagSubtitle: 'Floral Burgundy',
   },
   {
     id: 't2',
@@ -43,6 +50,8 @@ const templates: TemplateItem[] = [
     names: 'Vani & Rahmat',
     date: '10.10.2026',
     themeStyle: 'dusty-rose',
+    mockupImg: templateDuaMockupImg,
+    tagSubtitle: 'Soft Pastel Floral',
   },
   {
     id: 't3',
@@ -52,15 +61,19 @@ const templates: TemplateItem[] = [
     names: 'Yusron & Putri',
     date: '19.09.2026',
     themeStyle: 'minang-maroon',
+    mockupImg: templateTigaMockupImg,
+    tagSubtitle: 'Adat Minang & Gold',
   },
   {
     id: 't4',
     title: 'Sage Garden Blossom (Template 4)',
     badge: 'GOLD',
     category: 'Undangan Wedding',
-    names: 'Eza & Islammy',
-    date: '17.12.2023',
+    names: 'Ilham & Annisa',
+    date: '24.10.2026',
     themeStyle: 'sage-garden',
+    mockupImg: templateEmpatMockupImg,
+    tagSubtitle: 'Sage Green & White',
   },
   {
     id: 't-wisuda-1',
@@ -70,6 +83,8 @@ const templates: TemplateItem[] = [
     names: 'Karin Wijaya, S.E',
     date: '06.06.2029',
     themeStyle: 'wisuda-karin',
+    mockupImg: wisudaMockupImg,
+    tagSubtitle: 'Wisuda Modern',
   },
   {
     id: 't-wisuda-2',
@@ -79,6 +94,8 @@ const templates: TemplateItem[] = [
     names: 'Yolanda Putri',
     date: '02.07.2024',
     themeStyle: 'wisuda-yolanda',
+    mockupImg: wisudaDuaMockupImg,
+    tagSubtitle: 'Black Gold Luxury',
   },
 ];
 
@@ -88,7 +105,7 @@ interface TemplateSectionProps {
 }
 
 // Single Scrollable Invitation Content component for the iPhone screen mockup
-const InvitationTemplateContent: React.FC<{ item: TemplateItem }> = ({ item }) => {
+export const InvitationTemplateContent: React.FC<{ item: TemplateItem }> = ({ item }) => {
   switch (item.themeStyle) {
     case 'rustic':
       return (
@@ -673,127 +690,47 @@ export const TemplateSection: React.FC<TemplateSectionProps> = ({
                     className="group rounded-3xl bg-white/90 backdrop-blur-sm border border-slate-200/80 shadow-[0_12px_30px_-5px_rgba(0,0,0,0.06)] hover:shadow-[0_25px_60px_-10px_rgba(20,77,49,0.15)] hover:-translate-y-2 transition-all duration-300 p-4 sm:p-5 flex flex-col justify-between relative overflow-hidden"
                   >
                     
-                    {/* CARD MOCKUP for Wisuda, or IPHONE FRAME MOCKUP for other templates */}
-                    <div className="relative w-full py-2 flex items-center justify-center min-h-[390px] sm:min-h-[410px]">
-                      {item.themeStyle === 'wisuda-yolanda' || item.id === 't-wisuda-2' ? (
-                        /* ========================================================= */
-                        /* WISUDA 2 (Black & Gold Yolanda Putri 3D Mockup Card)      */
-                        /* ========================================================= */
-                        <div
-                          className="relative w-full max-w-[235px] sm:max-w-[255px] aspect-[4/3] rounded-2xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.25)] border-[3px] border-white ring-1 ring-slate-900/10 flex items-center justify-center bg-[#0A0A0C] group/card hover:scale-[1.03] transition-all duration-300 select-none"
-                        >
-                          {/* Badge Overlay */}
-                          <div className="absolute top-3 right-3 z-20 pointer-events-none">
-                            <span className="px-2.5 py-0.5 rounded-full text-[9px] font-bold text-white bg-[#c98e29] shadow-md tracking-wide">
-                              {item.badge}
+                    {/* 3D Showcase Card Mockup */}
+                    <div className="relative w-full flex items-center justify-center py-1">
+                      <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden shadow-[0_15px_35px_rgba(0,0,0,0.14)] border-[3px] border-white ring-1 ring-slate-900/10 flex items-center justify-center bg-slate-100 group/card select-none">
+                        
+                        {/* Badge Overlay */}
+                        <div className="absolute top-2.5 right-2.5 z-20 pointer-events-none">
+                          <span
+                            className={`px-2.5 py-0.5 rounded-full text-[9px] font-bold text-white shadow-md tracking-wider ${
+                              item.badge === 'GRATIS'
+                                ? 'bg-[#168a44]'
+                                : item.badge === 'BRONZE'
+                                ? 'bg-[#a35e2e]'
+                                : 'bg-[#c98e29]'
+                            }`}
+                          >
+                            {item.badge}
+                          </span>
+                        </div>
+
+                        {/* Mockup Image */}
+                        <img
+                          src={item.mockupImg || templateSatuMockupImg}
+                          alt={item.title}
+                          className="w-full h-full object-cover object-center group-hover/card:scale-105 transition-transform duration-500 select-none"
+                          loading="lazy"
+                        />
+
+                        {/* Subtle Category Pill Overlay */}
+                        <div className="absolute bottom-2 inset-x-2.5 z-20 pointer-events-none">
+                          <div className="bg-slate-950/85 backdrop-blur-md px-2.5 py-1 rounded-xl border border-white/20 shadow-xs flex items-center justify-between text-white">
+                            <span className="text-[10px] font-semibold text-slate-100">
+                              {item.category === 'Undangan Wisuda' || item.category === 'Wisuda'
+                                ? 'Undangan Wisuda'
+                                : 'Undangan Wedding'}
+                            </span>
+                            <span className="text-[9px] font-bold text-emerald-300">
+                              {item.tagSubtitle || '3D Mockup'}
                             </span>
                           </div>
-
-                          <img
-                            src={wisudaDuaMockupImg}
-                            alt={item.title}
-                            className="w-full h-full object-cover object-center group-hover/card:scale-105 transition-transform duration-500 select-none"
-                          />
-
-                          {/* Subtle Category Pill Overlay */}
-                          <div className="absolute bottom-2.5 inset-x-3 z-20 pointer-events-none">
-                            <div className="bg-black/85 backdrop-blur-md px-3 py-1 rounded-xl border border-amber-500/30 shadow-xs flex items-center justify-between">
-                              <span className="text-[10px] font-semibold text-white">Undangan Wisuda</span>
-                              <span className="text-[9px] text-[#E2BA65] font-bold">Black & Gold</span>
-                            </div>
-                          </div>
                         </div>
-                      ) : item.category === 'Undangan Wisuda' || item.category === 'Wisuda' ? (
-                        /* ========================================================= */
-                        /* WISUDA CARD (Card Persegi 4 Sesuai Gambar)                 */
-                        /* ========================================================= */
-                        <div
-                          className="relative w-full max-w-[235px] sm:max-w-[255px] aspect-[4/3] rounded-2xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.15)] border-[3px] border-white ring-1 ring-slate-900/10 flex items-center justify-center bg-[#EDE8E1] group/card hover:scale-[1.03] transition-all duration-300 select-none"
-                        >
-                          {/* Badge Overlay */}
-                          <div className="absolute top-3 right-3 z-20 pointer-events-none">
-                            <span className="px-2.5 py-0.5 rounded-full text-[9px] font-bold text-white bg-[#a35e2e] shadow-md tracking-wide">
-                              {item.badge}
-                            </span>
-                          </div>
-
-                          <img
-                            src={wisudaMockupImg}
-                            alt={item.title}
-                            className="w-full h-full object-cover object-center group-hover/card:scale-105 transition-transform duration-500 select-none"
-                          />
-
-                          {/* Subtle Category Pill Overlay */}
-                          <div className="absolute bottom-2.5 inset-x-3 z-20 pointer-events-none">
-                            <div className="bg-white/90 backdrop-blur-md px-3 py-1 rounded-xl border border-white/60 shadow-xs flex items-center justify-between">
-                              <span className="text-[10px] font-semibold text-slate-800">Undangan Wisuda</span>
-                              <span className="text-[9px] text-[#A97943] font-bold">1 Section Card</span>
-                            </div>
-                          </div>
-                        </div>
-                      ) : (
-                        /* ========================================================= */
-                        /* IPHONE FRAME MOCKUP (For Wedding Templates)               */
-                        /* ========================================================= */
-                        <div className="relative w-[215px] sm:w-[225px] h-[390px] sm:h-[410px] bg-slate-950 rounded-[38px] p-2 shadow-2xl border-[4px] border-slate-800 ring-1 ring-slate-900/60 flex flex-col items-center select-none group/phone hover:scale-[1.02] transition-transform duration-300">
-                          
-                          {/* Side Buttons (Volume & Power Button Accents) */}
-                          <div className="absolute -left-[6px] top-18 w-[2.5px] h-5 bg-slate-700 rounded-l-sm" />
-                          <div className="absolute -left-[6px] top-26 w-[2.5px] h-8 bg-slate-700 rounded-l-sm" />
-                          <div className="absolute -left-[6px] top-36 w-[2.5px] h-8 bg-slate-700 rounded-l-sm" />
-                          <div className="absolute -right-[6px] top-24 w-[2.5px] h-10 bg-slate-700 rounded-r-sm" />
-
-                          {/* Inner iPhone Screen Viewport */}
-                          <div className="w-full h-full rounded-[30px] overflow-hidden bg-white relative flex flex-col shadow-inner border border-slate-900/40">
-                            
-                            {/* Dynamic Island / iPhone Notch */}
-                            <div className="absolute top-1.5 left-1/2 -translate-x-1/2 w-16 h-3.5 bg-slate-950 rounded-full z-30 flex items-center justify-between px-2 shadow-sm pointer-events-none">
-                              <div className="w-1.5 h-1.5 rounded-full bg-slate-800" />
-                              <div className="w-1 h-1 rounded-full bg-blue-900/90 ring-1 ring-blue-500/40" />
-                            </div>
-
-                            {/* Badge Overlay (Top Right inside Phone Screen) */}
-                            <div className="absolute top-6 right-2 z-30 pointer-events-none">
-                              {item.badge === 'GRATIS' && (
-                                <span className="px-2 py-0.5 rounded-full text-[8.5px] font-bold text-white bg-[#168a44] shadow-md tracking-wide">
-                                  GRATIS
-                                </span>
-                              )}
-                              {item.badge === 'BRONZE' && (
-                                <span className="px-2 py-0.5 rounded-full text-[8.5px] font-bold text-white bg-[#a35e2e] shadow-md tracking-wide">
-                                  BRONZE
-                                </span>
-                              )}
-                              {item.badge === 'GOLD' && (
-                                <span className="px-2 py-0.5 rounded-full text-[8.5px] font-bold text-white bg-[#c98e29] shadow-md tracking-wide">
-                                  GOLD
-                                </span>
-                              )}
-                            </div>
-
-                            {/* Auto-Scrolling Digital Invitation Canvas */}
-                            <div className="w-full h-full overflow-hidden relative">
-                              <motion.div
-                                animate={{ y: ['0%', '-50%'] }}
-                                transition={{
-                                  duration: 15,
-                                  repeat: Infinity,
-                                  ease: 'linear',
-                                }}
-                                className="w-full flex flex-col"
-                              >
-                                <InvitationTemplateContent item={item} />
-                                <InvitationTemplateContent item={item} />
-                              </motion.div>
-                            </div>
-
-                            {/* Bottom Home Indicator Bar */}
-                            <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 w-16 h-1 bg-slate-400/80 rounded-full z-30 pointer-events-none" />
-
-                          </div>
-
-                        </div>
-                      )}
+                      </div>
                     </div>
 
                     {/* Card Footer: Title & Action Buttons */}

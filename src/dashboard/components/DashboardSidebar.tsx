@@ -14,6 +14,7 @@ import {
   BookHeart,
 } from 'lucide-react';
 import type { DashboardTab, TierConfig } from '../types';
+import { normalizeTemplateId } from '../templateHelpers';
 
 interface DashboardSidebarProps {
   activeTab: DashboardTab;
@@ -168,7 +169,7 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                   <button
                     onClick={() => {
                       setShowMobileQuickHub(false);
-                      onPreviewTemplate(activeTemplateId || 'template-empat');
+                      onPreviewTemplate(normalizeTemplateId(activeTemplateId));
                     }}
                     className="flex items-center gap-2 p-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-800 border border-stone-200 font-semibold text-left transition cursor-pointer"
                   >
@@ -250,7 +251,7 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
         <div className="flex flex-col gap-1.5 pt-2">
           {onPreviewTemplate && (
             <button
-              onClick={() => onPreviewTemplate(activeTemplateId || 'template-empat')}
+              onClick={() => onPreviewTemplate(normalizeTemplateId(activeTemplateId))}
               className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-800 border border-stone-200 text-xs font-semibold transition cursor-pointer"
             >
               <Sparkles className="w-4 h-4 text-emerald-700" />

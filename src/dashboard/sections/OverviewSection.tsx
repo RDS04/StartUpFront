@@ -14,6 +14,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import type { DashboardData, GuestItem, WishItem, TierConfig, DashboardTab } from '../types';
+import { getTemplateDisplayName } from '../templateHelpers';
 
 interface OverviewSectionProps {
   data: DashboardData;
@@ -46,28 +47,6 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
   const publicLink = `${origin}/#/${effectiveSlug}`;
   const displayHost = typeof window !== 'undefined' ? `${window.location.host}/#/${effectiveSlug}` : `localhost:5173/#/${effectiveSlug}`;
 
-  // Helper nama template aktif
-  const getTemplateName = (id?: string) => {
-    switch (id) {
-      case 'template-satu':
-        return 'Rustic Blossom (Template 1)';
-      case 'template-dua':
-        return 'Dusty Rose (Template 2)';
-      case 'template-tiga':
-        return 'Minang Maroon (Template 3)';
-      case 'template-empat':
-        return 'Sage Garden (Template 4)';
-      case 'card-atm':
-        return 'Card ATM Exclusive';
-      case 'wisuda-satu':
-        return 'Wisuda Modern 1';
-      case 'wisuda-dua':
-        return 'Wisuda Floral 2';
-      default:
-        return 'Sage Garden (Template 4)';
-    }
-  };
-
   return (
     <div className="space-y-6 animate-in fade-in">
       {/* Header Banner Publikasi Live */}
@@ -80,7 +59,7 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
             </span>
             <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[#D4AF37]/20 text-[#F3E5AB] border border-[#D4AF37]/30">
               <Sparkles className="w-3 h-3 text-[#D4AF37]" />
-              {getTemplateName(data.activeTemplateId)}
+              {getTemplateDisplayName(data.activeTemplateId)}
             </span>
           </div>
 

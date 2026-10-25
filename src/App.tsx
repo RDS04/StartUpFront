@@ -15,6 +15,7 @@ import { getSavedAuthUser, getAuthToken, fetchCurrentUser, logoutAuth, type Auth
 import { GlobalLoadingOverlay } from './components/common/LottieLoader';
 import { getSavedDashboardData, saveDashboardData, clearAllDashboardData } from './dashboard/initialData';
 import { getInvitationBySlug } from './services/invitationService';
+import { normalizeTemplateId } from './dashboard/templateHelpers';
 import type { DashboardData } from './dashboard/types';
 
 type PageRoute = 
@@ -172,13 +173,14 @@ export function App() {
       if (slug && slug !== 'invitation') {
         getInvitationBySlug(slug).then((inv) => {
           if (inv) {
+            const normalizedTpl = normalizeTemplateId(inv.template_id);
             const serverData: DashboardData = {
               tier: inv.tier || 'premium',
               slug: inv.slug || slug,
               isPublished: inv.is_published !== undefined ? Boolean(inv.is_published) : true,
               themeColor: inv.theme_color || '#82694D',
-              activeTemplateId: inv.template_id || 'template-dua',
-              purchasedTemplateIds: [inv.template_id || 'template-dua'],
+              activeTemplateId: normalizedTpl,
+              purchasedTemplateIds: [normalizedTpl],
               groom: {
                 nickName: inv.groom?.nickName || '',
                 fullName: inv.groom?.fullName || '',
@@ -261,7 +263,7 @@ export function App() {
   // RENDER DYNAMIC INVITATION TEMPLATE (Localhost domain: /#/:slug)
   if (route === 'invitation') {
     const dashData = getSavedDashboardData();
-    const activeTemplate = dashData.activeTemplateId || 'template-empat';
+    const activeTemplate = normalizeTemplateId(dashData.activeTemplateId);
 
     const backButton = (
       <div className="fixed top-4 left-4 z-[70]">
@@ -299,6 +301,14 @@ export function App() {
         </div>
       );
     }
+    if (activeTemplate === 'template-empat') {
+      return (
+        <div className="relative min-h-screen bg-[#1e2a20]">
+          {backButton}
+          <SageBlossomTemplate isPreview={false} />
+        </div>
+      );
+    }
     if (activeTemplate === 'card-atm') {
       return (
         <div className="relative min-h-screen">
@@ -324,11 +334,11 @@ export function App() {
       );
     }
 
-    // Default template-empat (Sage Blossom)
+    // Fallback default template-satu (Rustic Blossom)
     return (
-      <div className="relative min-h-screen bg-[#1e2a20]">
+      <div className="relative min-h-screen bg-[#180407]">
         {backButton}
-        <SageBlossomTemplate isPreview={false} />
+        <RusticBlossomTemplate isPreview={false} />
       </div>
     );
   }

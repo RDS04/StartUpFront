@@ -74,31 +74,44 @@ export function normalizeTemplateId(rawIdOrName?: string | null): string {
   if (!rawIdOrName) return 'template-satu';
   const val = String(rawIdOrName).trim().toLowerCase();
 
+  // 1. Direct match dengan MASTER_TEMPLATES
+  const directMatch = MASTER_TEMPLATES.find((t) => t.id === val);
+  if (directMatch) return directMatch.id;
+
+  // 2. Card ATM
   if (val.includes('card-atm') || val.includes('kartu-atm') || val.includes('atm')) {
     return 'card-atm';
   }
+
+  // 3. Wisuda 2 (Yolanda / Black Gold)
   if (val.includes('wisuda-dua') || val.includes('wisuda-2') || val.includes('yolanda') || val.includes('t-wisuda-2')) {
     return 'wisuda-dua';
   }
+
+  // 4. Wisuda 1 (Karin / Modern)
   if (val.includes('wisuda-satu') || val.includes('wisuda-1') || val.includes('karin') || val.includes('t-wisuda-1') || val.includes('wisuda')) {
     return 'wisuda-satu';
   }
-  if (val.includes('template-empat') || val.includes('empat') || val.includes('sage') || val === 't4' || val.includes('template 4') || val.includes('template-4')) {
+
+  // 5. Template 4 (Sage Garden / Botanical)
+  if (val.includes('template-empat') || val.includes('sage') || val === 't4' || val.includes('template 4') || val.includes('template-4') || val.includes('sage-garden')) {
     return 'template-empat';
   }
-  if (val.includes('template-tiga') || val.includes('tiga') || val.includes('minang') || val === 't3' || val.includes('template 3') || val.includes('template-3')) {
+
+  // 6. Template 3 (Minang Maroon / Adat)
+  if (val.includes('template-tiga') || val.includes('minang') || val === 't3' || val.includes('template 3') || val.includes('template-3') || val.includes('minang-maroon') || val.includes('maroon')) {
     return 'template-tiga';
   }
-  if (val.includes('template-dua') || val.includes('dua') || val.includes('dusty') || val === 't2' || val.includes('template 2') || val.includes('template-2')) {
+
+  // 7. Template 2 (Dusty Rose / Lily)
+  if (val.includes('template-dua') || val.includes('dusty') || val === 't2' || val.includes('template 2') || val.includes('template-2') || val.includes('dusty-rose')) {
     return 'template-dua';
   }
-  if (val.includes('template-satu') || val.includes('satu') || val.includes('rustic') || val === 't1' || val.includes('template 1') || val.includes('template-1') || val.includes('rose')) {
+
+  // 8. Template 1 (Rustic Blossom / Floral Burgundy)
+  if (val.includes('template-satu') || val.includes('rustic') || val === 't1' || val.includes('template 1') || val.includes('template-1') || val.includes('rustic-blossom') || val.includes('blossom') || val.includes('rose') || val.includes('satu')) {
     return 'template-satu';
   }
-
-  // Jika sudah cocok dengan salah satu MASTER_TEMPLATES
-  const directMatch = MASTER_TEMPLATES.find((t) => t.id === val);
-  if (directMatch) return directMatch.id;
 
   return 'template-satu';
 }
@@ -107,4 +120,14 @@ export function getTemplateById(id?: string | null): MasterTemplate {
   const normalized = normalizeTemplateId(id);
   const found = MASTER_TEMPLATES.find((t) => t.id === normalized);
   return found || MASTER_TEMPLATES[0];
+}
+
+export function getTemplateDisplayName(rawIdOrName?: string | null): string {
+  const tmpl = getTemplateById(rawIdOrName);
+  return tmpl ? tmpl.name : 'Template 1 - Rustic Blossom (Floral Rose)';
+}
+
+export function getTemplateShortName(rawIdOrName?: string | null): string {
+  const tmpl = getTemplateById(rawIdOrName);
+  return tmpl ? tmpl.shortName : 'Rustic Blossom (T1)';
 }

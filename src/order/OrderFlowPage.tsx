@@ -22,6 +22,13 @@ import type { AuthUser } from '../services/authService';
 import { BotanicalLeaves } from '../landingPage/DecorativeBackground';
 import { triggerLoading } from '../components/common/LottieLoader';
 import { getSavedDashboardData, saveDashboardData } from '../dashboard/initialData';
+import { normalizeTemplateId } from '../dashboard/templateHelpers';
+import templateSatuMockupImg from '../tempalte/satu/image.png';
+import templateDuaMockupImg from '../tempalte/dua/image.png';
+import templateTigaMockupImg from '../tempalte/tiga/image.png';
+import templateEmpatMockupImg from '../tempalte/empat/image.png';
+import wisudaMockupImg from '../tempalte/Wisuda/satu/image.png';
+import wisudaDuaMockupImg from '../tempalte/Wisuda/dua/image.png';
 
 declare global {
   interface Window {
@@ -88,42 +95,42 @@ export const PLANS: PlanOption[] = [];
 
 export const TEMPLATES: TemplateOption[] = [
   {
-    id: 'rustic-blossom',
+    id: 'template-satu',
     name: 'Rustic Blossom (Template 1)',
     category: 'Undangan Wedding',
     tag: 'Burgundy & Gold',
     previewRoute: 'template-satu',
-    image: 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=600&q=80',
+    image: templateSatuMockupImg,
     desc: 'Desain anggun dengan ornamen botani berkelas, perpaduan warna burgundy mewah dan sentuhan emas.',
     badgeText: 'FAVORIT',
   },
   {
-    id: 'dusty-rose',
+    id: 'template-dua',
     name: 'Dusty Rose Lily (Template 2)',
     category: 'Undangan Wedding',
     tag: 'Soft Pastel Floral',
     previewRoute: 'template-dua',
-    image: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=600&q=80',
+    image: templateDuaMockupImg,
     desc: 'Nuansa bunga lily merah muda dan sentuhan modern minimalis yang memancarkan kehangatan cinta.',
     badgeText: 'ROMANTIS',
   },
   {
-    id: 'minang-maroon',
+    id: 'template-tiga',
     name: 'Minang Maroon Gold (Template 3)',
     category: 'Undangan Wedding',
     tag: 'Adat Minang & Gold',
     previewRoute: 'template-tiga',
-    image: 'https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=600&q=80',
+    image: templateTigaMockupImg,
     desc: 'Perpaduan megah nuansa adat Minang dengan sentuhan warna maroon mewah dan detail emas berkelas.',
     badgeText: 'GOLD',
   },
   {
-    id: 'sage-garden',
+    id: 'template-empat',
     name: 'Sage Garden Blossom (Template 4)',
     category: 'Undangan Wedding',
     tag: 'Sage Green & White',
     previewRoute: 'template-empat',
-    image: 'https://images.unsplash.com/photo-1545232979-8bf68ee9b1af?auto=format&fit=crop&w=600&q=80',
+    image: templateEmpatMockupImg,
     desc: 'Nuansa alam botanical sage green yang asri, tenang, dan memikat untuk pernikahan impian.',
     badgeText: 'GOLD',
   },
@@ -133,7 +140,7 @@ export const TEMPLATES: TemplateOption[] = [
     category: 'Undangan Wisuda',
     tag: 'Wisuda & Kelulusan',
     previewRoute: 'wisuda-satu',
-    image: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=600&q=80',
+    image: wisudaMockupImg,
     desc: 'Perayaan kelulusan istimewa dengan desain modern, foto wisudawan dan detail acara.',
     badgeText: 'BRONZE',
   },
@@ -143,7 +150,7 @@ export const TEMPLATES: TemplateOption[] = [
     category: 'Undangan Wisuda',
     tag: 'Black Gold Luxury',
     previewRoute: 'wisuda-dua',
-    image: 'https://images.unsplash.com/photo-1627556704290-2b1f5853ff78?auto=format&fit=crop&w=600&q=80',
+    image: wisudaDuaMockupImg,
     desc: 'Tema Black & Gold mewah dan prestisius dengan countdown, live stream, galeri dan amplop ucapan selamat.',
     badgeText: 'GOLD',
   },
@@ -415,7 +422,8 @@ export const OrderFlowPage: React.FC<OrderFlowPageProps> = ({
         if (rawTmpl) {
           try {
             const t = JSON.parse(rawTmpl);
-            const tid = t?.previewRoute || t?.id;
+            const rawId = t?.id || t?.previewRoute;
+            const tid = normalizeTemplateId(rawId);
             if (tid) {
               dashObj.activeTemplateId = tid;
               const currentPurchased = Array.isArray(dashObj.purchasedTemplateIds) ? dashObj.purchasedTemplateIds : [];
@@ -504,7 +512,8 @@ export const OrderFlowPage: React.FC<OrderFlowPageProps> = ({
       if (selectedPlan?.id) {
         dashObj.tier = selectedPlan.id as any;
       }
-      const tId = selectedTemplate?.previewRoute || selectedTemplate?.id;
+      const rawTplId = selectedTemplate?.id || selectedTemplate?.previewRoute;
+      const tId = normalizeTemplateId(rawTplId);
       if (tId) {
         dashObj.activeTemplateId = tId;
         const currentPurchased = Array.isArray(dashObj.purchasedTemplateIds) ? dashObj.purchasedTemplateIds : [];
@@ -528,9 +537,10 @@ export const OrderFlowPage: React.FC<OrderFlowPageProps> = ({
     triggerLoading(true, 'Menyiapkan Pembayaran...', 'Menghubungkan ke gerbang pembayaran Midtrans QRIS...');
 
     try {
+      const canonicalTemplateId = normalizeTemplateId(selectedTemplate?.id || selectedTemplate?.previewRoute);
       const res = await createOrder({
         plan_name: selectedPlan.name,
-        template_id: selectedTemplate.id,
+        template_id: canonicalTemplateId,
         template_name: selectedTemplate.name,
         plan_price: selectedPlan.price,
         admin_fee: adminFee,

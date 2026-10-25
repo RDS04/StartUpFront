@@ -18,6 +18,13 @@ import { Check, AlertCircle, X, Sparkles } from 'lucide-react';
 import { getSavedAuthUser, type AuthUser } from '../services/authService';
 import { getMyOrders } from '../services/orderService';
 import { getSavedDashboardData, saveDashboardData } from '../dashboard/initialData';
+import { normalizeTemplateId } from '../dashboard/templateHelpers';
+import templateSatuMockupImg from '../tempalte/satu/image.png';
+import templateDuaMockupImg from '../tempalte/dua/image.png';
+import templateTigaMockupImg from '../tempalte/tiga/image.png';
+import templateEmpatMockupImg from '../tempalte/empat/image.png';
+import wisudaMockupImg from '../tempalte/Wisuda/satu/image.png';
+import wisudaDuaMockupImg from '../tempalte/Wisuda/dua/image.png';
 
 interface LandingPageProps {
   currentUser?: AuthUser | null;
@@ -344,51 +351,51 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       setFlowMode('template-first');
     }
 
-    let targetTmplId = 'rustic-blossom';
+    let targetTmplId = 'template-satu';
     let tmplObj = {
-      id: 'rustic-blossom',
+      id: 'template-satu',
       name: 'Rustic Blossom (Template 1)',
       category: 'Elegan & Mewah',
       tag: 'Burgundy & Gold',
       previewRoute: 'template-satu',
-      image: 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=600&q=80',
+      image: templateSatuMockupImg,
       desc: 'Desain anggun dengan ornamen botani berkelas, perpaduan warna burgundy mewah dan sentuhan emas.',
       badgeText: 'FAVORIT',
     };
 
     if (template.id === 't2' || template.themeStyle === 'dusty-rose') {
-      targetTmplId = 'dusty-rose';
+      targetTmplId = 'template-dua';
       tmplObj = {
-        id: 'dusty-rose',
+        id: 'template-dua',
         name: 'Dusty Rose Lily (Template 2)',
         category: 'Romantis & Manis',
         tag: 'Soft Pastel Floral',
         previewRoute: 'template-dua',
-        image: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=600&q=80',
+        image: templateDuaMockupImg,
         desc: 'Nuansa bunga lily merah muda dan sentuhan modern minimalis yang memancarkan kehangatan cinta.',
         badgeText: 'ROMANTIS',
       };
     } else if (template.id === 't3' || template.themeStyle === 'minang-maroon') {
-      targetTmplId = 'minang-maroon';
+      targetTmplId = 'template-tiga';
       tmplObj = {
-        id: 'minang-maroon',
+        id: 'template-tiga',
         name: 'Minang Maroon Gold (Template 3)',
         category: 'Tradisional & Megah',
         tag: 'Adat Minang & Gold',
         previewRoute: 'template-tiga',
-        image: 'https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=600&q=80',
+        image: templateTigaMockupImg,
         desc: 'Perpaduan megah nuansa adat Minang dengan sentuhan warna maroon mewah dan detail emas berkelas.',
         badgeText: 'GOLD',
       };
     } else if (template.id === 't4' || template.themeStyle === 'sage-garden') {
-      targetTmplId = 'sage-garden';
+      targetTmplId = 'template-empat';
       tmplObj = {
-        id: 'sage-garden',
+        id: 'template-empat',
         name: 'Sage Garden Blossom (Template 4)',
         category: 'Botanical & Natural',
         tag: 'Sage Green & White',
         previewRoute: 'template-empat',
-        image: 'https://images.unsplash.com/photo-1545232979-8bf68ee9b1af?auto=format&fit=crop&w=600&q=80',
+        image: templateEmpatMockupImg,
         desc: 'Nuansa alam botanical sage green yang asri, tenang, dan memikat untuk pernikahan impian.',
         badgeText: 'GOLD',
       };
@@ -399,8 +406,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         name: 'Wisuda Karin (Template Wisuda 1)',
         category: 'Undangan Wisuda',
         tag: 'Wisuda & Kelulusan',
-        previewRoute: 'wisuda',
-        image: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=600&q=80',
+        previewRoute: 'wisuda-satu',
+        image: wisudaMockupImg,
         desc: 'Perayaan kelulusan istimewa dengan desain modern, foto wisudawan dan detail acara.',
         badgeText: 'BRONZE',
       };
@@ -412,11 +419,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         category: 'Undangan Wisuda',
         tag: 'Black Gold Luxury',
         previewRoute: 'wisuda-dua',
-        image: 'https://images.unsplash.com/photo-1627556704290-2b1f5853ff78?auto=format&fit=crop&w=600&q=80',
+        image: wisudaDuaMockupImg,
         desc: 'Tema Black & Gold mewah dan prestisius dengan countdown, live stream, galeri dan amplop ucapan selamat.',
         badgeText: 'GOLD',
       };
     }
+
+    targetTmplId = normalizeTemplateId(targetTmplId);
+    tmplObj.id = targetTmplId;
 
     // JIKA USER BELUM DAFTAR ATAU LOGIN:
     // Simpan template yang diinginkan ke ij_intended_template (TIDAK mengaktifkan stepper transaksi sampai user login)
@@ -440,6 +450,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       sessionStorage.setItem('ij_new_order_intent', 'true');
       sessionStorage.setItem('ij_selected_template', JSON.stringify(tmplObj));
       sessionStorage.setItem('ij_transaction_active', 'true');
+      const userKey = currentUser?.id || currentUser?.email;
+      const dashData = getSavedDashboardData(userKey);
+      dashData.activeTemplateId = targetTmplId;
+      const currentPurchased = Array.isArray(dashData.purchasedTemplateIds) ? dashData.purchasedTemplateIds : [];
+      if (!currentPurchased.includes(targetTmplId)) {
+        dashData.purchasedTemplateIds = [...currentPurchased, targetTmplId];
+      }
+      saveDashboardData(dashData, userKey);
     } catch {}
     setWelcomeRegisterNotice(false);
     setIsOrderPaid(false);

@@ -5,6 +5,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import type { DashboardData } from '../types';
+import { normalizeTemplateId, getTemplateDisplayName } from '../templateHelpers';
 import { RusticBlossomTemplate } from '../../tempalte/satu/main';
 import { DustyRoseTemplate } from '../../tempalte/dua/main';
 import { MinangMaroonTemplate } from '../../tempalte/tiga/main';
@@ -20,27 +21,6 @@ interface MobilePreviewModalProps {
   onCopyText?: (text: string, label?: string) => void;
 }
 
-const getTemplateName = (id?: string) => {
-  switch (id) {
-    case 'template-satu':
-      return 'Template 1 - Rustic Blossom';
-    case 'template-dua':
-      return 'Template 2 - Dusty Rose';
-    case 'template-tiga':
-      return 'Template 3 - Minang Maroon';
-    case 'template-empat':
-      return 'Template 4 - Sage Blossom';
-    case 'card-atm':
-      return 'Template Kartu ATM';
-    case 'wisuda-satu':
-      return 'Template Wisuda Modern';
-    case 'wisuda-dua':
-      return 'Template Wisuda Elegance';
-    default:
-      return 'Template 4 - Sage Blossom';
-  }
-};
-
 export const MobilePreviewModal: React.FC<MobilePreviewModalProps> = ({
   isOpen,
   onClose,
@@ -48,7 +28,7 @@ export const MobilePreviewModal: React.FC<MobilePreviewModalProps> = ({
   guestName,
 }) => {
   const [activeTab, setActiveTab] = useState<'cover' | 'content'>('cover');
-  const activeTemplate = data.activeTemplateId || 'template-empat';
+  const activeTemplate = normalizeTemplateId(data.activeTemplateId);
   const invitationUrl = `/#/${data.slug}`;
 
   if (!isOpen) return null;
@@ -69,7 +49,7 @@ export const MobilePreviewModal: React.FC<MobilePreviewModalProps> = ({
           </div>
           <div className="min-w-0">
             <div className="text-[11px] font-bold text-white truncate flex items-center gap-1.5">
-              <span>{getTemplateName(activeTemplate)}</span>
+              <span>{getTemplateDisplayName(activeTemplate)}</span>
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
             </div>
             <p className="text-[10px] text-emerald-300/90 truncate">
