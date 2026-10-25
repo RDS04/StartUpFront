@@ -52,6 +52,41 @@ export const RusticBlossomTemplate: React.FC<RusticBlossomTemplateProps> = ({
   );
 };
 
+const getGuestNameFromUrl = (customName?: string): string => {
+  if (customName && customName.trim()) return customName.trim();
+  if (typeof window === 'undefined') return 'Tamu Undangan';
+  try {
+    // 1. Cek query parameter di dalam hash (contoh: #/alif-agustin?to=Rahman)
+    const hash = window.location.hash || '';
+    const qIndex = hash.indexOf('?');
+    if (qIndex !== -1) {
+      const hashParams = new URLSearchParams(hash.substring(qIndex));
+      const toVal = hashParams.get('to') || hashParams.get('guest') || hashParams.get('u');
+      if (toVal && toVal.trim()) {
+        return decodeURIComponent(toVal.replace(/\+/g, ' ')).trim();
+      }
+    }
+
+    // 2. Cek query string standar (contoh: ?to=Rahman)
+    if (window.location.search) {
+      const searchParams = new URLSearchParams(window.location.search);
+      const toVal = searchParams.get('to') || searchParams.get('guest') || searchParams.get('u');
+      if (toVal && toVal.trim()) {
+        return decodeURIComponent(toVal.replace(/\+/g, ' ')).trim();
+      }
+    }
+
+    // 3. Fallback regex dari full href jika ada format gabungan
+    const hrefMatch = window.location.href.match(/[?&]to=([^&#]*)/i);
+    if (hrefMatch && hrefMatch[1]) {
+      return decodeURIComponent(hrefMatch[1].replace(/\+/g, ' ')).trim();
+    }
+  } catch {
+    // Fallback
+  }
+  return 'Tamu Undangan';
+};
+
 const RusticBlossomTemplateInner: React.FC<{ isEmbedded?: boolean; defaultOpen?: boolean; guestNameProp?: string }> = ({
   isEmbedded = false,
   defaultOpen = false,
@@ -62,20 +97,28 @@ const RusticBlossomTemplateInner: React.FC<{ isEmbedded?: boolean; defaultOpen?:
   const [isCoverOpen, setIsCoverOpen] = useState(defaultOpen);
   const [isOpening, setIsOpening] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [guestName] = useState<string>(() => {
-    if (guestNameProp) return guestNameProp;
-    if (typeof window === 'undefined') return 'Tamu Undangan';
-    try {
-      const urlParams = new URLSearchParams(window.location.search);
-      const toParam = urlParams.get('to');
-      if (toParam && toParam.trim() !== '') {
-        return decodeURIComponent(toParam.replace(/\+/g, ' '));
-      }
-    } catch {
-      // Fallback
+  const [guestName, setGuestName] = useState<string>(() => getGuestNameFromUrl(guestNameProp));
+
+  useEffect(() => {
+    if (guestNameProp) {
+      setGuestName(guestNameProp);
+      return;
     }
-    return 'Tamu Undangan';
-  });
+    const syncGuest = () => {
+      const found = getGuestNameFromUrl();
+      setGuestName(found);
+      if (found !== 'Tamu Undangan') {
+        setRsvpName((prev) => (!prev ? found : prev));
+      }
+    };
+    syncGuest();
+    window.addEventListener('hashchange', syncGuest);
+    window.addEventListener('popstate', syncGuest);
+    return () => {
+      window.removeEventListener('hashchange', syncGuest);
+      window.removeEventListener('popstate', syncGuest);
+    };
+  }, [guestNameProp]);
 
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [activeLightboxImg, setActiveLightboxImg] = useState<string | null>(null);
@@ -86,17 +129,8 @@ const RusticBlossomTemplateInner: React.FC<{ isEmbedded?: boolean; defaultOpen?:
 
   // RSVP Form States
   const [rsvpName, setRsvpName] = useState<string>(() => {
-    if (typeof window === 'undefined') return '';
-    try {
-      const urlParams = new URLSearchParams(window.location.search);
-      const toParam = urlParams.get('to');
-      if (toParam && toParam.trim() !== '') {
-        return decodeURIComponent(toParam.replace(/\+/g, ' '));
-      }
-    } catch {
-      // Fallback
-    }
-    return '';
+    const initialGuest = getGuestNameFromUrl(guestNameProp);
+    return initialGuest !== 'Tamu Undangan' ? initialGuest : '';
   });
   const [attendance, setAttendance] = useState<'hadir' | 'tidak_hadir' | 'ragu'>('hadir');
   const [guestsCount, setGuestsCount] = useState<number>(1);

@@ -24,3 +24,11 @@ export interface BankAccountItem {
   holderName: string;
   badgeColor: string;
 }
+
+export interface SatuGalleryPhoto {
+  id?: string | number;
+  url: string;
+  thumbnail?: string;
+  caption?: string;
+  orientation?: 'portrait' | 'landscape';
+}

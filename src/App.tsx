@@ -126,6 +126,7 @@ export function App() {
 
   const [loggedInUser, setLoggedInUser] = useState<AuthUser | null>(() => getSavedAuthUser());
   const [showToast, setShowToast] = useState(false);
+  const [serverInvitationData, setServerInvitationData] = useState<DashboardData | null>(null);
 
   // Sinkronkan data profil dari backend dan perbarui state autentikasi
   useEffect(() => {
@@ -224,7 +225,9 @@ export function App() {
               gallery: Array.isArray(inv.gallery) ? inv.gallery : [],
             };
             saveDashboardData(serverData);
+            setServerInvitationData(serverData);
             window.dispatchEvent(new Event('storage'));
+            window.dispatchEvent(new CustomEvent('ij_dashboard_update'));
           }
         }).catch(() => {});
       }
@@ -260,10 +263,35 @@ export function App() {
     }
   };
 
+  // Helper ekstraksi nama tamu dari URL (baik di query string ?to= maupun di dalam hash #/slug?to=)
+  const extractGuestFromUrl = (): string => {
+    if (typeof window === 'undefined') return 'Tamu Undangan';
+    try {
+      const hash = window.location.hash || '';
+      const qIndex = hash.indexOf('?');
+      if (qIndex !== -1) {
+        const hashParams = new URLSearchParams(hash.substring(qIndex));
+        const toVal = hashParams.get('to') || hashParams.get('guest') || hashParams.get('u');
+        if (toVal && toVal.trim()) return decodeURIComponent(toVal.replace(/\+/g, ' ')).trim();
+      }
+      if (window.location.search) {
+        const searchParams = new URLSearchParams(window.location.search);
+        const toVal = searchParams.get('to') || searchParams.get('guest') || searchParams.get('u');
+        if (toVal && toVal.trim()) return decodeURIComponent(toVal.replace(/\+/g, ' ')).trim();
+      }
+      const hrefMatch = window.location.href.match(/[?&]to=([^&#]*)/i);
+      if (hrefMatch && hrefMatch[1]) {
+        return decodeURIComponent(hrefMatch[1].replace(/\+/g, ' ')).trim();
+      }
+    } catch {}
+    return 'Tamu Undangan';
+  };
+
   // RENDER DYNAMIC INVITATION TEMPLATE (Localhost domain: /#/:slug)
   if (route === 'invitation') {
-    const dashData = getSavedDashboardData();
+    const dashData = serverInvitationData || getSavedDashboardData();
     const activeTemplate = normalizeTemplateId(dashData.activeTemplateId);
+    const guestName = extractGuestFromUrl();
 
     const backButton = (
       <div className="fixed top-4 left-4 z-[70]">
@@ -281,7 +309,7 @@ export function App() {
       return (
         <div className="relative min-h-screen bg-[#180407]">
           {backButton}
-          <RusticBlossomTemplate isPreview={false} />
+          <RusticBlossomTemplate isPreview={false} guestName={guestName} />
         </div>
       );
     }
@@ -289,7 +317,7 @@ export function App() {
       return (
         <div className="relative min-h-screen bg-[#7e5f62]">
           {backButton}
-          <DustyRoseTemplate isPreview={false} />
+          <DustyRoseTemplate isPreview={false} guestName={guestName} />
         </div>
       );
     }
@@ -297,7 +325,7 @@ export function App() {
       return (
         <div className="relative min-h-screen bg-[#200306]">
           {backButton}
-          <MinangMaroonTemplate isPreview={false} />
+          <MinangMaroonTemplate isPreview={false} guestName={guestName} />
         </div>
       );
     }
@@ -305,7 +333,7 @@ export function App() {
       return (
         <div className="relative min-h-screen bg-[#1e2a20]">
           {backButton}
-          <SageBlossomTemplate isPreview={false} />
+          <SageBlossomTemplate isPreview={false} guestName={guestName} />
         </div>
       );
     }
@@ -338,7 +366,7 @@ export function App() {
     return (
       <div className="relative min-h-screen bg-[#180407]">
         {backButton}
-        <RusticBlossomTemplate isPreview={false} />
+        <RusticBlossomTemplate isPreview={false} guestName={guestName} />
       </div>
     );
   }

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Tilt from "react-parallax-tilt";
 import { Copy, RefreshCw } from "lucide-react";
 import "./AtmCard3D.css";
@@ -29,6 +29,22 @@ export const AtmCard: React.FC<AtmCardProps> = ({
   const [cardExpiry, setCardExpiry] = useState(expiry);
   const [cardCvv, setCardCvv] = useState(cvv);
   const [isFlipped, setIsFlipped] = useState(false);
+
+  useEffect(() => {
+    setCardNumber(accountNumber);
+  }, [accountNumber]);
+
+  useEffect(() => {
+    setCardHolder(holderName);
+  }, [holderName]);
+
+  useEffect(() => {
+    setCardExpiry(expiry);
+  }, [expiry]);
+
+  useEffect(() => {
+    setCardCvv(cvv);
+  }, [cvv]);
 
   const toggleFlip = () => {
     setIsFlipped((prev) => !prev);
