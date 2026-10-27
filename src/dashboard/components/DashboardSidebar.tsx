@@ -8,6 +8,7 @@ import {
   ShieldCheck,
   Palette,
   CreditCard,
+  Receipt,
   ChevronRight,
   ChevronDown,
   Zap,
@@ -30,7 +31,10 @@ interface DashboardSidebarProps {
   onNavigateTemplates?: () => void;
   onNavigatePricing?: () => void;
   onNavigatePayment?: () => void;
+  onOpenPaymentHistory?: () => void;
   onPreviewTemplate?: (previewRoute: string) => void;
+  onOpenActiveTemplates?: () => void;
+  purchasedTemplatesCount?: number;
 }
 
 export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
@@ -43,7 +47,10 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
   onNavigateTemplates: _onNavigateTemplates,
   onNavigatePricing,
   onNavigatePayment,
+  onOpenPaymentHistory,
   onPreviewTemplate,
+  onOpenActiveTemplates,
+  purchasedTemplatesCount = 0,
 }) => {
   const [showMobileQuickHub, setShowMobileQuickHub] = useState(false);
   const activeTabRef = useRef<HTMLButtonElement>(null);
@@ -165,29 +172,42 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
 
               {/* Quick Actions Grid */}
               <div className="grid grid-cols-2 gap-2 text-xs">
-                {onPreviewTemplate && (
+                {(onOpenActiveTemplates || onPreviewTemplate) && (
                   <button
                     onClick={() => {
                       setShowMobileQuickHub(false);
-                      onPreviewTemplate(normalizeTemplateId(activeTemplateId));
+                      if (onOpenActiveTemplates) {
+                        onOpenActiveTemplates();
+                      } else if (onPreviewTemplate) {
+                        onPreviewTemplate(normalizeTemplateId(activeTemplateId));
+                      }
                     }}
                     className="flex items-center gap-2 p-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-800 border border-stone-200 font-semibold text-left transition cursor-pointer"
                   >
                     <Sparkles className="w-4 h-4 text-emerald-700 shrink-0" />
                     <span className="truncate">Template Aktif</span>
+                    {purchasedTemplatesCount > 1 && (
+                      <span className="ml-auto text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-emerald-600 text-white">
+                        {purchasedTemplatesCount}
+                      </span>
+                    )}
                   </button>
                 )}
 
-                {onNavigatePayment && (
+                {(onOpenPaymentHistory || onNavigatePayment) && (
                   <button
                     onClick={() => {
                       setShowMobileQuickHub(false);
-                      onNavigatePayment();
+                      if (onOpenPaymentHistory) {
+                        onOpenPaymentHistory();
+                      } else if (onNavigatePayment) {
+                        onNavigatePayment();
+                      }
                     }}
                     className="flex items-center gap-2 p-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200 font-semibold text-left transition cursor-pointer"
                   >
-                    <CreditCard className="w-4 h-4 text-emerald-700 shrink-0" />
-                    <span className="truncate">Status Pembayaran</span>
+                    <Receipt className="w-4 h-4 text-emerald-700 shrink-0" />
+                    <span className="truncate">Riwayat Pembayaran</span>
                   </button>
                 )}
 
@@ -249,22 +269,45 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
 
         {/* Quick Links (Lihat Template Aktif & Status Pembayaran) */}
         <div className="flex flex-col gap-1.5 pt-2">
-          {onPreviewTemplate && (
+          {(onOpenActiveTemplates || onPreviewTemplate) && (
             <button
-              onClick={() => onPreviewTemplate(normalizeTemplateId(activeTemplateId))}
-              className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-800 border border-stone-200 text-xs font-semibold transition cursor-pointer"
+              id="btn-lihat-template-aktif"
+              type="button"
+              onClick={() => {
+                if (onOpenActiveTemplates) {
+                  onOpenActiveTemplates();
+                } else if (onPreviewTemplate) {
+                  onPreviewTemplate(normalizeTemplateId(activeTemplateId));
+                }
+              }}
+              className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-800 border border-stone-200 text-xs font-semibold transition cursor-pointer group"
+              title="Lihat template aktif & koleksi template yang dibeli"
             >
-              <Sparkles className="w-4 h-4 text-emerald-700" />
-              <span>Lihat Template Aktif</span>
+              <Sparkles className="w-4 h-4 text-emerald-700 group-hover:scale-110 transition-transform" />
+              <span className="truncate">Lihat Template Aktif</span>
+              {purchasedTemplatesCount > 1 && (
+                <span className="ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-600 text-white shadow-xs">
+                  {purchasedTemplatesCount} Dimiliki
+                </span>
+              )}
             </button>
           )}
-          {onNavigatePayment && (
+          {(onOpenPaymentHistory || onNavigatePayment) && (
             <button
-              onClick={onNavigatePayment}
+              id="btn-riwayat-pembayaran"
+              type="button"
+              onClick={() => {
+                if (onOpenPaymentHistory) {
+                  onOpenPaymentHistory();
+                } else if (onNavigatePayment) {
+                  onNavigatePayment();
+                }
+              }}
               className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100/80 text-emerald-900 border border-emerald-200/80 text-xs font-semibold transition cursor-pointer"
+              title="Lihat riwayat transaksi dan invoice template"
             >
-              <CreditCard className="w-4 h-4 text-emerald-700" />
-              <span>Status Pembayaran</span>
+              <Receipt className="w-4 h-4 text-emerald-700" />
+              <span>Riwayat Pembayaran</span>
             </button>
           )}
           {onNavigatePricing && !onNavigatePayment && (

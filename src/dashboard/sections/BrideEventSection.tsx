@@ -1,5 +1,5 @@
 import React, { useState, useRef, useMemo, useEffect } from 'react';
-import { Calendar, Music, MapPin, Lock, Save, Camera, Globe, Copy, ExternalLink, Sparkles, RefreshCw, User, CheckCircle2, Loader2, Clipboard, Clock, AlertTriangle, CalendarRange, Hourglass, Flag, Play } from 'lucide-react';
+import { Calendar, Music, MapPin, Lock, Save, Camera, Globe, Copy, ExternalLink, Sparkles, RefreshCw, User, CheckCircle2, Loader2, Clipboard, Clock, AlertTriangle, CalendarRange, Hourglass, Flag, Play, ChevronDown } from 'lucide-react';
 import type { DashboardData, TierConfig } from '../types';
 import { normalizeTemplateId, MASTER_TEMPLATES } from '../templateHelpers';
 import { saveMyInvitation } from '../../services/invitationService';
@@ -12,6 +12,13 @@ interface BrideEventSectionProps {
   onShowToast: (msg: string) => void;
   purchasedTemplateIds?: string[];
   onNavigateTemplates?: () => void;
+  onOpenActiveTemplates?: () => void;
+  onSelectTemplate?: (
+    templateId: string,
+    tier: 'silver' | 'gold' | 'platinum' | 'premium',
+    templateName: string,
+    planName: string
+  ) => void;
 }
 
 export function createSlugFromNames(groom: string, bride: string): string {
@@ -85,6 +92,8 @@ export const BrideEventSection: React.FC<BrideEventSectionProps> = ({
   onShowToast,
   purchasedTemplateIds,
   onNavigateTemplates,
+  onOpenActiveTemplates,
+  onSelectTemplate,
 }) => {
   const groomFileRef = useRef<HTMLInputElement | null>(null);
   const brideFileRef = useRef<HTMLInputElement | null>(null);
@@ -133,6 +142,12 @@ export const BrideEventSection: React.FC<BrideEventSectionProps> = ({
     const current = MASTER_TEMPLATES.find((tpl) => tpl.id === normalizeTemplateId(data.activeTemplateId));
     return [current || MASTER_TEMPLATES[0]];
   }, [purchasedIds, data.activeTemplateId]);
+
+  // Template object yang sedang aktif saat ini
+  const currentTemplateObj = useMemo(() => {
+    const normActive = normalizeTemplateId(data.activeTemplateId);
+    return MASTER_TEMPLATES.find((tpl) => tpl.id === normActive) || availableTemplates[0] || MASTER_TEMPLATES[0];
+  }, [data.activeTemplateId, availableTemplates]);
 
   // Otomatis sinkronkan activeTemplateId jika template saat ini tidak ada di daftar yang dibeli
   useEffect(() => {
@@ -518,94 +533,118 @@ export const BrideEventSection: React.FC<BrideEventSectionProps> = ({
         </div>
       </div>
 
-      {/* Info Template Undangan Yang Digunakan (Hanya yang Dipilih & Dibeli) */}
-      <div className="p-4 sm:p-5 rounded-2xl bg-white border border-stone-200/90 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center shrink-0 text-amber-700">
-            <Sparkles className="w-5 h-5" />
+      {/* Info Template Undangan Yang Digunakan (Clean, Minimalist & Luxury Redesign) */}
+      <div className="p-3.5 sm:p-4 rounded-2xl bg-white border border-stone-200/90 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 transition-all">
+        {/* Left: Thumbnail & Active Template Info */}
+        <div className="flex items-center gap-3.5 min-w-0">
+          <div className="relative w-12 h-12 rounded-xl overflow-hidden border border-stone-200 bg-stone-100 shrink-0 shadow-2xs group">
+            {currentTemplateObj?.image ? (
+              <img
+                src={currentTemplateObj.image}
+                alt={currentTemplateObj.name}
+                className="w-full h-full object-cover object-top transition-transform duration-300 group-hover:scale-105"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-amber-700 bg-amber-50">
+                <Sparkles className="w-5 h-5" />
+              </div>
+            )}
+            <span className="absolute bottom-0 inset-x-0 bg-stone-950/70 text-[8px] font-bold text-white text-center py-0.5 backdrop-blur-xs uppercase tracking-tight">
+              {currentTemplateObj?.category || 'Wedding'}
+            </span>
           </div>
-          <div>
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-[11px] font-bold text-amber-900 tracking-wide uppercase">
-                Template Undangan Aktif
+
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] sm:text-[11px] font-bold text-stone-400 uppercase tracking-wider">
+                Template Aktif
               </span>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-semibold border border-emerald-200 flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                Tersinkronisasi Otomatis
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                Aktif Digunakan
               </span>
             </div>
-            <p className="text-xs text-stone-600 mt-1">
-              Foto mempelai pria &amp; wanita serta seluruh data yang Anda simpan di bawah ini akan <strong>otomatis diterapkan</strong> pada template yang aktif di tautan undangan tamu Anda.
-            </p>
-            <p className="text-[11px] text-stone-400 italic mt-0.5">
-              *Hanya memunculkan desain template yang telah Anda pilih dan beli.
+            <h3 className="text-xs sm:text-sm font-bold text-stone-900 truncate mt-0.5">
+              {currentTemplateObj?.name || 'Template Undangan'}
+            </h3>
+            <p className="text-[11px] text-stone-500 truncate hidden sm:block">
+              Data formulir dan foto di bawah otomatis disinkronkan ke template ini.
             </p>
           </div>
         </div>
 
-        {/* Tampilkan Hanya Template Yang Dipilih & Dibeli */}
-        {availableTemplates.length <= 1 ? (
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 shrink-0 self-start md:self-auto">
-            <div className="flex items-center gap-2.5 px-3.5 py-2.5 bg-emerald-50 border border-emerald-200 rounded-xl shadow-xs">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-              <div className="flex flex-col">
-                <span className="text-xs font-bold text-emerald-950">
-                  {availableTemplates[0]?.name || 'Template 1 - Rustic Blossom (Floral Rose)'}
-                </span>
-                <span className="text-[10px] font-semibold text-emerald-700 flex items-center gap-1">
-                  <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />
-                  Template Terpilih &amp; Dibeli
-                </span>
+        {/* Right: Clean, Unified Controls */}
+        <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto w-full sm:w-auto justify-end">
+          {availableTemplates.length > 1 ? (
+            <div className="flex items-center gap-2">
+              {/* Quick Dropdown */}
+              <div className="relative">
+                <select
+                  value={normalizeTemplateId(data.activeTemplateId)}
+                  onChange={(e) => {
+                    const newTpl = normalizeTemplateId(e.target.value);
+                    if (newTpl === normalizeTemplateId(data.activeTemplateId)) return;
+                    const tplObj = availableTemplates.find((t) => t.id === newTpl);
+                    if (onSelectTemplate) {
+                      onSelectTemplate(newTpl, data.tier, tplObj?.name || newTpl, `Paket ${tierConfig.name}`);
+                    } else {
+                      setData((prev) => ({ ...prev, activeTemplateId: newTpl }));
+                      onShowToast(`Template aktif beralih ke: ${tplObj?.name || newTpl}`);
+                    }
+                  }}
+                  aria-label="Pilih Template Aktif"
+                  className="appearance-none pl-3 pr-8 py-2 bg-stone-50 hover:bg-stone-100 border border-stone-200 hover:border-stone-300 rounded-xl text-xs font-semibold text-stone-800 focus:outline-none focus:ring-2 focus:ring-[#2D6A4F] cursor-pointer transition shadow-2xs"
+                  title="Ganti template aktif secara langsung"
+                >
+                  {availableTemplates.map((opt) => (
+                    <option key={opt.id} value={opt.id}>
+                      {opt.shortName || opt.name}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="w-3.5 h-3.5 text-stone-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
+
+              {/* Tombol Buka Koleksi Template */}
+              {onOpenActiveTemplates && (
+                <button
+                  type="button"
+                  onClick={onOpenActiveTemplates}
+                  className="px-3 py-2 rounded-xl text-xs font-semibold text-stone-700 hover:text-stone-900 bg-white hover:bg-stone-50 border border-stone-200 transition shadow-2xs flex items-center gap-1.5 cursor-pointer"
+                  title="Lihat seluruh template yang Anda miliki beserta paketnya"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                  <span className="hidden sm:inline">Koleksi</span>
+                  <span className="px-1.5 py-0.2 rounded-full bg-stone-100 text-[10px] font-bold text-stone-700">
+                    {availableTemplates.length}
+                  </span>
+                </button>
+              )}
             </div>
-            {onNavigateTemplates && (
+          ) : (
+            onOpenActiveTemplates && (
               <button
                 type="button"
-                onClick={onNavigateTemplates}
-                className="text-[11px] font-semibold text-stone-600 hover:text-emerald-800 bg-stone-100 hover:bg-stone-200/80 px-2.5 py-2 rounded-xl transition cursor-pointer flex items-center justify-center gap-1 border border-stone-200"
-                title="Beli atau tambah template baru dari katalog"
+                onClick={onOpenActiveTemplates}
+                className="px-3.5 py-2 rounded-xl text-xs font-semibold text-stone-700 hover:text-stone-900 bg-stone-50 hover:bg-stone-100 border border-stone-200 transition shadow-2xs flex items-center gap-1.5 cursor-pointer"
               >
-                + Beli Desain Lain
+                <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                <span>Lihat Template</span>
               </button>
-            )}
-          </div>
-        ) : (
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 shrink-0 self-start md:self-auto">
-            <div className="flex flex-col gap-1">
-              <div className="flex items-center gap-1 text-[11px] font-semibold text-stone-600">
-                <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                <span>Template Anda ({availableTemplates.length} Dibeli):</span>
-              </div>
-              <select
-                value={normalizeTemplateId(data.activeTemplateId)}
-                onChange={(e) => {
-                  const newTpl = e.target.value;
-                  setData((prev) => ({ ...prev, activeTemplateId: newTpl }));
-                  const tplObj = availableTemplates.find((t) => t.id === newTpl);
-                  onShowToast(`Template aktif beralih ke: ${tplObj?.name || newTpl}`);
-                }}
-                aria-label="Pilih Template Aktif"
-                className="text-xs font-semibold bg-emerald-50/60 hover:bg-emerald-50 border border-emerald-300 rounded-xl px-3 py-2 text-stone-800 focus:outline-none focus:ring-2 focus:ring-[#2D6A4F] cursor-pointer shadow-xs"
-              >
-                {availableTemplates.map((opt) => (
-                  <option key={opt.id} value={opt.id}>
-                    ✓ {opt.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            {onNavigateTemplates && (
-              <button
-                type="button"
-                onClick={onNavigateTemplates}
-                className="text-[11px] font-semibold text-stone-600 hover:text-emerald-800 bg-stone-100 hover:bg-stone-200/80 px-2.5 py-2 rounded-xl transition cursor-pointer flex items-center justify-center gap-1 border border-stone-200 self-end sm:self-auto mt-auto"
-                title="Beli atau tambah template baru dari katalog"
-              >
-                + Beli Desain Lain
-              </button>
-            )}
-          </div>
-        )}
+            )
+          )}
+
+          {onNavigateTemplates && (
+            <button
+              type="button"
+              onClick={onNavigateTemplates}
+              className="px-2.5 py-2 rounded-xl text-xs font-medium text-stone-500 hover:text-emerald-700 hover:bg-emerald-50/50 transition cursor-pointer"
+              title="Beli template baru dari katalog"
+            >
+              + Beli Lain
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Profil Mempelai Pria & Wanita */}

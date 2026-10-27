@@ -69,11 +69,12 @@ export const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
         {/* Brand & Client Info */}
         <div className="flex items-center space-x-2 sm:space-x-3.5 min-w-0 shrink">
           {/* Logo Wedding Rings */}
-          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-gradient-to-tr from-[#1B4332] to-[#2D6A4F] flex items-center justify-center shadow-md shadow-emerald-900/15 border border-emerald-700/30 shrink-0">
-            <svg viewBox="0 0 24 24" className="w-4 h-4 sm:w-5 sm:h-5 text-[#FAF7F2] stroke-current fill-none stroke-2">
-              <circle cx="9" cy="12" r="5" stroke="#FAF7F2" strokeWidth="2" />
-              <circle cx="15" cy="12" r="5" stroke="#E8D5B5" strokeWidth="2" />
-            </svg>
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-gradient-to-br from-white/95 via-amber-50/40 to-white/90 p-1 flex items-center justify-center shadow-xs border border-amber-200/70 shrink-0">
+            <img 
+              src="/image-transparent.png" 
+              alt="Logo" 
+              className="w-full h-full object-contain filter drop-shadow-[0_2px_4px_rgba(180,83,9,0.25)]" 
+            />
           </div>
 
           <div className="min-w-0">

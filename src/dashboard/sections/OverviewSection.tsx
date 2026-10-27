@@ -30,6 +30,7 @@ interface OverviewSectionProps {
   onCopyLink: (text: string, label?: string) => void;
   onOpenQrModal: () => void;
   onNavigateTab: (tab: DashboardTab) => void;
+  onOpenActiveTemplates?: () => void;
 }
 
 export const OverviewSection: React.FC<OverviewSectionProps> = ({
@@ -41,6 +42,7 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
   onCopyLink,
   onOpenQrModal,
   onNavigateTab,
+  onOpenActiveTemplates,
 }) => {
   const origin = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.host}` : 'http://localhost:5173';
   const effectiveSlug = data.slug || (data.groom.nickName && data.bride.nickName ? `${data.groom.nickName}-${data.bride.nickName}`.toLowerCase().replace(/[^a-z0-9-]/g, '') : '') || 'nama-pasangan';
@@ -57,10 +59,23 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
               Undangan Telah Dipublikasikan (Live Localhost)
             </span>
-            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[#D4AF37]/20 text-[#F3E5AB] border border-[#D4AF37]/30">
-              <Sparkles className="w-3 h-3 text-[#D4AF37]" />
-              {getTemplateDisplayName(data.activeTemplateId)}
-            </span>
+            {onOpenActiveTemplates ? (
+              <button
+                type="button"
+                onClick={onOpenActiveTemplates}
+                className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[#D4AF37]/20 hover:bg-[#D4AF37]/35 text-[#F3E5AB] border border-[#D4AF37]/30 transition cursor-pointer"
+                title="Klik untuk melihat koleksi template & beralih template aktif"
+              >
+                <Sparkles className="w-3 h-3 text-[#D4AF37]" />
+                <span>{getTemplateDisplayName(data.activeTemplateId)}</span>
+                <span className="text-[9px] underline ml-1 opacity-75">Ubah</span>
+              </button>
+            ) : (
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[#D4AF37]/20 text-[#F3E5AB] border border-[#D4AF37]/30">
+                <Sparkles className="w-3 h-3 text-[#D4AF37]" />
+                {getTemplateDisplayName(data.activeTemplateId)}
+              </span>
+            )}
           </div>
 
           <h1 className="font-serif text-2xl sm:text-3xl font-bold tracking-tight text-white mb-2">

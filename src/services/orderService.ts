@@ -34,6 +34,9 @@ export interface OrderItem {
   total_amount: number;
   payment_method: string;
   status: string;
+  midtrans_order_id?: string;
+  snap_token?: string;
+  invoice_number?: string;
   created_at: string;
 }
 
@@ -72,9 +75,41 @@ export async function createOrder(payload: CreateOrderPayload): Promise<CreateOr
   return data;
 }
 
+export async function payPendingOrder(orderId: number): Promise<{
+  status: boolean;
+  message: string;
+  order: OrderItem;
+  snap_token?: string | null;
+  redirect_url?: string | null;
+  client_key?: string;
+}> {
+  const token = getAuthToken();
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+  };
+
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  const response = await fetch(`${API_BASE_URL}/orders/${orderId}/pay`, {
+    method: 'POST',
+    headers,
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.message || 'Gagal menyiapkan pembayaran pesanan.');
+  }
+
+  return data;
+}
+
 export async function markOrderPaid(
   orderId: number,
-  midtransOrderId?: string | null
+  midtransOrderId?: string | null,
+  simulateSandbox = false
 ): Promise<{ status: boolean; message: string; order: OrderItem }> {
   const token = getAuthToken();
   const headers: Record<string, string> = {
@@ -86,11 +121,13 @@ export async function markOrderPaid(
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${API_BASE_URL}/orders/${orderId}/verify-payment`, {
+  const query = simulateSandbox ? '?simulate_sandbox=1' : '';
+  const response = await fetch(`${API_BASE_URL}/orders/${orderId}/verify-payment${query}`, {
     method: 'POST',
     headers,
     body: JSON.stringify({
       midtrans_order_id: midtransOrderId || undefined,
+      simulate_sandbox: simulateSandbox ? true : undefined,
     }),
   });
 

@@ -75,10 +75,21 @@ export async function loginUser(payload: LoginPayload): Promise<AuthResponse> {
     body: JSON.stringify(payload),
   });
 
-  const data = await response.json();
+  let data: any = {};
+  try {
+    data = await response.json();
+  } catch {
+    data = {};
+  }
 
   if (!response.ok) {
-    throw new Error(data.message || 'Email atau kata sandi tidak valid.');
+    const error: any = new Error(data.message || 'Email atau kata sandi tidak valid.');
+    error.account_deleted = !!data.account_deleted;
+    error.account_not_found = !!data.account_not_found;
+    error.email = data.email || payload.email;
+    error.status = response.status;
+    error.data = data;
+    throw error;
   }
 
   if (data.token) {
@@ -122,6 +133,7 @@ export async function authenticateWithGoogle(
         msg = 'Maaf, coba ulangi lagi.';
       }
       const error: any = new Error(msg);
+      error.account_deleted = !!data.account_deleted;
       error.not_registered = !!data.not_registered;
       error.already_registered = !!data.already_registered;
       error.email = data.email;
@@ -139,8 +151,8 @@ export async function authenticateWithGoogle(
 
     return data;
   } catch (err: any) {
-    // Jika error memiliki status khusus dari backend (not_registered / already_registered)
-    if (err.not_registered || err.already_registered) {
+    // Jika error memiliki status khusus dari backend (account_deleted / not_registered / already_registered)
+    if (err.account_deleted || err.not_registered || err.already_registered) {
       throw err;
     }
 
@@ -150,6 +162,7 @@ export async function authenticateWithGoogle(
     }
 
     const sanitizedError: any = new Error(msg);
+    sanitizedError.account_deleted = !!err.account_deleted;
     sanitizedError.not_registered = !!err.not_registered;
     sanitizedError.already_registered = !!err.already_registered;
     sanitizedError.email = err.email;
@@ -157,6 +170,18 @@ export async function authenticateWithGoogle(
     sanitizedError.status = err.status;
     sanitizedError.data = err.data;
     throw sanitizedError;
+  }
+}
+
+/**
+ * Cek apakah email user pernah dihapus oleh Master
+ */
+export async function checkAccountDeleted(email: string): Promise<{ deleted: boolean; message?: string }> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/auth/check-deleted?email=${encodeURIComponent(email)}`);
+    return await res.json();
+  } catch {
+    return { deleted: false };
   }
 }
 
@@ -200,7 +225,22 @@ export async function fetchCurrentUser(): Promise<AuthUser | null> {
 
     if (!response.ok) {
       if (response.status === 401 || response.status === 403) {
+        const savedUser = getSavedAuthUser();
+        const savedEmail = savedUser?.email;
         await logoutAuth();
+        if (savedEmail) {
+          try {
+            const chk = await checkAccountDeleted(savedEmail);
+            if (chk.deleted) {
+              sessionStorage.setItem('ij_account_deleted_notice', JSON.stringify({
+                email: savedEmail,
+                message: 'Akun tidak ditemukan. Akun Anda telah dihapus oleh Master Administrator.'
+              }));
+            }
+          } catch {
+            // ignore
+          }
+        }
       }
       return null;
     }

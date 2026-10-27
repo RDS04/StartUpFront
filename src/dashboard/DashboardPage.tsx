@@ -1,12 +1,18 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Sparkles } from 'lucide-react';
 import type { DashboardTab, DashboardData, GuestItem, WishItem, TierConfig, DashboardPageProps } from './types';
-import { getSavedDashboardData, saveDashboardData, getSavedGuests, saveGuests, getSavedWishes, saveWishes } from './initialData';
+import { getSavedDashboardData, saveDashboardData, getDefaultDashboardDataForTemplate, getSavedGuests, saveGuests, getSavedWishes, saveWishes } from './initialData';
+import type { OrderItem } from '../services/orderService';
 import { getMyOrders } from '../services/orderService';
-import { getMyInvitation } from '../services/invitationService';
+import { getMyInvitation, switchActiveTemplateApi, saveMyInvitation, parseServerInvitation } from '../services/invitationService';
 import { getGuests, createGuest } from '../services/guestService';
 import { getMyWishes } from '../services/rsvpService';
-import { normalizeTemplateId } from './templateHelpers';
+import {
+  normalizeTemplateId,
+  getTemplateById,
+  inferTierFromPlanName,
+  getTierDisplayName,
+} from './templateHelpers';
 
 // Sub Components
 import { DashboardNavbar } from './components/DashboardNavbar';
@@ -14,6 +20,9 @@ import { DashboardSidebar } from './components/DashboardSidebar';
 import { AddGuestModal } from './components/AddGuestModal';
 import { QrCodeModal } from './components/QrCodeModal';
 import { MobilePreviewModal } from './components/MobilePreviewModal';
+import { ActiveTemplatesModal, type PurchasedTemplateCardItem } from './components/ActiveTemplatesModal';
+import { PaymentHistoryModal } from './components/PaymentHistoryModal';
+import { TemplateTransitionLoading } from './components/TemplateTransitionLoading';
 
 // Tab Sections
 import { OverviewSection } from './sections/OverviewSection';
@@ -39,11 +48,23 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   // User ID or Email scoping key
   const userKey = currentUser?.id || currentUser?.email;
 
-  // Main Dashboard State (disimpan dan dibaca dari localStorage berdasar akun user)
+  // Main Dashboard State (disimpan dan dibaca dari localStorage berdasar akun user dan template aktif)
   const [data, setData] = useState<DashboardData>(() => getSavedDashboardData(userKey));
   const [guests, setGuests] = useState<GuestItem[]>(() => getSavedGuests(userKey));
   const [isSavingGuest, setIsSavingGuest] = useState(false);
   const [wishes, setWishes] = useState<WishItem[]>(() => getSavedWishes(userKey));
+  const [userOrders, setUserOrders] = useState<OrderItem[]>([]);
+  const [showActiveTemplatesModal, setShowActiveTemplatesModal] = useState(false);
+  const [showPaymentHistoryModal, setShowPaymentHistoryModal] = useState(false);
+  const [previewOverrideTemplate, setPreviewOverrideTemplate] = useState<string | undefined>(undefined);
+  const [isSwitchingTemplate, setIsSwitchingTemplate] = useState(false);
+  const [switchingInfo, setSwitchingInfo] = useState<{
+    templateName: string;
+    templateId: string;
+    tier: 'silver' | 'gold' | 'platinum' | 'premium';
+    image?: string;
+    planName?: string;
+  } | null>(null);
 
   // Sync data ke localStorage setiap ada perubahan
   useEffect(() => {
@@ -66,24 +87,52 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
 
     getMyInvitation().then((serverData) => {
       if (serverData) {
+        const activeTid = serverData.activeTemplateId || 'template-satu';
+        const localTmplData = getSavedDashboardData(userKey, activeTid);
+
         setData((prev) => {
           const merged: DashboardData = {
-            ...prev,
+            ...localTmplData,
             ...serverData,
-            groom: { ...prev.groom, ...serverData.groom },
-            bride: { ...prev.bride, ...serverData.bride },
-            event: { ...prev.event, ...serverData.event },
-            bankAccounts: serverData.bankAccounts?.length ? serverData.bankAccounts : prev.bankAccounts,
-            giftAddress: {
-              recipient: serverData.giftAddress?.recipient ?? prev.giftAddress?.recipient ?? '',
-              phone: serverData.giftAddress?.phone ?? prev.giftAddress?.phone ?? '',
-              address: serverData.giftAddress?.address ?? prev.giftAddress?.address ?? '',
-              notes: serverData.giftAddress?.notes ?? prev.giftAddress?.notes ?? '',
+            activeTemplateId: activeTid,
+            tier: serverData.tier || localTmplData.tier || 'premium',
+            purchasedTemplateIds: Array.from(
+              new Set([
+                ...(prev.purchasedTemplateIds || []),
+                ...(serverData.purchasedTemplateIds || []),
+                ...(localTmplData.purchasedTemplateIds || []),
+                activeTid,
+              ])
+            ),
+            groom: {
+              nickName: serverData.groom?.nickName || localTmplData.groom?.nickName || '',
+              fullName: serverData.groom?.fullName || localTmplData.groom?.fullName || '',
+              parents: serverData.groom?.parents || localTmplData.groom?.parents || '',
+              avatar: serverData.groom?.avatar || localTmplData.groom?.avatar || '',
+              instagram: serverData.groom?.instagram || localTmplData.groom?.instagram || '',
             },
-            gallery: Array.isArray(serverData.gallery) ? serverData.gallery : prev.gallery,
-            stories: Array.isArray(serverData.stories) && serverData.stories.length > 0 ? serverData.stories : prev.stories,
+            bride: {
+              nickName: serverData.bride?.nickName || localTmplData.bride?.nickName || '',
+              fullName: serverData.bride?.fullName || localTmplData.bride?.fullName || '',
+              parents: serverData.bride?.parents || localTmplData.bride?.parents || '',
+              avatar: serverData.bride?.avatar || localTmplData.bride?.avatar || '',
+              instagram: serverData.bride?.instagram || localTmplData.bride?.instagram || '',
+            },
+            event: {
+              ...localTmplData.event,
+              ...serverData.event,
+            },
+            bankAccounts: serverData.bankAccounts?.length ? serverData.bankAccounts : (localTmplData.bankAccounts || []),
+            giftAddress: {
+              recipient: serverData.giftAddress?.recipient ?? localTmplData.giftAddress?.recipient ?? '',
+              phone: serverData.giftAddress?.phone ?? localTmplData.giftAddress?.phone ?? '',
+              address: serverData.giftAddress?.address ?? localTmplData.giftAddress?.address ?? '',
+              notes: serverData.giftAddress?.notes ?? localTmplData.giftAddress?.notes ?? '',
+            },
+            gallery: Array.isArray(serverData.gallery) && serverData.gallery.length > 0 ? serverData.gallery : (localTmplData.gallery || []),
+            stories: Array.isArray(serverData.stories) && serverData.stories.length > 0 ? serverData.stories : (localTmplData.stories || []),
           };
-          saveDashboardData(merged, userKey);
+          saveDashboardData(merged, userKey, activeTid);
           return merged;
         });
       }
@@ -140,6 +189,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         let purchasedFromOrders: string[] = [];
 
         if (orders && orders.length > 0) {
+          setUserOrders(orders);
+
           // Ambil pesanan yang berstatus 'paid', atau gunakan semua pesanan user
           const paidOrders = orders.filter((o) => o.status === 'paid');
           const orderPool = paidOrders.length > 0 ? paidOrders : orders;
@@ -185,14 +236,13 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             hasChanges = true;
           }
 
-          const effectiveTpl = chosenTemplateId || (uniquePurchased.length > 0 ? uniquePurchased[0] : null);
-          if (
-            effectiveTpl &&
-            (!updated.activeTemplateId ||
-              !uniquePurchased.includes(normalizeTemplateId(updated.activeTemplateId)) ||
-              (chosenTemplateId && normalizeTemplateId(updated.activeTemplateId) !== chosenTemplateId))
-          ) {
-            updated.activeTemplateId = effectiveTpl;
+          const isCurrentActiveValid =
+            updated.activeTemplateId &&
+            uniquePurchased.includes(normalizeTemplateId(updated.activeTemplateId));
+
+          if (!isCurrentActiveValid) {
+            const fallbackTpl = chosenTemplateId || (uniquePurchased.length > 0 ? uniquePurchased[0] : 'template-satu');
+            updated.activeTemplateId = fallbackTpl;
             hasChanges = true;
           }
 
@@ -251,6 +301,256 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   const copyToClipboard = (text: string, label = 'Tautan berhasil disalin!') => {
     navigator.clipboard?.writeText(text);
     showToast(label);
+  };
+
+  // List template yang telah dibeli oleh user (dari Orders backend + purchasedTemplateIds di invitation)
+  const purchasedTemplatesList: PurchasedTemplateCardItem[] = useMemo(() => {
+    const result: PurchasedTemplateCardItem[] = [];
+    const addedTemplateIds = new Set<string>();
+
+    // 1. Ambil dari riwayat pesanan (orders backend)
+    const paidOrders = userOrders.filter((o) => o.status === 'paid');
+    const orderPool = paidOrders.length > 0 ? paidOrders : userOrders;
+
+    orderPool.forEach((ord) => {
+      const rawTid = ord.template_id || ord.template_name;
+      if (!rawTid) return;
+      const normId = normalizeTemplateId(rawTid);
+      if (addedTemplateIds.has(normId)) return;
+      addedTemplateIds.add(normId);
+
+      const tpl = getTemplateById(normId);
+      const tier = inferTierFromPlanName(ord.plan_name);
+
+      result.push({
+        templateId: normId,
+        templateName: tpl.name,
+        shortName: tpl.shortName,
+        category: tpl.category,
+        badge: tpl.badge,
+        desc: tpl.desc,
+        image: tpl.image,
+        planName: ord.plan_name || getTierDisplayName(tier),
+        tier: tier,
+        status: ord.status,
+        orderId: ord.id,
+        totalAmount: ord.total_amount,
+        createdAt: ord.created_at,
+        isActive: normId === normalizeTemplateId(data.activeTemplateId),
+      });
+    });
+
+    // 2. Gabungkan dengan data.purchasedTemplateIds jika ada template yang belum tercatat di orders
+    const currentPurchased = Array.isArray(data.purchasedTemplateIds) ? data.purchasedTemplateIds : [];
+    currentPurchased.forEach((pid) => {
+      const normId = normalizeTemplateId(pid);
+      if (addedTemplateIds.has(normId)) return;
+      addedTemplateIds.add(normId);
+
+      const tpl = getTemplateById(normId);
+      const matchedOrder = userOrders.find((o) => normalizeTemplateId(o.template_id || o.template_name) === normId);
+      const tier = matchedOrder ? inferTierFromPlanName(matchedOrder.plan_name) : data.tier;
+
+      result.push({
+        templateId: normId,
+        templateName: tpl.name,
+        shortName: tpl.shortName,
+        category: tpl.category,
+        badge: tpl.badge,
+        desc: tpl.desc,
+        image: tpl.image,
+        planName: matchedOrder?.plan_name || getTierDisplayName(tier),
+        tier: tier,
+        status: matchedOrder?.status || 'active',
+        orderId: matchedOrder?.id,
+        totalAmount: matchedOrder?.total_amount,
+        createdAt: matchedOrder?.created_at,
+        isActive: normId === normalizeTemplateId(data.activeTemplateId),
+      });
+    });
+
+    // 3. Pastikan template yang sedang aktif saat ini selalu ada dalam list
+    const activeNorm = normalizeTemplateId(data.activeTemplateId);
+    if (!addedTemplateIds.has(activeNorm)) {
+      const tpl = getTemplateById(activeNorm);
+      result.push({
+        templateId: activeNorm,
+        templateName: tpl.name,
+        shortName: tpl.shortName,
+        category: tpl.category,
+        badge: tpl.badge,
+        desc: tpl.desc,
+        image: tpl.image,
+        planName: getTierDisplayName(data.tier),
+        tier: data.tier,
+        status: 'active',
+        isActive: true,
+      });
+    }
+
+    return result;
+  }, [userOrders, data.purchasedTemplateIds, data.activeTemplateId, data.tier]);
+
+  // Riwayat pembayaran lengkap: Utamakan orders dari database backend. Jika user belum login / orders kosong di sesi ini, buat invoice dari template yang dimiliki / aktif
+  const effectivePaymentHistoryOrders: OrderItem[] = useMemo(() => {
+    if (userOrders && userOrders.length > 0) {
+      return userOrders;
+    }
+
+    // Fallback invoice otomatis dari template yang dibeli / aktif
+    const list = purchasedTemplatesList.length > 0 ? purchasedTemplatesList : [
+      {
+        templateId: normalizeTemplateId(data.activeTemplateId || 'template-satu'),
+        templateName: getTemplateById(normalizeTemplateId(data.activeTemplateId || 'template-satu')).name,
+        planName: `Paket ${getTierDisplayName(data.tier || 'premium')}`,
+        tier: data.tier || 'premium',
+        status: 'paid',
+        orderId: 1,
+        totalAmount: 99000,
+        createdAt: new Date().toISOString(),
+      } as PurchasedTemplateCardItem
+    ];
+
+    return list.map((item, idx) => {
+      const tier = item.tier || 'premium';
+      const basePrice = tier === 'silver' ? 49000 : tier === 'gold' ? 89000 : tier === 'platinum' ? 149000 : 99000;
+      const total = item.totalAmount || (basePrice + 2500 + 245);
+
+      return {
+        id: item.orderId || (idx + 1),
+        midtrans_order_id: (item as any).midtrans_order_id || `INV-20261026-000${idx + 1}`,
+        plan_name: item.planName || `Paket ${getTierDisplayName(tier)}`,
+        template_id: item.templateId,
+        template_name: item.templateName,
+        customer_name: data.groom?.nickName && data.bride?.nickName ? `${data.groom.nickName} & ${data.bride.nickName}` : 'Mempelai Bahagia',
+        customer_email: currentUser?.email || 'mempelai@example.com',
+        customer_phone: '',
+        couple_names: `${data.groom?.nickName || 'Romeo'} & ${data.bride?.nickName || 'Juliet'}`,
+        plan_price: basePrice,
+        admin_fee: 2500,
+        discount: 0,
+        unique_code: 245,
+        total_amount: total,
+        payment_method: 'QRIS',
+        status: item.status === 'pending' ? 'pending' : 'paid',
+        created_at: item.createdAt || new Date(Date.now() - idx * 86400000).toISOString(),
+      };
+    });
+  }, [userOrders, purchasedTemplatesList, data.activeTemplateId, data.tier, data.groom, data.bride, currentUser]);
+
+  // Handler: Mengganti template aktif dan memigrasikan dashboard paket (disimpan ke backend Laravel & localStorage secara independen)
+  const handleSelectAndMigrateTemplate = async (
+    templateId: string,
+    associatedTier: 'silver' | 'gold' | 'platinum' | 'premium',
+    templateName: string,
+    planName: string
+  ) => {
+    const normId = normalizeTemplateId(templateId);
+    const targetTemplate = getTemplateById(normId);
+
+    // 1. Simpan data template aktif saat ini ke database backend & localStorage agar aman dan tidak tertimpa
+    if (data.activeTemplateId) {
+      saveDashboardData(data, userKey, data.activeTemplateId);
+      saveMyInvitation(data).catch(() => {});
+    }
+
+    // 2. Aktifkan overlay animasi loading transisi mewah
+    setSwitchingInfo({
+      templateName: templateName || targetTemplate.name,
+      templateId: normId,
+      tier: associatedTier,
+      image: targetTemplate.image,
+      planName: planName,
+    });
+    setIsSwitchingTemplate(true);
+
+    let targetData: DashboardData | null = null;
+
+    try {
+      // 3. Panggil API switch-template di backend (backend mengembalikan data invitation KHUSUS template ini)
+      const res = await switchActiveTemplateApi(normId, associatedTier);
+      if (res?.invitation) {
+        targetData = parseServerInvitation(res.invitation);
+      }
+    } catch (err: any) {
+      console.warn('Backend switch notice (menggunakan data lokal template):', err);
+    }
+
+    // 4. Jika backend tidak mengembalikan data (misal offline/baru), baca dari localStorage khusus template ini
+    if (!targetData) {
+      targetData = getSavedDashboardData(userKey, normId) || getDefaultDashboardDataForTemplate(normId, associatedTier);
+    }
+
+    // Gabungkan list template yang dibeli
+    const allPurchased = Array.from(new Set([
+      ...(data.purchasedTemplateIds || []),
+      ...(targetData.purchasedTemplateIds || []),
+      normId,
+    ]));
+
+    targetData = {
+      ...targetData,
+      activeTemplateId: normId,
+      tier: associatedTier,
+      purchasedTemplateIds: allPurchased,
+    };
+
+    // 5. Simpan ke local storage khusus template ini dan perbarui state data
+    saveDashboardData(targetData, userKey, normId);
+    setData(targetData);
+
+    // 6. Trigger event sinkronisasi antar komponen
+    window.dispatchEvent(new Event('storage'));
+    window.dispatchEvent(new CustomEvent('ij_dashboard_update'));
+
+    // 7. Berikan waktu jeda transisi animasi yang memukau (~850ms)
+    await new Promise((resolve) => setTimeout(resolve, 850));
+
+    // 8. Tutup modal & overlay
+    setShowActiveTemplatesModal(false);
+    setShowPaymentHistoryModal(false);
+    setIsSwitchingTemplate(false);
+    setSwitchingInfo(null);
+
+    // 9. Tampilkan notifikasi toast sukses
+    showToast(`✓ Berhasil beralih ke ${templateName}! Data formulir dan paket ${planName} aktif.`);
+  };
+
+  // Handler: Pratinjau salah satu template yang dibeli tanpa langsung mengaktifkannya
+  const handlePreviewPurchasedTemplate = (templateId: string) => {
+    setPreviewOverrideTemplate(normalizeTemplateId(templateId));
+    setPreviewGuestName('Tamu Terhormat');
+    setShowMobilePreview(true);
+  };
+
+  // Handler: Saat pembayaran pesanan berhasil (baik via Midtrans maupun simulasi)
+  const handlePaymentSuccess = async (_orderId: number, templateId: string) => {
+    let freshOrders: OrderItem[] = [];
+    try {
+      freshOrders = (await getMyOrders()) || [];
+      if (freshOrders && freshOrders.length > 0) {
+        setUserOrders(freshOrders);
+      }
+    } catch {}
+
+    const normId = normalizeTemplateId(templateId);
+
+    // Cari pesanan yang baru saja dibayar untuk menentukan paket tier dan nama template
+    const matchedOrder =
+      freshOrders.find((o) => o.id === _orderId) ||
+      freshOrders.find((o) => normalizeTemplateId(o.template_id || o.template_name) === normId) ||
+      userOrders.find((o) => o.id === _orderId);
+
+    const associatedTier = matchedOrder ? inferTierFromPlanName(matchedOrder.plan_name) : 'gold';
+    const targetTemplate = getTemplateById(normId);
+    const planName = matchedOrder?.plan_name || `Paket ${getTierDisplayName(associatedTier)}`;
+
+    // Tutup modal riwayat pembayaran & koleksi template
+    setShowPaymentHistoryModal(false);
+    setShowActiveTemplatesModal(false);
+
+    // Otomatis aktifkan dan migrasikan template serta dashboard ke template yang baru dibayar ini!
+    await handleSelectAndMigrateTemplate(normId, associatedTier, targetTemplate.name, planName);
   };
 
   // Tier Limits & Features Calculation
@@ -404,9 +704,13 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
           onNavigatePricing={onNavigatePricing}
           onNavigatePayment={onNavigatePayment}
           onPreviewTemplate={() => {
+            setPreviewOverrideTemplate(undefined);
             setPreviewGuestName('Tamu Terhormat');
             setShowMobilePreview(true);
           }}
+          onOpenActiveTemplates={() => setShowActiveTemplatesModal(true)}
+          onOpenPaymentHistory={() => setShowPaymentHistoryModal(true)}
+          purchasedTemplatesCount={purchasedTemplatesList.length}
         />
 
         {/* Dynamic Section Canvas */}
@@ -421,6 +725,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
               onCopyLink={copyToClipboard}
               onOpenQrModal={() => setShowQrModal(true)}
               onNavigateTab={(tab) => setActiveTab(tab)}
+              onOpenActiveTemplates={() => setShowActiveTemplatesModal(true)}
             />
           )}
 
@@ -432,6 +737,10 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
               onShowToast={showToast}
               purchasedTemplateIds={data.purchasedTemplateIds}
               onNavigateTemplates={onNavigateTemplates}
+              onOpenActiveTemplates={() => setShowActiveTemplatesModal(true)}
+              onSelectTemplate={(templateId, associatedTier, templateName, planName) => {
+                handleSelectAndMigrateTemplate(templateId, associatedTier, templateName, planName);
+              }}
             />
           )}
 
@@ -503,12 +812,54 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         onCopyLink={copyToClipboard}
       />
 
+      {/* Active Templates & Dashboard Migration Modal */}
+      <ActiveTemplatesModal
+        isOpen={showActiveTemplatesModal}
+        onClose={() => setShowActiveTemplatesModal(false)}
+        currentActiveTemplateId={data.activeTemplateId || 'template-satu'}
+        currentTier={data.tier}
+        purchasedTemplates={purchasedTemplatesList}
+        onSelectTemplate={handleSelectAndMigrateTemplate}
+        onPreviewTemplate={handlePreviewPurchasedTemplate}
+        onNavigateTemplates={onNavigateTemplates}
+        isSwitching={isSwitchingTemplate}
+      />
+
+      {/* Payment History & Invoices Modal */}
+      <PaymentHistoryModal
+        isOpen={showPaymentHistoryModal}
+        onClose={() => setShowPaymentHistoryModal(false)}
+        orders={effectivePaymentHistoryOrders}
+        activeTemplateId={data.activeTemplateId || 'template-satu'}
+        onSelectTemplate={handleSelectAndMigrateTemplate}
+        onPreviewTemplate={handlePreviewPurchasedTemplate}
+        onNavigateTemplates={onNavigateTemplates}
+        onNavigatePricing={onNavigatePricing}
+        onCopyText={copyToClipboard}
+        onPaymentSuccess={handlePaymentSuccess}
+        isSwitching={isSwitchingTemplate}
+      />
+
+      {/* Luxury Animated Transition Loading Overlay */}
+      <TemplateTransitionLoading
+        isOpen={isSwitchingTemplate && switchingInfo !== null}
+        targetTemplateName={switchingInfo?.templateName || ''}
+        targetTemplateId={switchingInfo?.templateId || ''}
+        targetTier={switchingInfo?.tier || 'premium'}
+        targetImage={switchingInfo?.image}
+        planName={switchingInfo?.planName}
+      />
+
       {/* Interactive Mobile Smartphone Simulator */}
       <MobilePreviewModal
         isOpen={showMobilePreview}
-        onClose={() => setShowMobilePreview(false)}
+        onClose={() => {
+          setShowMobilePreview(false);
+          setPreviewOverrideTemplate(undefined);
+        }}
         data={data}
         guestName={previewGuestName}
+        overrideTemplateId={previewOverrideTemplate}
         onCopyText={copyToClipboard}
       />
     </div>

@@ -19,6 +19,7 @@ interface MobilePreviewModalProps {
   data: DashboardData;
   guestName: string;
   onCopyText?: (text: string, label?: string) => void;
+  overrideTemplateId?: string;
 }
 
 export const MobilePreviewModal: React.FC<MobilePreviewModalProps> = ({
@@ -26,9 +27,10 @@ export const MobilePreviewModal: React.FC<MobilePreviewModalProps> = ({
   onClose,
   data,
   guestName,
+  overrideTemplateId,
 }) => {
   const [activeTab, setActiveTab] = useState<'cover' | 'content'>('cover');
-  const activeTemplate = normalizeTemplateId(data.activeTemplateId);
+  const activeTemplate = normalizeTemplateId(overrideTemplateId || data.activeTemplateId);
   const invitationUrl = `/#/${data.slug}`;
 
   if (!isOpen) return null;

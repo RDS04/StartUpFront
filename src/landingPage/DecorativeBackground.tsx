@@ -103,19 +103,11 @@ export const GoldFoilSplash = ({ className = "" }: { className?: string }) => (
 
 export const WeddingRingsIcon = ({ className = "w-9 h-9" }: { className?: string }) => (
   <div className={`relative flex items-center justify-center shrink-0 ${className}`}>
-    <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full drop-shadow-xs">
-      {/* Dark background circle */}
-      <circle cx="24" cy="24" r="22" fill="#111827" />
-      {/* Left Ring */}
-      <ellipse cx="18" cy="26" rx="8.5" ry="8.5" stroke="#ffffff" strokeWidth="2.8" strokeLinecap="round" />
-      {/* Right Ring linked */}
-      <ellipse cx="28" cy="26" rx="8.5" ry="8.5" stroke="#ffffff" strokeWidth="2.8" strokeLinecap="round" />
-      {/* Diamond / Heart Accent */}
-      <path 
-        d="M28 11.5C26.5 9.5 24 10.5 24 12.5C24 15 28 17.5 28 17.5C28 17.5 32 15 32 12.5C32 10.5 29.5 9.5 28 11.5Z" 
-        fill="#ffffff" 
-      />
-    </svg>
+    <img 
+      src="/image-transparent.png" 
+      alt="Wedding Rings Icon" 
+      className="w-full h-full object-contain filter drop-shadow-[0_2px_5px_rgba(180,83,9,0.25)]" 
+    />
   </div>
 );
 
@@ -385,29 +377,29 @@ export const DynamicConfettiAndShadows = () => {
       <GoldFoilSplash className="absolute top-[58%] right-[10%] w-32 h-32 opacity-25" />
       <GoldFoilSplash className="absolute top-[82%] left-[6%] w-28 h-28 opacity-25" />
 
-      {/* Floating Confetti Items with Dynamic Animations */}
+      {/* Subtle Static Decorative Confetti & Foil Flakes */}
       {/* 1. Deep Emerald Diamonds */}
-      <div className="absolute top-16 left-[19%] w-3 h-4 bg-[#14482f] rotate-45 rounded-[1px] opacity-85 shadow-sm animate-float-slow" />
-      <div className="absolute top-32 right-[16%] w-3.5 h-2.5 bg-[#1b5e3d] -rotate-12 rounded-[1px] opacity-80 shadow-sm animate-float-reverse" />
-      <div className="absolute top-1/3 left-[7%] w-2.5 h-4 bg-[#14482f] rotate-[35deg] rounded-[1px] opacity-75 animate-float-slow" />
-      <div className="absolute top-2/4 right-[9%] w-3 h-3 bg-[#1b5e3d] rotate-12 rounded-[1px] opacity-80 animate-float-reverse" />
-      <div className="absolute top-[65%] left-[22%] w-3.5 h-2.5 bg-[#14482f] -rotate-45 opacity-75 animate-float-slow" />
-      <div className="absolute top-[82%] right-[14%] w-3 h-4 bg-[#1b5e3d] rotate-[25deg] opacity-80 animate-float-reverse" />
+      <div className="absolute top-16 left-[19%] w-2.5 h-3.5 bg-[#14482f]/70 rotate-45 rounded-[1px] opacity-60 shadow-xs pointer-events-none" />
+      <div className="absolute top-32 right-[16%] w-3 h-2 bg-[#1b5e3d]/70 -rotate-12 rounded-[1px] opacity-60 shadow-xs pointer-events-none" />
+      <div className="absolute top-1/3 left-[7%] w-2 h-3.5 bg-[#14482f]/60 rotate-[35deg] rounded-[1px] opacity-50 pointer-events-none" />
+      <div className="absolute top-2/4 right-[9%] w-2.5 h-2.5 bg-[#1b5e3d]/70 rotate-12 rounded-[1px] opacity-60 pointer-events-none" />
+      <div className="absolute top-[65%] left-[22%] w-3 h-2 bg-[#14482f]/60 -rotate-45 opacity-60 pointer-events-none" />
+      <div className="absolute top-[82%] right-[14%] w-2.5 h-3.5 bg-[#1b5e3d]/70 rotate-[25deg] opacity-60 pointer-events-none" />
 
       {/* 2. Shimmering Gold Confetti & Flakes */}
-      <div className="absolute top-24 left-[34%] w-3 h-3 bg-gradient-to-tr from-amber-500 to-yellow-300 rotate-12 rounded-[1px] opacity-90 shadow-sm animate-float-reverse" />
-      <div className="absolute top-40 right-[29%] w-2.5 h-2.5 rounded-full bg-gradient-to-r from-amber-400 to-yellow-200 opacity-90 shadow-xs animate-float-slow" />
-      <div className="absolute top-[48%] left-[5%] w-3.5 h-2.5 bg-amber-400 rotate-45 opacity-80 shadow-sm animate-float-slow" />
-      <div className="absolute top-[56%] right-[23%] w-3 h-3 bg-amber-500 rotate-12 opacity-85 shadow-sm animate-float-reverse" />
-      <div className="absolute top-[75%] left-[14%] w-2.5 h-2.5 rounded-full bg-amber-400 opacity-80 shadow-xs animate-float-slow" />
-      <div className="absolute top-[90%] left-[32%] w-3 h-3 bg-amber-500 rotate-45 opacity-75 shadow-sm animate-float-reverse" />
+      <div className="absolute top-24 left-[34%] w-2.5 h-2.5 bg-gradient-to-tr from-amber-500/80 to-yellow-300/80 rotate-12 rounded-[1px] opacity-70 shadow-xs pointer-events-none" />
+      <div className="absolute top-40 right-[29%] w-2 h-2 rounded-full bg-gradient-to-r from-amber-400/80 to-yellow-200/80 opacity-70 pointer-events-none" />
+      <div className="absolute top-[48%] left-[5%] w-3 h-2 bg-amber-400/70 rotate-45 opacity-60 shadow-xs pointer-events-none" />
+      <div className="absolute top-[56%] right-[23%] w-2.5 h-2.5 bg-amber-500/70 rotate-12 opacity-70 shadow-xs pointer-events-none" />
+      <div className="absolute top-[75%] left-[14%] w-2 h-2 rounded-full bg-amber-400/70 opacity-60 pointer-events-none" />
+      <div className="absolute top-[90%] left-[32%] w-2.5 h-2.5 bg-amber-500/70 rotate-45 opacity-60 shadow-xs pointer-events-none" />
 
       {/* 3. Teal & Emerald Circles */}
-      <div className="absolute top-14 right-[37%] w-2.5 h-2.5 rounded-full bg-[#167049] opacity-80 animate-float-slow" />
-      <div className="absolute top-[42%] left-[44%] w-2.5 h-2.5 rounded-full bg-[#1b5e3d] opacity-70 animate-float-reverse" />
-      <div className="absolute top-[68%] right-[6%] w-3 h-3 rounded-full bg-[#125838] opacity-85 shadow-sm animate-float-slow" />
-      <div className="absolute top-[88%] left-[9%] w-3.5 h-3.5 rounded-full bg-[#14482f] opacity-85 shadow-sm animate-float-reverse" />
-      <div className="absolute top-[93%] right-[30%] w-2.5 h-2.5 rounded-full bg-[#167049] opacity-75 animate-float-slow" />
+      <div className="absolute top-14 right-[37%] w-2 h-2 rounded-full bg-[#167049]/60 opacity-60 pointer-events-none" />
+      <div className="absolute top-[42%] left-[44%] w-2 h-2 rounded-full bg-[#1b5e3d]/50 opacity-50 pointer-events-none" />
+      <div className="absolute top-[68%] right-[6%] w-2.5 h-2.5 rounded-full bg-[#125838]/70 opacity-70 shadow-xs pointer-events-none" />
+      <div className="absolute top-[88%] left-[9%] w-3 h-3 rounded-full bg-[#14482f]/70 opacity-70 shadow-xs pointer-events-none" />
+      <div className="absolute top-[93%] right-[30%] w-2 h-2 rounded-full bg-[#167049]/60 opacity-60 pointer-events-none" />
     </div>
   );
 };

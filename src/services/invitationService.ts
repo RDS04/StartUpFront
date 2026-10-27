@@ -7,12 +7,78 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000
 /**
  * Mengambil data undangan & mempelai dari database backend Laravel
  */
-export async function getMyInvitation(): Promise<DashboardData | null> {
+export function parseServerInvitation(inv: any): DashboardData {
+  const normalizedTemplate = normalizeTemplateId(inv.template_id);
+  const purchasedTemplates = Array.isArray(inv.purchased_template_ids)
+    ? inv.purchased_template_ids.map((id: string) => normalizeTemplateId(id))
+    : [normalizedTemplate];
+
+  return {
+    tier: inv.tier || 'premium',
+    slug: inv.slug || '',
+    isPublished: inv.is_published !== undefined ? Boolean(inv.is_published) : true,
+    themeColor: inv.theme_color || '#82694D',
+    activeTemplateId: normalizedTemplate,
+    purchasedTemplateIds: Array.from(new Set([normalizedTemplate, ...purchasedTemplates])),
+    groom: {
+      nickName: inv.groom?.nickName || '',
+      fullName: inv.groom?.fullName || '',
+      parents: inv.groom?.parents || '',
+      avatar: inv.groom?.avatar || '',
+      instagram: inv.groom?.instagram || '',
+    },
+    bride: {
+      nickName: inv.bride?.nickName || '',
+      fullName: inv.bride?.fullName || '',
+      parents: inv.bride?.parents || '',
+      avatar: inv.bride?.avatar || '',
+      instagram: inv.bride?.instagram || '',
+    },
+    event: {
+      startDate: inv.event?.startDate || '',
+      startTime: inv.event?.startTime || '08:00',
+      endDate: inv.event?.endDate || '',
+      date: inv.event?.endDate || inv.event?.startDate || '',
+      dateDisplay: inv.event?.dateDisplay || '',
+      countdownTime: inv.event?.countdownTime || '08:00',
+      countdownTarget: inv.event?.countdownTarget || 'end',
+      akadTime: inv.event?.akadTime || '',
+      akadPlace: inv.event?.akadPlace || '',
+      akadAddress: inv.event?.akadAddress || '',
+      akadMapsUrl: inv.event?.akadMapsUrl || '',
+      resepsiTime: inv.event?.resepsiTime || '',
+      resepsiPlace: inv.event?.resepsiPlace || '',
+      resepsiAddress: inv.event?.resepsiAddress || '',
+      resepsiMapsUrl: inv.event?.resepsiMapsUrl || '',
+      mapsUrl: inv.event?.mapsUrl || '',
+    },
+    musicTitle: inv.music_title || '',
+    bankAccounts: Array.isArray(inv.bank_accounts) ? inv.bank_accounts : [],
+    giftAddress: {
+      recipient: inv.gift_address?.recipient || '',
+      phone: inv.gift_address?.phone || '',
+      address: inv.gift_address?.address || '',
+      notes: inv.gift_address?.notes || '',
+    },
+    gallery: Array.isArray(inv.gallery) ? inv.gallery : [],
+    stories: Array.isArray(inv.stories) ? inv.stories : [],
+  };
+}
+
+/**
+ * Mengambil data undangan & mempelai dari database backend Laravel
+ * Mendukung parameter templateId opsional untuk mengambil data template spesifik
+ */
+export async function getMyInvitation(templateId?: string): Promise<DashboardData | null> {
   const token = getAuthToken();
   if (!token) return null;
 
   try {
-    const response = await fetch(`${API_BASE_URL}/my-invitation`, {
+    const url = templateId
+      ? `${API_BASE_URL}/my-invitation?template_id=${encodeURIComponent(normalizeTemplateId(templateId))}`
+      : `${API_BASE_URL}/my-invitation`;
+
+    const response = await fetch(url, {
       method: 'GET',
       headers: {
         'Accept': 'application/json',
@@ -24,62 +90,7 @@ export async function getMyInvitation(): Promise<DashboardData | null> {
 
     const res = await response.json();
     if (res.status && res.invitation) {
-      const inv = res.invitation;
-      const normalizedTemplate = normalizeTemplateId(inv.template_id);
-      const purchasedTemplates = Array.isArray(inv.purchased_template_ids)
-        ? inv.purchased_template_ids.map((id: string) => normalizeTemplateId(id))
-        : [normalizedTemplate];
-
-      return {
-        tier: inv.tier || 'premium',
-        slug: inv.slug || '',
-        isPublished: inv.is_published !== undefined ? Boolean(inv.is_published) : true,
-        themeColor: inv.theme_color || '#82694D',
-        activeTemplateId: normalizedTemplate,
-        purchasedTemplateIds: Array.from(new Set([normalizedTemplate, ...purchasedTemplates])),
-        groom: {
-          nickName: inv.groom?.nickName || '',
-          fullName: inv.groom?.fullName || '',
-          parents: inv.groom?.parents || '',
-          avatar: inv.groom?.avatar || '',
-          instagram: inv.groom?.instagram || '',
-        },
-        bride: {
-          nickName: inv.bride?.nickName || '',
-          fullName: inv.bride?.fullName || '',
-          parents: inv.bride?.parents || '',
-          avatar: inv.bride?.avatar || '',
-          instagram: inv.bride?.instagram || '',
-        },
-        event: {
-          startDate: inv.event?.startDate || '',
-          startTime: inv.event?.startTime || '08:00',
-          endDate: inv.event?.endDate || '',
-          date: inv.event?.endDate || inv.event?.startDate || '',
-          dateDisplay: inv.event?.dateDisplay || '',
-          countdownTime: inv.event?.countdownTime || '08:00',
-          countdownTarget: inv.event?.countdownTarget || 'end',
-          akadTime: inv.event?.akadTime || '',
-          akadPlace: inv.event?.akadPlace || '',
-          akadAddress: inv.event?.akadAddress || '',
-          akadMapsUrl: inv.event?.akadMapsUrl || '',
-          resepsiTime: inv.event?.resepsiTime || '',
-          resepsiPlace: inv.event?.resepsiPlace || '',
-          resepsiAddress: inv.event?.resepsiAddress || '',
-          resepsiMapsUrl: inv.event?.resepsiMapsUrl || '',
-          mapsUrl: inv.event?.mapsUrl || '',
-        },
-        musicTitle: inv.music_title || '',
-        bankAccounts: Array.isArray(inv.bank_accounts) ? inv.bank_accounts : [],
-        giftAddress: {
-          recipient: inv.gift_address?.recipient || '',
-          phone: inv.gift_address?.phone || '',
-          address: inv.gift_address?.address || '',
-          notes: inv.gift_address?.notes || '',
-        },
-        gallery: Array.isArray(inv.gallery) ? inv.gallery : [],
-        stories: Array.isArray(inv.stories) ? inv.stories : [],
-      };
+      return parseServerInvitation(res.invitation);
     }
     return null;
   } catch (error) {
@@ -140,12 +151,46 @@ export async function saveMyInvitation(data: DashboardData): Promise<{ status: b
 }
 
 /**
+ * Mengganti template aktif dan memigrasikan paket dashboard tier di backend Laravel
+ */
+export async function switchActiveTemplateApi(
+  templateId: string,
+  tier?: string
+): Promise<{ status: boolean; message: string; invitation?: any }> {
+  const token = getAuthToken();
+  if (!token) {
+    throw new Error('Sesi Anda telah berakhir. Silakan login kembali.');
+  }
+
+  const response = await fetch(`${API_BASE_URL}/my-invitation/switch-template`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      template_id: normalizeTemplateId(templateId),
+      tier: tier,
+    }),
+  });
+
+  const res = await response.json();
+  if (!response.ok || !res.status) {
+    throw new Error(res.message || 'Gagal mengubah template aktif di backend.');
+  }
+
+  return res;
+}
+
+/**
  * Upload file foto galeri ke backend Laravel storage & otomatis simpan ke database
  */
 export async function uploadGalleryImage(
   file: File,
   caption?: string,
-  orientation?: string
+  orientation?: string,
+  templateId?: string
 ): Promise<{
   status: boolean;
   url: string;
@@ -163,6 +208,7 @@ export async function uploadGalleryImage(
   formData.append('photo', file);
   if (caption) formData.append('caption', caption);
   if (orientation) formData.append('orientation', orientation);
+  if (templateId) formData.append('template_id', normalizeTemplateId(templateId));
 
   const response = await fetch(`${API_BASE_URL}/gallery/upload`, {
     method: 'POST',
@@ -187,7 +233,8 @@ export async function uploadGalleryImage(
 export async function addGalleryPhotoByUrl(
   url: string,
   caption?: string,
-  orientation?: string
+  orientation?: string,
+  templateId?: string
 ): Promise<{
   status: boolean;
   photo?: GalleryPhotoItem;
@@ -206,7 +253,12 @@ export async function addGalleryPhotoByUrl(
       'Accept': 'application/json',
       'Authorization': `Bearer ${token}`,
     },
-    body: JSON.stringify({ url, caption, orientation }),
+    body: JSON.stringify({
+      url,
+      caption,
+      orientation,
+      template_id: templateId ? normalizeTemplateId(templateId) : undefined,
+    }),
   });
 
   const res = await response.json();
@@ -220,7 +272,7 @@ export async function addGalleryPhotoByUrl(
 /**
  * Hapus foto dari galeri database backend
  */
-export async function deleteGalleryPhoto(id: string | number): Promise<{
+export async function deleteGalleryPhoto(id: string | number, templateId?: string): Promise<{
   status: boolean;
   gallery?: GalleryPhotoItem[];
   message?: string;
@@ -230,7 +282,11 @@ export async function deleteGalleryPhoto(id: string | number): Promise<{
     throw new Error('Sesi Anda telah berakhir. Silakan login kembali.');
   }
 
-  const response = await fetch(`${API_BASE_URL}/gallery/${encodeURIComponent(id)}`, {
+  const url = templateId
+    ? `${API_BASE_URL}/gallery/${encodeURIComponent(id)}?template_id=${encodeURIComponent(normalizeTemplateId(templateId))}`
+    : `${API_BASE_URL}/gallery/${encodeURIComponent(id)}`;
+
+  const response = await fetch(url, {
     method: 'DELETE',
     headers: {
       'Accept': 'application/json',
@@ -249,7 +305,7 @@ export async function deleteGalleryPhoto(id: string | number): Promise<{
 /**
  * Simpan keseluruhan susunan urutan galeri ke database backend
  */
-export async function saveGalleryList(gallery: GalleryPhotoItem[]): Promise<{
+export async function saveGalleryList(gallery: GalleryPhotoItem[], templateId?: string): Promise<{
   status: boolean;
   gallery?: GalleryPhotoItem[];
   message?: string;
@@ -266,7 +322,10 @@ export async function saveGalleryList(gallery: GalleryPhotoItem[]): Promise<{
       'Accept': 'application/json',
       'Authorization': `Bearer ${token}`,
     },
-    body: JSON.stringify({ gallery }),
+    body: JSON.stringify({
+      gallery,
+      template_id: templateId ? normalizeTemplateId(templateId) : undefined,
+    }),
   });
 
   const res = await response.json();
@@ -280,7 +339,7 @@ export async function saveGalleryList(gallery: GalleryPhotoItem[]): Promise<{
 /**
  * Menyimpan daftar cerita kisah cinta langsung ke database backend Laravel
  */
-export async function saveStories(stories: StoryItem[]): Promise<{ status: boolean; message: string; stories?: StoryItem[] }> {
+export async function saveStories(stories: StoryItem[], templateId?: string): Promise<{ status: boolean; message: string; stories?: StoryItem[] }> {
   const token = getAuthToken();
   if (!token) {
     throw new Error('Sesi Anda telah berakhir. Silakan login kembali.');
@@ -293,7 +352,10 @@ export async function saveStories(stories: StoryItem[]): Promise<{ status: boole
       'Accept': 'application/json',
       'Authorization': `Bearer ${token}`,
     },
-    body: JSON.stringify({ stories }),
+    body: JSON.stringify({
+      stories,
+      template_id: templateId ? normalizeTemplateId(templateId) : undefined,
+    }),
   });
 
   const res = await response.json();

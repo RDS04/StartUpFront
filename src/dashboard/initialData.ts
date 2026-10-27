@@ -78,26 +78,136 @@ export const INITIAL_DATA: DashboardData = {
   stories: INITIAL_STORIES,
 };
 
-export const getStorageKey = (userId?: string | number): string => {
-  if (userId) return `ij_dashboard_data_${userId}`;
-  try {
-    const rawUser = localStorage.getItem('auth_user');
-    if (rawUser) {
-      const parsed = JSON.parse(rawUser);
-      if (parsed?.id) return `ij_dashboard_data_${parsed.id}`;
-      if (parsed?.email) return `ij_dashboard_data_${parsed.email}`;
-    }
-  } catch {}
-  return 'ij_dashboard_data_guest';
+export const getStorageKey = (userId?: string | number, templateId?: string): string => {
+  let userPart = 'guest';
+  if (userId) {
+    userPart = String(userId);
+  } else {
+    try {
+      const rawUser = localStorage.getItem('auth_user');
+      if (rawUser) {
+        const parsed = JSON.parse(rawUser);
+        if (parsed?.id) userPart = String(parsed.id);
+        else if (parsed?.email) userPart = String(parsed.email);
+      }
+    } catch {}
+  }
+
+  if (templateId) {
+    return `ij_dashboard_data_${userPart}_${templateId}`;
+  }
+  return `ij_dashboard_data_${userPart}`;
 };
 
-export const getSavedDashboardData = (userId?: string | number): DashboardData => {
+export const getDefaultDashboardDataForTemplate = (
+  templateId: string,
+  tier: 'silver' | 'gold' | 'platinum' | 'premium' = 'premium'
+): DashboardData => {
+  return {
+    ...INITIAL_DATA,
+    activeTemplateId: templateId,
+    tier: tier,
+    slug: '',
+    groom: {
+      nickName: '',
+      fullName: '',
+      parents: '',
+      avatar: '',
+      instagram: '',
+    },
+    bride: {
+      nickName: '',
+      fullName: '',
+      parents: '',
+      avatar: '',
+      instagram: '',
+    },
+    event: {
+      startDate: '',
+      startTime: '08:00',
+      date: '',
+      endDate: '',
+      countdownTime: '08:00',
+      countdownTarget: 'end',
+      dateDisplay: '',
+      akadTime: '',
+      akadPlace: '',
+      akadAddress: '',
+      akadMapsUrl: '',
+      resepsiTime: '',
+      resepsiPlace: '',
+      resepsiAddress: '',
+      resepsiMapsUrl: '',
+      mapsUrl: '',
+    },
+    musicTitle: '',
+    bankAccounts: [],
+    giftAddress: {
+      recipient: '',
+      phone: '',
+      address: '',
+      notes: '',
+    },
+    gallery: [],
+    stories: INITIAL_STORIES,
+  };
+};
+
+export const getSavedDashboardData = (userId?: string | number, templateId?: string): DashboardData => {
   if (typeof window === 'undefined') return INITIAL_DATA;
   try {
+    // 1. Jika ada templateId tertentu, prioritaskan membaca key template tersebut
+    if (templateId) {
+      const templateKey = getStorageKey(userId, templateId);
+      const rawTmpl = localStorage.getItem(templateKey);
+      if (rawTmpl) {
+        const parsed = JSON.parse(rawTmpl);
+        return {
+          ...INITIAL_DATA,
+          ...parsed,
+          activeTemplateId: templateId,
+          purchasedTemplateIds: Array.isArray(parsed.purchasedTemplateIds) ? parsed.purchasedTemplateIds : [],
+          groom: { ...INITIAL_DATA.groom, ...(parsed.groom || {}) },
+          bride: { ...INITIAL_DATA.bride, ...(parsed.bride || {}) },
+          event: { ...INITIAL_DATA.event, ...(parsed.event || {}) },
+          bankAccounts: Array.isArray(parsed.bankAccounts) ? parsed.bankAccounts : [],
+          giftAddress: { ...INITIAL_DATA.giftAddress, ...(parsed.giftAddress || {}) },
+          gallery: Array.isArray(parsed.gallery) ? parsed.gallery : [],
+          stories: Array.isArray(parsed.stories) ? parsed.stories : INITIAL_STORIES,
+        };
+      }
+      return getDefaultDashboardDataForTemplate(templateId);
+    }
+
+    // 2. Jika tidak ada templateId, baca key user aktif
     const key = getStorageKey(userId);
     const raw = localStorage.getItem(key);
     if (raw) {
       const parsed = JSON.parse(raw);
+      const currentTid = parsed.activeTemplateId;
+      
+      // Jika ada data spesifik template yang tersimpan, gabungkan
+      if (currentTid) {
+        const tmplRaw = localStorage.getItem(getStorageKey(userId, currentTid));
+        if (tmplRaw) {
+          const tmplParsed = JSON.parse(tmplRaw);
+          return {
+            ...INITIAL_DATA,
+            ...parsed,
+            ...tmplParsed,
+            activeTemplateId: currentTid,
+            purchasedTemplateIds: Array.isArray(parsed.purchasedTemplateIds) ? parsed.purchasedTemplateIds : [],
+            groom: { ...INITIAL_DATA.groom, ...(tmplParsed.groom || {}) },
+            bride: { ...INITIAL_DATA.bride, ...(tmplParsed.bride || {}) },
+            event: { ...INITIAL_DATA.event, ...(tmplParsed.event || {}) },
+            bankAccounts: Array.isArray(tmplParsed.bankAccounts) ? tmplParsed.bankAccounts : [],
+            giftAddress: { ...INITIAL_DATA.giftAddress, ...(tmplParsed.giftAddress || {}) },
+            gallery: Array.isArray(tmplParsed.gallery) ? tmplParsed.gallery : [],
+            stories: Array.isArray(tmplParsed.stories) ? tmplParsed.stories : INITIAL_STORIES,
+          };
+        }
+      }
+
       return {
         ...INITIAL_DATA,
         ...parsed,
@@ -115,9 +225,16 @@ export const getSavedDashboardData = (userId?: string | number): DashboardData =
   return INITIAL_DATA;
 };
 
-export const saveDashboardData = (data: DashboardData, userId?: string | number): void => {
+export const saveDashboardData = (data: DashboardData, userId?: string | number, templateId?: string): void => {
   if (typeof window === 'undefined') return;
   try {
+    const tid = templateId || data.activeTemplateId;
+    // Simpan ke key spesifik template
+    if (tid) {
+      const templateKey = getStorageKey(userId, tid);
+      localStorage.setItem(templateKey, JSON.stringify(data));
+    }
+    // Simpan juga ke key umum user
     const key = getStorageKey(userId);
     localStorage.setItem(key, JSON.stringify(data));
   } catch {}

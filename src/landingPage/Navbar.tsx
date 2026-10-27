@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
 import { Menu, X, Check, LogOut, LayoutDashboard, ChevronDown } from 'lucide-react';
-import { WeddingRingsIcon } from './DecorativeBackground';
 import type { AuthUser } from '../services/authService';
 
 export interface OrderState {
@@ -209,25 +208,57 @@ export const Navbar: React.FC<NavbarProps> = ({
     <header 
       className={`fixed top-0 left-0 right-0 z-50 w-full transition-all duration-300 ${
         scrolled 
-          ? 'bg-[#fafbfc]/95 backdrop-blur-md border-b border-slate-200/60 shadow-xs' 
-          : 'bg-transparent border-b border-transparent shadow-none'
+          ? 'bg-white/80 backdrop-blur-2xl border-b border-slate-200/60 shadow-[0_10px_30px_-5px_rgba(0,0,0,0.06),inset_0_1px_1px_rgba(255,255,255,0.8)]' 
+          : 'bg-white/60 backdrop-blur-xl border-b border-white/70 shadow-[0_4px_24px_rgba(0,0,0,0.03),inset_0_1px_1px_rgba(255,255,255,0.9)]'
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="flex items-center justify-between h-20">
           
-          {/* Logo with Wedding Rings Icon */}
+          {/* Logo with Luxury Wedding Rings Icon & Elegant Typography */}
           <div 
             onClick={() => {
               window.location.hash = '#/';
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
-            className="flex items-center gap-2.5 cursor-pointer group shrink-0"
+            className="flex items-center gap-3 cursor-pointer group shrink-0 select-none py-1"
           >
-            <WeddingRingsIcon className="w-9 h-9 group-hover:scale-105 transition-transform duration-200 shadow-sm" />
-            <span className="font-serif-wedding text-2xl tracking-normal text-slate-900 font-bold lowercase">
-              i say yes
-            </span>
+            {/* Luxury Ring Emblem Badge */}
+            <div className="relative flex items-center justify-center shrink-0">
+              {/* Ambient Golden Radial Glow on Hover */}
+              <div className="absolute -inset-1 rounded-2xl bg-gradient-to-tr from-amber-400/25 via-yellow-300/35 to-emerald-500/20 blur-md opacity-60 group-hover:opacity-100 group-hover:scale-110 transition-all duration-300 pointer-events-none" />
+              
+              {/* Glass Luxury Badge Container */}
+              <div className="relative w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-white/95 via-amber-50/40 to-white/90 backdrop-blur-md p-1.5 flex items-center justify-center border border-amber-200/70 shadow-xs shadow-amber-950/5 group-hover:border-amber-300 group-hover:shadow-md group-hover:shadow-amber-500/20 transition-all duration-300 overflow-hidden">
+                <img 
+                  src="/image-transparent.png" 
+                  alt="i say yes logo" 
+                  className="w-full h-full object-contain filter drop-shadow-[0_2px_4px_rgba(180,83,9,0.25)] group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-300"
+                />
+                
+                {/* Subtle luxury sparkle pin in top-right corner */}
+                <div className="absolute top-1 right-1 w-2 h-2 rounded-full bg-gradient-to-tr from-amber-400 to-yellow-200 border border-white shadow-xs animate-pulse pointer-events-none" />
+              </div>
+            </div>
+
+            {/* Brand Typography */}
+            <div className="flex flex-col justify-center">
+              <div className="flex items-center gap-1.5">
+                <span className="font-serif-wedding text-2xl sm:text-[26px] tracking-tight text-slate-900 font-bold lowercase leading-none group-hover:text-[#165b39] transition-colors duration-200">
+                  i say yes
+                </span>
+                <span className="w-1.5 h-1.5 rounded-full bg-gradient-to-r from-amber-500 to-yellow-400 shadow-xs shadow-amber-500/50 group-hover:scale-125 transition-transform duration-200" />
+              </div>
+              <div className="flex items-center gap-1.5 mt-1">
+                <span className="text-[9px] uppercase tracking-[0.22em] font-bold text-amber-700/85 font-sans leading-none">
+                  Wedding
+                </span>
+                <span className="text-[7px] text-amber-500/70">✦</span>
+                <span className="text-[9px] uppercase tracking-[0.22em] font-bold text-[#165b39] font-sans leading-none">
+                  Invitation
+                </span>
+              </div>
+            </div>
           </div>
 
           {/* Stepper jika sedang transaksi aktif dan user telah login, atau Normal Navigation Links jika tidak sedang transaksi */}
