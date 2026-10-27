@@ -62,6 +62,8 @@ export interface DashboardData {
   themeColor: string;
   activeTemplateId?: string;
   purchasedTemplateIds?: string[];
+  isActive?: boolean;
+  requiresPayment?: boolean;
   groom: GroomBrideInfo;
   bride: GroomBrideInfo;
   event: EventInfo;

@@ -50,6 +50,8 @@ interface ActiveTemplatesModalProps {
   ) => Promise<void> | void;
   onPreviewTemplate: (templateId: string) => void;
   onNavigateTemplates?: () => void;
+  onNavigatePricing?: () => void;
+  onOpenPayment?: (templateId: string) => void;
   isSwitching?: boolean;
 }
 
@@ -61,6 +63,8 @@ export const ActiveTemplatesModal: React.FC<ActiveTemplatesModalProps> = ({
   onSelectTemplate,
   onPreviewTemplate,
   onNavigateTemplates,
+  onNavigatePricing,
+  onOpenPayment,
   isSwitching = false,
 }) => {
   const [switchingId, setSwitchingId] = useState<string | null>(null);
@@ -129,6 +133,9 @@ export const ActiveTemplatesModal: React.FC<ActiveTemplatesModalProps> = ({
     }
   };
 
+  const paidTemplates = purchasedTemplates.filter((t) => t.status === 'paid');
+  const paidTemplatesCount = paidTemplates.length;
+
   return (
     <div
       className="fixed inset-0 z-50 bg-stone-950/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-5 overflow-y-auto animate-in fade-in duration-200"
@@ -149,12 +156,16 @@ export const ActiveTemplatesModal: React.FC<ActiveTemplatesModalProps> = ({
                 <h3 className="text-base sm:text-lg font-bold text-stone-900 font-serif">
                   Koleksi Template Undangan Anda
                 </h3>
-                <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">
-                  {purchasedTemplates.length} Template Dimiliki
+                <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${
+                  paidTemplatesCount > 0
+                    ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                    : 'bg-amber-100 text-amber-800 border-amber-300'
+                }`}>
+                  {paidTemplatesCount} Template Dimiliki (Lunas)
                 </span>
               </div>
               <p className="text-xs text-stone-600 mt-0.5 line-clamp-1 sm:line-clamp-none">
-                Pilih template undangan untuk langsung digunakan. Dashboard Anda akan otomatis dimigrasikan ke paket yang sesuai dengan pembelian template tersebut.
+                Pilih template undangan untuk langsung digunakan. Template yang telah lunas dapat langsung dibagikan dan diakses tamu.
               </p>
             </div>
           </div>
@@ -169,43 +180,66 @@ export const ActiveTemplatesModal: React.FC<ActiveTemplatesModalProps> = ({
           </button>
         </div>
 
-        {/* Info Banner when user has multiple templates */}
-        {purchasedTemplates.length > 1 && (
+        {/* Info Banner when user has multiple paid templates */}
+        {paidTemplatesCount > 1 && (
           <div className="px-6 py-2.5 bg-emerald-50/90 border-b border-emerald-200/80 flex items-center gap-2 text-xs text-emerald-900 font-medium">
             <Sparkles className="w-4 h-4 text-emerald-600 shrink-0" />
             <span>
-              Anda memiliki <strong>{purchasedTemplates.length} template yang telah dibeli</strong>. Klik <strong>"Gunakan Template Ini"</strong> untuk mengaktifkan desain dan menyesuaikan kuota paket dashboard secara otomatis.
+              Anda memiliki <strong>{paidTemplatesCount} template yang telah lunas</strong>. Klik <strong>"Gunakan Template Ini"</strong> untuk mengaktifkan desain dan menyesuaikan kuota paket dashboard secara otomatis.
             </span>
           </div>
         )}
 
         {/* Scrollable Template Cards Grid */}
         <div className="p-5 sm:p-6 overflow-y-auto flex-1">
-          {purchasedTemplates.length === 0 ? (
-            <div className="py-12 text-center flex flex-col items-center justify-center">
-              <div className="w-16 h-16 rounded-2xl bg-stone-100 flex items-center justify-center text-stone-400 mb-3">
+          {paidTemplates.length === 0 ? (
+            <div className="py-14 text-center flex flex-col items-center justify-center px-4">
+              <div className="w-16 h-16 rounded-2xl bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center mb-4 shadow-xs">
                 <Palette className="w-8 h-8" />
               </div>
-              <h4 className="text-sm font-bold text-stone-800">Belum Ada Template Terdaftar</h4>
-              <p className="text-xs text-stone-500 max-w-sm mt-1">
-                Silakan beli atau pilih desain template undangan favorit Anda dari katalog.
+              <h4 className="text-base font-bold text-stone-800">
+                Belum Ada Template yang Aktif / Dibeli
+              </h4>
+              <p className="text-xs text-stone-500 max-w-md mt-2 leading-relaxed">
+                Anda belum memiliki atau membeli template undangan. Silakan pilih paket dan selesaikan pembayaran untuk mengaktifkan template pilihan Anda.
               </p>
-              {onNavigateTemplates && (
+              <div className="mt-6 flex flex-col sm:flex-row items-center gap-3">
                 <button
+                  type="button"
                   onClick={() => {
                     onClose();
-                    onNavigateTemplates();
+                    if (onOpenPayment) {
+                      onOpenPayment();
+                    } else if (onNavigatePricing) {
+                      onNavigatePricing();
+                    }
                   }}
-                  className="mt-4 px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold transition shadow-xs cursor-pointer"
+                  className="px-5 py-2.5 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white rounded-xl text-xs font-bold transition-all shadow-md hover:shadow-lg flex items-center gap-2 cursor-pointer"
                 >
-                  Buka Katalog Template
+                  <CreditCard className="w-4 h-4" />
+                  <span>Pilih Paket &amp; Bayar Sekarang</span>
                 </button>
-              )}
+
+                {onNavigateTemplates && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onClose();
+                      onNavigateTemplates();
+                    }}
+                    className="px-4 py-2.5 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-xl text-xs font-bold transition cursor-pointer border border-stone-200"
+                  >
+                    Lihat Katalog Template
+                  </button>
+                )}
+              </div>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              {purchasedTemplates.map((item) => {
-                const isActive = item.isActive || normalizeTemplateId(item.templateId) === normalizedActiveId;
+              {paidTemplates.map((item) => {
+                const isPaid = item.status === 'paid';
+                const isPending = item.status === 'pending';
+                const isActive = isPaid && (item.isActive || normalizeTemplateId(item.templateId) === normalizedActiveId);
                 const tierInfo = getTierBadgeInfo(item.tier);
                 const TierIcon = tierInfo.icon;
                 const isCurrentlySwitching = switchingId === item.templateId;
@@ -216,6 +250,10 @@ export const ActiveTemplatesModal: React.FC<ActiveTemplatesModalProps> = ({
                     className={`rounded-2xl border transition-all duration-200 overflow-hidden flex flex-col ${
                       isActive
                         ? 'border-emerald-500 bg-emerald-50/20 ring-2 ring-emerald-500/20 shadow-md'
+                        : isPending
+                        ? 'border-amber-400 bg-amber-50/20 shadow-sm'
+                        : !isPaid
+                        ? 'border-stone-300 bg-stone-50/40 shadow-xs'
                         : 'border-stone-200 bg-white hover:border-emerald-300 hover:shadow-md'
                     }`}
                   >
@@ -245,9 +283,17 @@ export const ActiveTemplatesModal: React.FC<ActiveTemplatesModalProps> = ({
                             <span className="w-2 h-2 rounded-full bg-white animate-pulse"></span>
                             Sedang Digunakan
                           </span>
-                        ) : (
+                        ) : isPaid ? (
                           <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-white/90 text-stone-800 shadow-sm backdrop-blur-md border border-stone-200 flex items-center gap-1">
-                            <Check className="w-3 h-3 text-emerald-600" /> Tersedia
+                            <Check className="w-3 h-3 text-emerald-600" /> Tersedia (Lunas)
+                          </span>
+                        ) : isPending ? (
+                          <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-amber-500 text-white shadow-md border border-amber-300 flex items-center gap-1">
+                            <CreditCard className="w-3 h-3" /> Menunggu Pembayaran
+                          </span>
+                        ) : (
+                          <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-rose-600 text-white shadow-md border border-rose-400 flex items-center gap-1">
+                            Belum Lunas
                           </span>
                         )}
                       </div>
@@ -293,8 +339,14 @@ export const ActiveTemplatesModal: React.FC<ActiveTemplatesModalProps> = ({
                                 {item.planName || tierInfo.label}
                               </span>
                             </div>
-                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/80 border border-black/10 uppercase">
-                              {item.status === 'paid' ? 'Lunas / Aktif' : 'Terverifikasi'}
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border uppercase ${
+                              isPaid 
+                                ? 'bg-emerald-100 text-emerald-800 border-emerald-300' 
+                                : isPending
+                                ? 'bg-amber-100 text-amber-800 border-amber-300'
+                                : 'bg-stone-100 text-stone-700 border-stone-300'
+                            }`}>
+                              {isPaid ? 'Lunas / Terverifikasi' : isPending ? 'Menunggu Pembayaran' : 'Belum Memilih Paket'}
                             </span>
                           </div>
 
@@ -342,7 +394,7 @@ export const ActiveTemplatesModal: React.FC<ActiveTemplatesModalProps> = ({
                             <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                             <span>Sedang Aktif di Dashboard</span>
                           </button>
-                        ) : (
+                        ) : isPaid ? (
                           <button
                             type="button"
                             disabled={isCurrentlySwitching || isSwitching}
@@ -360,6 +412,22 @@ export const ActiveTemplatesModal: React.FC<ActiveTemplatesModalProps> = ({
                                 <span>Gunakan Template Ini</span>
                               </>
                             )}
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              onClose();
+                              if (onOpenPayment) {
+                                onOpenPayment(item.templateId);
+                              } else if (onNavigatePricing) {
+                                onNavigatePricing();
+                              }
+                            }}
+                            className="flex-1 py-2.5 px-3.5 rounded-xl bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 active:scale-[0.98] text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-md hover:shadow-lg transition-all cursor-pointer"
+                          >
+                            <CreditCard className="w-4 h-4" />
+                            <span>{isPending ? 'Selesaikan Pembayaran Sekarang' : 'Pilih Paket & Bayar Sekarang'}</span>
                           </button>
                         )}
 

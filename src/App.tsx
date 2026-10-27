@@ -9,7 +9,7 @@ import { WisudaSatuTemplate, WisudaDuaTemplate } from './tempalte/Wisuda';
 import { CardAtmPreviewPage } from './tempalte/CardAtm/CardAtmPreviewPage';
 import { OrderFlowPage } from './order/OrderFlowPage';
 import { DashboardPage } from './dashboard/DashboardPage';
-import { ArrowLeft, X } from 'lucide-react';
+import { ArrowLeft, X, Lock, CreditCard } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getSavedAuthUser, getAuthToken, fetchCurrentUser, logoutAuth, type AuthUser } from './services/authService';
 import { GlobalLoadingOverlay } from './components/common/LottieLoader';
@@ -127,6 +127,7 @@ export function App() {
   const [loggedInUser, setLoggedInUser] = useState<AuthUser | null>(() => getSavedAuthUser());
   const [showToast, setShowToast] = useState(false);
   const [serverInvitationData, setServerInvitationData] = useState<DashboardData | null>(null);
+  const [isInvitationLocked, setIsInvitationLocked] = useState(false);
 
   // Sinkronkan data profil dari backend dan perbarui state autentikasi
   useEffect(() => {
@@ -174,14 +175,19 @@ export function App() {
       if (slug && slug !== 'invitation') {
         getInvitationBySlug(slug).then((inv) => {
           if (inv) {
+            const isLocked = inv.is_active === false || Boolean(inv.requires_payment);
+            setIsInvitationLocked(isLocked);
+
             const normalizedTpl = normalizeTemplateId(inv.template_id);
             const serverData: DashboardData = {
               tier: inv.tier || 'premium',
               slug: inv.slug || slug,
-              isPublished: inv.is_published !== undefined ? Boolean(inv.is_published) : true,
+              isPublished: inv.is_published !== undefined ? Boolean(inv.is_published) : !isLocked,
+              isActive: !isLocked,
+              requiresPayment: isLocked,
               themeColor: inv.theme_color || '#82694D',
               activeTemplateId: normalizedTpl,
-              purchasedTemplateIds: [normalizedTpl],
+              purchasedTemplateIds: isLocked ? [] : [normalizedTpl],
               groom: {
                 nickName: inv.groom?.nickName || '',
                 fullName: inv.groom?.fullName || '',
@@ -292,6 +298,46 @@ export function App() {
     const dashData = serverInvitationData || getSavedDashboardData();
     const activeTemplate = normalizeTemplateId(dashData.activeTemplateId);
     const guestName = extractGuestFromUrl();
+
+    // Proteksi: Tautan undangan terkunci dan tidak dapat diakses sebelum pembayaran diselesaikan
+    const isLocked = isInvitationLocked || dashData.isActive === false || dashData.requiresPayment === true;
+    if (isLocked) {
+      return (
+        <div className="min-h-screen bg-stone-900 flex items-center justify-center p-4">
+          <div className="max-w-md w-full bg-white rounded-3xl shadow-2xl p-6 sm:p-8 text-center border border-stone-200 animate-in fade-in zoom-in-95 duration-200">
+            <div className="w-16 h-16 rounded-2xl bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center mx-auto mb-4 shadow-xs">
+              <Lock className="w-8 h-8" />
+            </div>
+            <span className="inline-block px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-300 mb-3">
+              Undangan Belum Aktif
+            </span>
+            <h2 className="text-xl font-bold font-serif text-stone-900 mb-2">
+              Menunggu Aktivasi Pembayaran
+            </h2>
+            <p className="text-xs text-stone-600 mb-6 leading-relaxed">
+              Tautan undangan ini belum aktif karena pemilik undangan belum menyelesaikan pembayaran paket. Silakan selesaikan pembayaran untuk mengaktifkan tautan undangan dan membuka akses penuh bagi para tamu.
+            </p>
+            <div className="flex flex-col gap-2.5">
+              <button
+                type="button"
+                onClick={() => navigateTo('dashboard')}
+                className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-bold text-xs shadow-md hover:shadow-lg transition flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <CreditCard className="w-4 h-4" />
+                <span>Masuk Dashboard &amp; Selesaikan Pembayaran</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => navigateTo('landing')}
+                className="w-full py-2.5 px-4 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-semibold text-xs transition cursor-pointer"
+              >
+                Kembali ke Beranda
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
 
     const backButton = (
       <div className="fixed top-4 left-4 z-[70]">

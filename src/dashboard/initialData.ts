@@ -30,7 +30,7 @@ export const INITIAL_STORIES: StoryItem[] = [
 export const INITIAL_DATA: DashboardData = {
   tier: 'premium',
   slug: '',
-  isPublished: true,
+  isPublished: false,
   themeColor: '#82694D',
   activeTemplateId: 'template-satu',
   purchasedTemplateIds: [],

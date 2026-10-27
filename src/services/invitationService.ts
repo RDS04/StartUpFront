@@ -10,16 +10,22 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000
 export function parseServerInvitation(inv: any): DashboardData {
   const normalizedTemplate = normalizeTemplateId(inv.template_id);
   const purchasedTemplates = Array.isArray(inv.purchased_template_ids)
-    ? inv.purchased_template_ids.map((id: string) => normalizeTemplateId(id))
-    : [normalizedTemplate];
+    ? inv.purchased_template_ids.map((id: string) => normalizeTemplateId(id)).filter(Boolean)
+    : [];
+
+  const isServerActive = inv.is_active !== undefined
+    ? Boolean(inv.is_active)
+    : purchasedTemplates.includes(normalizedTemplate);
 
   return {
     tier: inv.tier || 'premium',
     slug: inv.slug || '',
-    isPublished: inv.is_published !== undefined ? Boolean(inv.is_published) : true,
+    isPublished: inv.is_published !== undefined ? Boolean(inv.is_published) : isServerActive,
+    isActive: isServerActive,
+    requiresPayment: inv.requires_payment !== undefined ? Boolean(inv.requires_payment) : !isServerActive,
     themeColor: inv.theme_color || '#82694D',
     activeTemplateId: normalizedTemplate,
-    purchasedTemplateIds: Array.from(new Set([normalizedTemplate, ...purchasedTemplates])),
+    purchasedTemplateIds: purchasedTemplates,
     groom: {
       nickName: inv.groom?.nickName || '',
       fullName: inv.groom?.fullName || '',
@@ -377,6 +383,16 @@ export async function getInvitationBySlug(slug: string): Promise<any | null> {
         'Accept': 'application/json',
       },
     });
+
+    if (response.status === 402) {
+      const res = await response.json().catch(() => null);
+      return {
+        is_active: false,
+        requires_payment: true,
+        message: res?.message || 'Undangan ini belum aktif karena menunggu penyelesaian pembayaran.',
+        ...(res?.invitation || {}),
+      };
+    }
 
     if (!response.ok) return null;
 

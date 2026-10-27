@@ -12,6 +12,10 @@ import {
   ArrowRight,
   ExternalLink,
   Sparkles,
+  Lock,
+  Clock,
+  CreditCard,
+  AlertTriangle,
 } from 'lucide-react';
 import type { DashboardData, GuestItem, WishItem, TierConfig, DashboardTab } from '../types';
 import { getTemplateDisplayName } from '../templateHelpers';
@@ -27,10 +31,13 @@ interface OverviewSectionProps {
     menunggu: number;
     totalWishes: number;
   };
+  hasPaidActiveTemplate?: boolean;
   onCopyLink: (text: string, label?: string) => void;
   onOpenQrModal: () => void;
   onNavigateTab: (tab: DashboardTab) => void;
   onOpenActiveTemplates?: () => void;
+  onNavigatePayment?: () => void;
+  onNavigatePricing?: () => void;
 }
 
 export const OverviewSection: React.FC<OverviewSectionProps> = ({
@@ -39,26 +46,43 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
   wishes,
   tierConfig,
   stats,
+  hasPaidActiveTemplate,
   onCopyLink,
   onOpenQrModal,
   onNavigateTab,
   onOpenActiveTemplates,
+  onNavigatePayment,
+  onNavigatePricing,
 }) => {
   const origin = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.host}` : 'http://localhost:5173';
   const effectiveSlug = data.slug || (data.groom.nickName && data.bride.nickName ? `${data.groom.nickName}-${data.bride.nickName}`.toLowerCase().replace(/[^a-z0-9-]/g, '') : '') || 'nama-pasangan';
   const publicLink = `${origin}/#/${effectiveSlug}`;
   const displayHost = typeof window !== 'undefined' ? `${window.location.host}/#/${effectiveSlug}` : `localhost:5173/#/${effectiveSlug}`;
 
+  const isLive = hasPaidActiveTemplate ?? data.isActive ?? false;
+
   return (
     <div className="space-y-6 animate-in fade-in">
-      {/* Header Banner Publikasi Live */}
-      <div className="bg-gradient-to-r from-stone-900 via-stone-800 to-[#1B4332] text-white rounded-3xl p-6 sm:p-8 relative overflow-hidden shadow-lg border border-stone-800">
+      {/* Header Banner Publikasi Live / Menunggu Pembayaran */}
+      <div className={`text-white rounded-3xl p-6 sm:p-8 relative overflow-hidden shadow-lg border ${
+        isLive
+          ? 'bg-gradient-to-r from-stone-900 via-stone-800 to-[#1B4332] border-stone-800'
+          : 'bg-gradient-to-r from-stone-900 via-stone-800 to-amber-950 border-amber-900/50'
+      }`}>
         <div className="relative z-10 max-w-xl">
           <div className="flex flex-wrap items-center gap-2 mb-3">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-              Undangan Telah Dipublikasikan (Live Localhost)
-            </span>
+            {isLive ? (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                Undangan Telah Dipublikasikan (Live)
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                <Clock className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
+                Belum Aktif (Menunggu Pembayaran)
+              </span>
+            )}
+
             {onOpenActiveTemplates ? (
               <button
                 type="button"
@@ -85,7 +109,9 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
           </h1>
 
           <p className="text-stone-300 text-xs sm:text-sm mb-5 leading-relaxed">
-            Tautan undangan localhost Anda siap diuji dan dibuka di browser. Tampilan undangan otomatis mengikuti template yang dipilih.
+            {isLive
+              ? 'Tautan undangan Anda siap dibagikan kepada tamu. Tampilan undangan otomatis mengikuti template yang dipilih.'
+              : 'Anda sedang mengedit desain template. Silakan lakukan pembayaran untuk mengaktifkan undangan agar dapat dibuka dan dibagikan secara resmi.'}
           </p>
 
           {/* Public Link Bar */}
@@ -94,26 +120,52 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
               {displayHost}
             </div>
             <div className="flex items-center gap-2">
-              <button
-                onClick={() => onCopyLink(publicLink, 'Tautan undangan localhost berhasil disalin!')}
-                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3.5 py-2 bg-[#D4AF37] hover:bg-[#c49f2e] text-stone-950 rounded-xl text-xs font-bold transition cursor-pointer shadow-xs"
-              >
-                <Copy className="w-3.5 h-3.5" /> Salin Link
-              </button>
-              <a
-                href={publicLink}
-                target="_blank"
-                rel="noreferrer"
-                className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3.5 py-2 bg-emerald-700 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold transition cursor-pointer shadow-xs"
-              >
-                <ExternalLink className="w-3.5 h-3.5" /> Buka Undangan
-              </a>
-              <button
-                onClick={onOpenQrModal}
-                className="px-3.5 py-2 bg-stone-700/80 hover:bg-stone-600 text-white rounded-xl text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 border border-stone-600"
-              >
-                <QrCode className="w-3.5 h-3.5 text-stone-300" /> QR
-              </button>
+              {isLive ? (
+                <>
+                  <button
+                    onClick={() => onCopyLink(publicLink, 'Tautan undangan berhasil disalin!')}
+                    className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3.5 py-2 bg-[#D4AF37] hover:bg-[#c49f2e] text-stone-950 rounded-xl text-xs font-bold transition cursor-pointer shadow-xs"
+                  >
+                    <Copy className="w-3.5 h-3.5" /> Salin Link
+                  </button>
+                  <a
+                    href={publicLink}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3.5 py-2 bg-emerald-700 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold transition cursor-pointer shadow-xs"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" /> Buka Undangan
+                  </a>
+                  <button
+                    onClick={onOpenQrModal}
+                    className="px-3.5 py-2 bg-stone-700/80 hover:bg-stone-600 text-white rounded-xl text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 border border-stone-600"
+                  >
+                    <QrCode className="w-3.5 h-3.5 text-stone-300" /> QR
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={() => {
+                      if (onNavigatePayment) {
+                        onNavigatePayment();
+                      } else if (onNavigatePricing) {
+                        onNavigatePricing();
+                      }
+                    }}
+                    className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-xl text-xs font-bold transition cursor-pointer shadow-md hover:shadow-lg"
+                  >
+                    <CreditCard className="w-3.5 h-3.5" /> Bayar &amp; Aktifkan
+                  </button>
+                  <button
+                    onClick={() => onCopyLink(publicLink, 'Perhatian: Undangan belum aktif sebelum pembayaran diselesaikan.')}
+                    className="px-3 py-2 bg-stone-700/80 hover:bg-stone-600 text-stone-300 rounded-xl text-xs font-medium transition cursor-pointer flex items-center gap-1 border border-stone-600"
+                    title="Salin tautan draft"
+                  >
+                    <Copy className="w-3.5 h-3.5" />
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>

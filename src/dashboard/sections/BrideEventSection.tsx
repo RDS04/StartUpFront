@@ -98,47 +98,28 @@ export const BrideEventSection: React.FC<BrideEventSectionProps> = ({
   const groomFileRef = useRef<HTMLInputElement | null>(null);
   const brideFileRef = useRef<HTMLInputElement | null>(null);
 
-  // Kumpulan ID template yang valid dan telah dibeli/dipilih oleh user
+  // Kumpulan ID template yang valid dan telah dibeli oleh user
   const purchasedIds = useMemo(() => {
     const list: string[] = [];
 
-    // 1. Dari data.purchasedTemplateIds di database/localStorage dashboard
-    if (Array.isArray(data.purchasedTemplateIds) && data.purchasedTemplateIds.length > 0) {
-      data.purchasedTemplateIds.forEach((id) => {
-        if (id) list.push(normalizeTemplateId(id));
-      });
-    }
+    // Dari props purchasedTemplateIds atau data.purchasedTemplateIds (hanya yang sudah berstatus paid)
+    const source = (Array.isArray(purchasedTemplateIds) && purchasedTemplateIds.length > 0)
+      ? purchasedTemplateIds
+      : (Array.isArray(data.purchasedTemplateIds) ? data.purchasedTemplateIds : []);
 
-    // 2. Dari props purchasedTemplateIds (riwayat pesanan live dari getMyOrders backend)
-    if (Array.isArray(purchasedTemplateIds) && purchasedTemplateIds.length > 0) {
-      purchasedTemplateIds.forEach((id) => {
-        if (id) list.push(normalizeTemplateId(id));
-      });
-    }
+    source.forEach((id) => {
+      if (id) list.push(normalizeTemplateId(id));
+    });
 
-    // 3. Dari data.activeTemplateId yang aktif saat ini
-    if (data.activeTemplateId) {
-      list.push(normalizeTemplateId(data.activeTemplateId));
-    }
+    return Array.from(new Set(list));
+  }, [purchasedTemplateIds, data.purchasedTemplateIds]);
 
-    // 4. Dari sessionStorage ij_selected_template jika baru saja memilih di landing/order flow
-    try {
-      const raw = sessionStorage.getItem('ij_selected_template');
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        const tid = parsed?.previewRoute || parsed?.id;
-        if (tid) list.push(normalizeTemplateId(tid));
-      }
-    } catch {}
-
-    const unique = Array.from(new Set(list));
-    return unique.length > 0 ? unique : ['template-satu'];
-  }, [purchasedTemplateIds, data.purchasedTemplateIds, data.activeTemplateId]);
-
-  // Hanya template yang benar-benar dibeli/dipilih oleh user
+  // Template yang tersedia untuk dipilih/desain
   const availableTemplates = useMemo(() => {
-    const matched = MASTER_TEMPLATES.filter((tpl) => purchasedIds.includes(tpl.id));
-    if (matched.length > 0) return matched;
+    if (purchasedIds.length > 0) {
+      const matched = MASTER_TEMPLATES.filter((tpl) => purchasedIds.includes(tpl.id));
+      if (matched.length > 0) return matched;
+    }
     const current = MASTER_TEMPLATES.find((tpl) => tpl.id === normalizeTemplateId(data.activeTemplateId));
     return [current || MASTER_TEMPLATES[0]];
   }, [purchasedIds, data.activeTemplateId]);
@@ -148,20 +129,6 @@ export const BrideEventSection: React.FC<BrideEventSectionProps> = ({
     const normActive = normalizeTemplateId(data.activeTemplateId);
     return MASTER_TEMPLATES.find((tpl) => tpl.id === normActive) || availableTemplates[0] || MASTER_TEMPLATES[0];
   }, [data.activeTemplateId, availableTemplates]);
-
-  // Otomatis sinkronkan activeTemplateId jika template saat ini tidak ada di daftar yang dibeli
-  useEffect(() => {
-    const normActive = normalizeTemplateId(data.activeTemplateId);
-    const exists = availableTemplates.some((t) => t.id === normActive);
-    if (!exists && availableTemplates.length > 0) {
-      const fallbackId = availableTemplates[0].id;
-      setData((prev) => ({
-        ...prev,
-        activeTemplateId: fallbackId,
-        purchasedTemplateIds: Array.from(new Set([...(prev.purchasedTemplateIds || []), fallbackId])),
-      }));
-    }
-  }, [availableTemplates, data.activeTemplateId, setData]);
 
   const baseUrl = typeof window !== 'undefined' 
     ? `${window.location.protocol}//${window.location.host}` 

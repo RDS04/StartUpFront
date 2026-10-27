@@ -452,10 +452,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       const userKey = currentUser?.id || currentUser?.email;
       const dashData = getSavedDashboardData(userKey);
       dashData.activeTemplateId = targetTmplId;
-      const currentPurchased = Array.isArray(dashData.purchasedTemplateIds) ? dashData.purchasedTemplateIds : [];
-      if (!currentPurchased.includes(targetTmplId)) {
-        dashData.purchasedTemplateIds = [...currentPurchased, targetTmplId];
-      }
+      // Jangan tambahkan ke purchasedTemplateIds sebelum lunas!
       saveDashboardData(dashData, userKey);
     } catch {}
     setWelcomeRegisterNotice(false);

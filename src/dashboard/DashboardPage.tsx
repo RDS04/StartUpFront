@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, AlertTriangle, CreditCard } from 'lucide-react';
 import type { DashboardTab, DashboardData, GuestItem, WishItem, TierConfig, DashboardPageProps } from './types';
 import { getSavedDashboardData, saveDashboardData, getDefaultDashboardDataForTemplate, getSavedGuests, saveGuests, getSavedWishes, saveWishes } from './initialData';
 import type { OrderItem } from '../services/orderService';
@@ -96,14 +96,11 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             ...serverData,
             activeTemplateId: activeTid,
             tier: serverData.tier || localTmplData.tier || 'premium',
-            purchasedTemplateIds: Array.from(
-              new Set([
-                ...(prev.purchasedTemplateIds || []),
-                ...(serverData.purchasedTemplateIds || []),
-                ...(localTmplData.purchasedTemplateIds || []),
-                activeTid,
-              ])
-            ),
+            purchasedTemplateIds: Array.isArray(serverData.purchasedTemplateIds)
+              ? serverData.purchasedTemplateIds
+              : [],
+            isActive: Boolean(serverData.isActive),
+            requiresPayment: serverData.requiresPayment !== undefined ? Boolean(serverData.requiresPayment) : true,
             groom: {
               nickName: serverData.groom?.nickName || localTmplData.groom?.nickName || '',
               fullName: serverData.groom?.fullName || localTmplData.groom?.fullName || '',
@@ -191,23 +188,15 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         if (orders && orders.length > 0) {
           setUserOrders(orders);
 
-          // Ambil pesanan yang berstatus 'paid', atau gunakan semua pesanan user
+          // HANYA ambil pesanan yang berstatus 'paid' (lunas)
           const paidOrders = orders.filter((o) => o.status === 'paid');
-          const orderPool = paidOrders.length > 0 ? paidOrders : orders;
 
-          purchasedFromOrders = orderPool
+          purchasedFromOrders = paidOrders
             .map((o) => o.template_id || o.template_name)
             .filter(Boolean)
             .map((id) => normalizeTemplateId(id));
 
-          const validOrder = orderPool[0];
-          if (validOrder?.template_id || validOrder?.template_name) {
-            const orderTpl = normalizeTemplateId(validOrder.template_id || validOrder.template_name);
-            if (!chosenTemplateId) {
-              chosenTemplateId = orderTpl;
-            }
-          }
-
+          const validOrder = paidOrders[0];
           if (validOrder?.plan_name) {
             const lower = validOrder.plan_name.toLowerCase();
             if (lower.includes('silver')) chosenTier = 'silver';
@@ -226,23 +215,22 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             hasChanges = true;
           }
 
-          const currentPurchased = Array.isArray(prev.purchasedTemplateIds) ? prev.purchasedTemplateIds : [];
-          const mergedList = [...currentPurchased, ...purchasedFromOrders];
-          if (chosenTemplateId) mergedList.push(chosenTemplateId);
-          const uniquePurchased = Array.from(new Set(mergedList.filter(Boolean)));
-
-          if (uniquePurchased.length > currentPurchased.length) {
+          // Template yang dibeli HANYA berasal dari pesanan berstatus paid!
+          const uniquePurchased = Array.from(new Set(purchasedFromOrders.filter(Boolean)));
+          if (JSON.stringify(updated.purchasedTemplateIds) !== JSON.stringify(uniquePurchased)) {
             updated.purchasedTemplateIds = uniquePurchased;
             hasChanges = true;
           }
 
-          const isCurrentActiveValid =
-            updated.activeTemplateId &&
-            uniquePurchased.includes(normalizeTemplateId(updated.activeTemplateId));
+          if (chosenTemplateId && normalizeTemplateId(updated.activeTemplateId) !== chosenTemplateId) {
+            updated.activeTemplateId = chosenTemplateId;
+            hasChanges = true;
+          }
 
-          if (!isCurrentActiveValid) {
-            const fallbackTpl = chosenTemplateId || (uniquePurchased.length > 0 ? uniquePurchased[0] : 'template-satu');
-            updated.activeTemplateId = fallbackTpl;
+          const isCurrentActivePaid = uniquePurchased.includes(normalizeTemplateId(updated.activeTemplateId || ''));
+          if (updated.isActive !== isCurrentActivePaid) {
+            updated.isActive = isCurrentActivePaid;
+            updated.requiresPayment = !isCurrentActivePaid;
             hasChanges = true;
           }
 
@@ -263,16 +251,17 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             hasChanges = true;
           }
 
-          if (chosenTemplateId) {
-            const currentPurchased = Array.isArray(prev.purchasedTemplateIds) ? prev.purchasedTemplateIds : [];
-            if (!currentPurchased.includes(chosenTemplateId)) {
-              updated.purchasedTemplateIds = [...currentPurchased, chosenTemplateId];
-              hasChanges = true;
-            }
-            if (normalizeTemplateId(updated.activeTemplateId) !== chosenTemplateId) {
-              updated.activeTemplateId = chosenTemplateId;
-              hasChanges = true;
-            }
+          if (chosenTemplateId && normalizeTemplateId(updated.activeTemplateId) !== chosenTemplateId) {
+            updated.activeTemplateId = chosenTemplateId;
+            hasChanges = true;
+          }
+
+          // Kosongkan purchasedTemplateIds jika belum ada pesanan paid
+          if (updated.purchasedTemplateIds && updated.purchasedTemplateIds.length > 0) {
+            updated.purchasedTemplateIds = [];
+            updated.isActive = false;
+            updated.requiresPayment = true;
+            hasChanges = true;
           }
 
           if (hasChanges) {
@@ -303,16 +292,15 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
     showToast(label);
   };
 
-  // List template yang telah dibeli oleh user (dari Orders backend + purchasedTemplateIds di invitation)
+  // List template yang telah dibeli oleh user (HANYA dari pesanan berstatus 'paid' dari database backend)
   const purchasedTemplatesList: PurchasedTemplateCardItem[] = useMemo(() => {
     const result: PurchasedTemplateCardItem[] = [];
     const addedTemplateIds = new Set<string>();
 
-    // 1. Ambil dari riwayat pesanan (orders backend)
+    // 1. Ambil HANYA dari riwayat pesanan (orders backend) yang berstatus 'paid'
     const paidOrders = userOrders.filter((o) => o.status === 'paid');
-    const orderPool = paidOrders.length > 0 ? paidOrders : userOrders;
 
-    orderPool.forEach((ord) => {
+    paidOrders.forEach((ord) => {
       const rawTid = ord.template_id || ord.template_name;
       if (!rawTid) return;
       const normId = normalizeTemplateId(rawTid);
@@ -332,7 +320,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         image: tpl.image,
         planName: ord.plan_name || getTierDisplayName(tier),
         tier: tier,
-        status: ord.status,
+        status: 'paid',
         orderId: ord.id,
         totalAmount: ord.total_amount,
         createdAt: ord.created_at,
@@ -340,103 +328,20 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
       });
     });
 
-    // 2. Gabungkan dengan data.purchasedTemplateIds jika ada template yang belum tercatat di orders
-    const currentPurchased = Array.isArray(data.purchasedTemplateIds) ? data.purchasedTemplateIds : [];
-    currentPurchased.forEach((pid) => {
-      const normId = normalizeTemplateId(pid);
-      if (addedTemplateIds.has(normId)) return;
-      addedTemplateIds.add(normId);
-
-      const tpl = getTemplateById(normId);
-      const matchedOrder = userOrders.find((o) => normalizeTemplateId(o.template_id || o.template_name) === normId);
-      const tier = matchedOrder ? inferTierFromPlanName(matchedOrder.plan_name) : data.tier;
-
-      result.push({
-        templateId: normId,
-        templateName: tpl.name,
-        shortName: tpl.shortName,
-        category: tpl.category,
-        badge: tpl.badge,
-        desc: tpl.desc,
-        image: tpl.image,
-        planName: matchedOrder?.plan_name || getTierDisplayName(tier),
-        tier: tier,
-        status: matchedOrder?.status || 'active',
-        orderId: matchedOrder?.id,
-        totalAmount: matchedOrder?.total_amount,
-        createdAt: matchedOrder?.created_at,
-        isActive: normId === normalizeTemplateId(data.activeTemplateId),
-      });
-    });
-
-    // 3. Pastikan template yang sedang aktif saat ini selalu ada dalam list
-    const activeNorm = normalizeTemplateId(data.activeTemplateId);
-    if (!addedTemplateIds.has(activeNorm)) {
-      const tpl = getTemplateById(activeNorm);
-      result.push({
-        templateId: activeNorm,
-        templateName: tpl.name,
-        shortName: tpl.shortName,
-        category: tpl.category,
-        badge: tpl.badge,
-        desc: tpl.desc,
-        image: tpl.image,
-        planName: getTierDisplayName(data.tier),
-        tier: data.tier,
-        status: 'active',
-        isActive: true,
-      });
-    }
-
+    // Template hanya terdaftar jika benar-benar ada transaksi lunas di backend!
     return result;
-  }, [userOrders, data.purchasedTemplateIds, data.activeTemplateId, data.tier]);
+  }, [userOrders, data.activeTemplateId]);
 
-  // Riwayat pembayaran lengkap: Utamakan orders dari database backend. Jika user belum login / orders kosong di sesi ini, buat invoice dari template yang dimiliki / aktif
+  // Cek apakah template aktif yang sedang digunakan saat ini sudah dibayar / lunas
+  const hasPaidActiveTemplate = useMemo(() => {
+    const activeNorm = normalizeTemplateId(data.activeTemplateId || 'template-satu');
+    return purchasedTemplatesList.some((item) => item.status === 'paid' && item.templateId === activeNorm);
+  }, [purchasedTemplatesList, data.activeTemplateId]);
+
+  // Riwayat pembayaran lengkap: HANYA tampilkan pesanan asli user dari database backend (tanpa invoice dummy)
   const effectivePaymentHistoryOrders: OrderItem[] = useMemo(() => {
-    if (userOrders && userOrders.length > 0) {
-      return userOrders;
-    }
-
-    // Fallback invoice otomatis dari template yang dibeli / aktif
-    const list = purchasedTemplatesList.length > 0 ? purchasedTemplatesList : [
-      {
-        templateId: normalizeTemplateId(data.activeTemplateId || 'template-satu'),
-        templateName: getTemplateById(normalizeTemplateId(data.activeTemplateId || 'template-satu')).name,
-        planName: `Paket ${getTierDisplayName(data.tier || 'premium')}`,
-        tier: data.tier || 'premium',
-        status: 'paid',
-        orderId: 1,
-        totalAmount: 99000,
-        createdAt: new Date().toISOString(),
-      } as PurchasedTemplateCardItem
-    ];
-
-    return list.map((item, idx) => {
-      const tier = item.tier || 'premium';
-      const basePrice = tier === 'silver' ? 49000 : tier === 'gold' ? 89000 : tier === 'platinum' ? 149000 : 99000;
-      const total = item.totalAmount || (basePrice + 2500 + 245);
-
-      return {
-        id: item.orderId || (idx + 1),
-        midtrans_order_id: (item as any).midtrans_order_id || `INV-20261026-000${idx + 1}`,
-        plan_name: item.planName || `Paket ${getTierDisplayName(tier)}`,
-        template_id: item.templateId,
-        template_name: item.templateName,
-        customer_name: data.groom?.nickName && data.bride?.nickName ? `${data.groom.nickName} & ${data.bride.nickName}` : 'Mempelai Bahagia',
-        customer_email: currentUser?.email || 'mempelai@example.com',
-        customer_phone: '',
-        couple_names: `${data.groom?.nickName || 'Romeo'} & ${data.bride?.nickName || 'Juliet'}`,
-        plan_price: basePrice,
-        admin_fee: 2500,
-        discount: 0,
-        unique_code: 245,
-        total_amount: total,
-        payment_method: 'QRIS',
-        status: item.status === 'pending' ? 'pending' : 'paid',
-        created_at: item.createdAt || new Date(Date.now() - idx * 86400000).toISOString(),
-      };
-    });
-  }, [userOrders, purchasedTemplatesList, data.activeTemplateId, data.tier, data.groom, data.bride, currentUser]);
+    return userOrders || [];
+  }, [userOrders]);
 
   // Handler: Mengganti template aktif dan memigrasikan dashboard paket (disimpan ke backend Laravel & localStorage secara independen)
   const handleSelectAndMigrateTemplate = async (
@@ -715,6 +620,41 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
 
         {/* Dynamic Section Canvas */}
         <main className="flex-1 bg-white rounded-3xl border border-stone-200 shadow-xs p-4 sm:p-7 min-w-0">
+          {/* Warning Banner jika template belum dibayar */}
+          {!hasPaidActiveTemplate && (
+            <div className="mb-6 p-4 rounded-2xl bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/10 border-2 border-amber-300 dark:border-amber-700/50 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-700 flex items-center justify-center shrink-0">
+                  <AlertTriangle className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-amber-900">
+                    Undangan Belum Aktif &mdash; Menunggu Pembayaran
+                  </h3>
+                  <p className="text-xs text-amber-800/80 mt-0.5 leading-relaxed">
+                    Anda sedang mendesain template <span className="font-semibold text-amber-950">{getTemplateById(data.activeTemplateId || 'template-satu').name}</span>. Tautan undangan publik belum dapat diakses oleh para tamu undangan sebelum Anda menyelesaikan pembayaran paket.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 self-end md:self-center shrink-0">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onNavigatePayment) {
+                      onNavigatePayment();
+                    } else if (onNavigatePricing) {
+                      onNavigatePricing();
+                    }
+                  }}
+                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white text-xs font-bold shadow-md hover:shadow-lg transition-all flex items-center gap-1.5 cursor-pointer"
+                >
+                  <CreditCard className="w-4 h-4" />
+                  <span>Pilih Paket &amp; Bayar Sekarang</span>
+                </button>
+              </div>
+            </div>
+          )}
+
           {activeTab === 'overview' && (
             <OverviewSection
               data={data}
@@ -722,10 +662,13 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
               wishes={wishes}
               tierConfig={tierConfig}
               stats={stats}
+              hasPaidActiveTemplate={hasPaidActiveTemplate}
               onCopyLink={copyToClipboard}
               onOpenQrModal={() => setShowQrModal(true)}
               onNavigateTab={(tab) => setActiveTab(tab)}
               onOpenActiveTemplates={() => setShowActiveTemplatesModal(true)}
+              onNavigatePayment={onNavigatePayment}
+              onNavigatePricing={onNavigatePricing}
             />
           )}
 
@@ -822,6 +765,14 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         onSelectTemplate={handleSelectAndMigrateTemplate}
         onPreviewTemplate={handlePreviewPurchasedTemplate}
         onNavigateTemplates={onNavigateTemplates}
+        onNavigatePricing={onNavigatePricing}
+        onOpenPayment={() => {
+          if (onNavigatePayment) {
+            onNavigatePayment();
+          } else if (onNavigatePricing) {
+            onNavigatePricing();
+          }
+        }}
         isSwitching={isSwitchingTemplate}
       />
 
