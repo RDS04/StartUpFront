@@ -34,11 +34,11 @@ export const PaymentInfoSection = () => {
   ];
 
   return (
-    <section id="pembayaran" className="py-24 bg-gradient-to-b from-white via-slate-50/70 to-emerald-50/20 relative overflow-hidden border-t border-slate-200/70">
+    <section id="pembayaran" className="py-24 bg-gradient-to-b from-white via-slate-50/70 to-emerald-50/20 relative overflow-hidden border-t border-slate-200/70 section-performance">
       
       {/* Background Soft Lighting Glows */}
-      <div className="absolute top-1/4 -right-24 w-[500px] h-[500px] bg-emerald-100/50 rounded-full blur-[140px] pointer-events-none -z-0" />
-      <div className="absolute bottom-1/4 -left-24 w-[500px] h-[500px] bg-amber-100/40 rounded-full blur-[140px] pointer-events-none -z-0" />
+      <div className="absolute top-1/4 -right-24 w-[450px] h-[450px] bg-emerald-100/40 rounded-full blur-3xl pointer-events-none -z-0" />
+      <div className="absolute bottom-1/4 -left-24 w-[450px] h-[450px] bg-amber-100/30 rounded-full blur-3xl pointer-events-none -z-0" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         

@@ -93,7 +93,7 @@ export const Testimonials = () => {
   };
 
   return (
-    <section id="testimoni" className="py-24 bg-[#fafbfc] relative overflow-hidden border-t border-slate-200/60">
+    <section id="testimoni" className="py-24 bg-[#fafbfc] relative overflow-hidden border-t border-slate-200/60 section-performance">
       
       {/* Background Soft Glow */}
       <div className="absolute top-1/2 right-10 w-96 h-96 bg-amber-100/40 rounded-full blur-3xl pointer-events-none -z-0" />

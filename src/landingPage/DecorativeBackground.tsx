@@ -1,49 +1,14 @@
 export const WindowSunlightShadows = () => {
   return (
-    <div className="absolute inset-0 pointer-events-none overflow-hidden select-none z-0">
-      
-      {/* 1. Large Warm Sunlight Shafts (Diagonal Golden Ambient Rays) */}
+    <div className="absolute inset-0 pointer-events-none overflow-hidden select-none z-0 gpu-accelerated">
+      {/* Lightweight Warm Sunlight Shafts (GPU-friendly static gradient, no heavy keyframe repaint) */}
       <div 
-        className="absolute -top-40 -left-40 w-[140%] h-[850px] pointer-events-none opacity-40 animate-sun-drift"
+        className="absolute -top-40 -left-40 w-[140%] h-[750px] pointer-events-none opacity-25"
         style={{
-          background: 'linear-gradient(135deg, rgba(254, 249, 195, 0.45) 0%, rgba(255, 255, 255, 0.9) 25%, rgba(240, 244, 248, 0.2) 60%, transparent 80%)',
-          filter: 'blur(50px)',
-          transform: 'rotate(-26deg)'
+          background: 'linear-gradient(135deg, rgba(254, 249, 195, 0.35) 0%, rgba(255, 255, 255, 0.7) 25%, rgba(240, 244, 248, 0.15) 60%, transparent 80%)',
+          transform: 'rotate(-26deg) translateZ(0)'
         }}
       />
-
-      {/* 2. Window Frame Shadow Casts (Diagonal Shadows of Window Panes cutting across Hero) */}
-      <div 
-        className="absolute -top-60 -left-20 w-[120%] h-[900px] pointer-events-none opacity-25 mix-blend-multiply animate-sun-drift"
-        style={{ transform: 'rotate(-28deg)' }}
-      >
-        {/* Shadow Mullion Bar 1 */}
-        <div className="absolute top-0 left-[15%] w-16 sm:w-24 h-full bg-slate-800/40 blur-[36px]" />
-        
-        {/* Light Shaft Between Panes */}
-        <div className="absolute top-0 left-[26%] w-28 sm:w-40 h-full bg-transparent" />
-        
-        {/* Shadow Mullion Bar 2 (Cuts right through main text) */}
-        <div className="absolute top-0 left-[42%] w-20 sm:w-32 h-full bg-slate-900/45 blur-[42px]" />
-        
-        {/* Horizontal Window Bar Cross shadow */}
-        <div className="absolute top-[35%] left-0 w-full h-16 sm:h-24 bg-slate-800/35 blur-[38px]" />
-
-        {/* Shadow Mullion Bar 3 */}
-        <div className="absolute top-0 left-[68%] w-24 sm:w-36 h-full bg-slate-800/35 blur-[45px]" />
-      </div>
-
-      {/* 3. Soft Organic Tree / Monstera Leaf Shadows swaying in the breeze */}
-      <div className="absolute top-0 left-0 w-96 h-96 pointer-events-none opacity-20 mix-blend-multiply blur-xl animate-leaf-sway">
-        <svg viewBox="0 0 300 300" fill="none" className="w-full h-full text-slate-800">
-          <ellipse cx="60" cy="80" rx="60" ry="25" transform="rotate(-30 60 80)" fill="currentColor" />
-          <ellipse cx="110" cy="110" rx="70" ry="30" transform="rotate(-20 110 110)" fill="currentColor" />
-          <ellipse cx="140" cy="160" rx="80" ry="32" transform="rotate(10 140 160)" fill="currentColor" />
-          <ellipse cx="90" cy="190" rx="65" ry="28" transform="rotate(-40 90 190)" fill="currentColor" />
-          <ellipse cx="50" cy="240" rx="55" ry="25" transform="rotate(-15 50 240)" fill="currentColor" />
-        </svg>
-      </div>
-
     </div>
   );
 };
@@ -304,21 +269,12 @@ export const TopRightGreenWave = () => (
           <stop offset="85%" stopColor="#c59239" />
           <stop offset="100%" stopColor="#fae7b5" />
         </linearGradient>
-
-        <filter id="waveSoftShadow" x="-20%" y="-20%" width="140%" height="140%">
-          <feDropShadow dx="-10" dy="16" stdDeviation="26" floodColor="#082315" floodOpacity="0.4" />
-        </filter>
-
-        <filter id="flareGlow" x="-50%" y="-50%" width="200%" height="200%">
-          <feGaussianBlur in="SourceGraphic" stdDeviation="4" />
-        </filter>
       </defs>
 
       {/* Main Rich Emerald Wave Body with soft organic curve */}
       <path 
         d="M 340 0 C 270 60, 190 150, 160 250 C 130 360, 190 480, 330 570 C 470 655, 630 700, 800 730 V 0 H 340 Z" 
         fill="url(#emeraldDeepGrad)"
-        filter="url(#waveSoftShadow)"
       />
 
       {/* Subtle Inner Highlight Layer for Silk-like Depth */}
@@ -364,7 +320,7 @@ export const TopRightGreenWave = () => (
 
 export const DynamicConfettiAndShadows = () => {
   return (
-    <div className="absolute inset-0 pointer-events-none overflow-hidden select-none z-0">
+    <div className="absolute inset-0 pointer-events-none overflow-hidden select-none z-0 gpu-accelerated">
       
       {/* Top Right Signature Emerald Wave */}
       <TopRightGreenWave />

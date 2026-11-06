@@ -90,9 +90,9 @@ export const Features = () => {
   ];
 
   return (
-    <section id="fitur" className="py-24 bg-[#fafbfc] relative overflow-hidden">
+    <section id="fitur" className="py-24 bg-[#fafbfc] relative overflow-hidden section-performance">
       {/* Ambient background glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[500px] bg-emerald-100/40 rounded-full blur-[120px] pointer-events-none -z-0" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-emerald-100/30 rounded-full blur-3xl pointer-events-none -z-0" />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         

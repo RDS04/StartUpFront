@@ -146,11 +146,11 @@ export const PricingSection: React.FC<PricingSectionProps> = ({ onSelectPlan }) 
   };
 
   return (
-    <section id="harga" className="py-24 bg-white relative overflow-hidden border-t border-slate-200/60 scroll-mt-20">
+    <section id="harga" className="py-24 bg-white relative overflow-hidden border-t border-slate-200/60 scroll-mt-20 section-performance">
       <span id="pricing" className="absolute -top-24 pointer-events-none opacity-0"></span>
       
       {/* Background Lighting */}
-      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-emerald-50/60 rounded-full blur-[140px] pointer-events-none -z-0" />
+      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[700px] h-[400px] bg-emerald-50/60 rounded-full blur-3xl pointer-events-none -z-0" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         

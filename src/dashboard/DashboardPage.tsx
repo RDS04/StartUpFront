@@ -90,7 +90,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         const activeTid = serverData.activeTemplateId || 'template-satu';
         const localTmplData = getSavedDashboardData(userKey, activeTid);
 
-        setData((prev) => {
+        setData(() => {
           const merged: DashboardData = {
             ...localTmplData,
             ...serverData,

@@ -32,7 +32,7 @@ export const FaqSection = () => {
   ];
 
   return (
-    <section id="faq" className="py-24 bg-white relative overflow-hidden border-t border-slate-200/60">
+    <section id="faq" className="py-24 bg-white relative overflow-hidden border-t border-slate-200/60 section-performance">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         
         {/* Section Header */}

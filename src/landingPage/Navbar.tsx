@@ -60,8 +60,16 @@ export const Navbar: React.FC<NavbarProps> = ({
   };
 
   useEffect(() => {
+    let ticking = false;
     const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          const isScrolled = window.scrollY > 20;
+          setScrolled((prev) => (prev !== isScrolled ? isScrolled : prev));
+          ticking = false;
+        });
+        ticking = true;
+      }
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
@@ -206,10 +214,10 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <header 
-      className={`fixed top-0 left-0 right-0 z-50 w-full transition-all duration-300 ${
+      className={`fixed top-0 left-0 right-0 z-50 w-full transition-all duration-300 gpu-accelerated ${
         scrolled 
-          ? 'bg-white/80 backdrop-blur-2xl border-b border-slate-200/60 shadow-[0_10px_30px_-5px_rgba(0,0,0,0.06),inset_0_1px_1px_rgba(255,255,255,0.8)]' 
-          : 'bg-white/60 backdrop-blur-xl border-b border-white/70 shadow-[0_4px_24px_rgba(0,0,0,0.03),inset_0_1px_1px_rgba(255,255,255,0.9)]'
+          ? 'bg-white/95 backdrop-blur-md border-b border-slate-200/60 shadow-[0_4px_20px_-5px_rgba(0,0,0,0.06)]' 
+          : 'bg-white/85 backdrop-blur-sm border-b border-white/70 shadow-xs'
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">

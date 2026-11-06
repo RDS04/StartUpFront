@@ -44,7 +44,7 @@ export const HowItWorks = () => {
   ];
 
   return (
-    <section id="cara-buat" className="py-24 bg-gradient-to-b from-[#fafbfc] to-slate-50 relative overflow-hidden border-t border-slate-200/60">
+    <section id="cara-buat" className="py-24 bg-gradient-to-b from-[#fafbfc] to-slate-50 relative overflow-hidden border-t border-slate-200/60 section-performance">
       
       {/* Background Decorative Circles */}
       <div className="absolute top-1/4 -left-20 w-80 h-80 bg-emerald-100/50 rounded-full blur-3xl pointer-events-none -z-0" />

@@ -51,7 +51,7 @@ interface ActiveTemplatesModalProps {
   onPreviewTemplate: (templateId: string) => void;
   onNavigateTemplates?: () => void;
   onNavigatePricing?: () => void;
-  onOpenPayment?: (templateId: string) => void;
+  onOpenPayment?: (templateId?: string) => void;
   isSwitching?: boolean;
 }
 

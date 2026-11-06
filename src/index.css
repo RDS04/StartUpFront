@@ -35,11 +35,24 @@
 
 html {
   overflow-x: clip;
-  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
 }
 
 body {
   overflow-x: clip;
+  text-rendering: optimizeSpeed;
+}
+
+/* Performance optimizations for silky-smooth 60-120fps scrolling */
+.section-performance {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 750px;
+  transform: translateZ(0);
+}
+
+.gpu-accelerated {
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 /* Luxury Custom Scrollbar matching wedding theme */

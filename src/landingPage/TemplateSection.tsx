@@ -446,7 +446,7 @@ export const TemplateSection: React.FC<TemplateSectionProps> = ({
   const displayedTemplates = isExpanded ? filteredTemplates : filteredTemplates.slice(0, 6);
 
   return (
-    <section id="template" className="relative pt-10 sm:pt-14 pb-24 scroll-mt-20 overflow-hidden">
+    <section id="template" className="relative pt-10 sm:pt-14 pb-24 scroll-mt-20 overflow-hidden section-performance">
       <span id="pilihan-template" className="absolute -top-24" />
       
       {/* Decorative background glows */}
@@ -713,8 +713,9 @@ export const TemplateSection: React.FC<TemplateSectionProps> = ({
                         <img
                           src={item.mockupImg || templateSatuMockupImg}
                           alt={item.title}
-                          className="w-full h-full object-cover object-center group-hover/card:scale-105 transition-transform duration-500 select-none"
+                          className="w-full h-full object-cover object-center group-hover/card:scale-105 transition-transform duration-300 select-none"
                           loading="lazy"
+                          decoding="async"
                         />
 
                         {/* Subtle Category Pill Overlay */}

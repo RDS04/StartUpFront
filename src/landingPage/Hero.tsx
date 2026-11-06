@@ -6,17 +6,8 @@ export const Hero = () => {
   return (
     <section id="beranda" className="relative pt-6 pb-20 sm:pt-10 sm:pb-28 lg:pt-14 lg:pb-32 overflow-hidden bg-[#faf8f5]/60">
 
-      {/* Real Window Pane Shadow Overlay specifically over the Hero Left Content */}
-      <div
-        className="absolute top-0 left-0 w-full lg:w-[55%] h-full pointer-events-none z-10 opacity-25 sm:opacity-30 mix-blend-multiply select-none"
-        style={{ transform: 'rotate(-26deg)' }}
-      >
-        <div className="absolute -top-32 left-[15%] w-20 sm:w-28 h-[160%] bg-slate-900/40 blur-[36px]" />
-        <div className="absolute -top-32 left-[55%] w-24 sm:w-36 h-[160%] bg-slate-900/35 blur-[42px]" />
-      </div>
-
-      {/* Warm Ambient Golden Spotlight Glow on Left */}
-      <div className="absolute top-6 left-6 sm:left-16 w-80 sm:w-[480px] h-80 sm:h-[480px] rounded-full bg-amber-300/25 blur-[100px] pointer-events-none -z-0" />
+      {/* Warm Ambient Golden Spotlight Glow on Left (Optimized without mix-blend) */}
+      <div className="absolute top-6 left-6 sm:left-16 w-80 sm:w-[450px] h-80 sm:h-[450px] rounded-full bg-amber-200/20 blur-3xl pointer-events-none -z-0" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20">
 
@@ -136,19 +127,16 @@ export const Hero = () => {
                 </div>
               </div>
 
-              {/* Central Premium iPhone 16 Pro Device Mockup with 3D Parallax Tilt */}
+              {/* Central Premium iPhone 16 Pro Device Mockup with 3D Parallax Tilt (Touch-Optimized) */}
               <Tilt
                 perspective={1000}
-                glareEnable={true}
-                glareMaxOpacity={0.25}
-                glareColor="#ffffff"
-                glarePosition="all"
-                glareBorderRadius="42px"
-                tiltMaxAngleX={14}
-                tiltMaxAngleY={14}
-                scale={1.03}
-                transitionSpeed={800}
+                glareEnable={false}
+                tiltMaxAngleX={8}
+                tiltMaxAngleY={8}
+                scale={1.02}
+                transitionSpeed={1000}
                 className="relative z-20 w-[220px] sm:w-[240px] lg:w-[255px] cursor-pointer"
+                style={{ touchAction: 'pan-y' }}
               >
                 <div 
                   style={{ transformStyle: 'preserve-3d' }}
@@ -173,6 +161,8 @@ export const Hero = () => {
                       src="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=85"
                       alt="The Wedding of Adrian & Siling"
                       className="absolute inset-0 w-full h-full object-cover scale-105"
+                      loading="eager"
+                      decoding="async"
                     />
 
                     {/* Gradient Vignette for readable text */}

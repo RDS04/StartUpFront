@@ -12,10 +12,8 @@ import {
   ArrowRight,
   ExternalLink,
   Sparkles,
-  Lock,
   Clock,
   CreditCard,
-  AlertTriangle,
 } from 'lucide-react';
 import type { DashboardData, GuestItem, WishItem, TierConfig, DashboardTab } from '../types';
 import { getTemplateDisplayName } from '../templateHelpers';
