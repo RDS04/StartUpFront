@@ -22,14 +22,22 @@ export interface DatabaseTemplate {
 
 // In-memory cache
 let cachedTemplates: MasterTemplate[] | null = null;
+let cachedDatabaseTemplates: DatabaseTemplate[] | null = null;
+
+export interface ActiveTemplatesResult {
+  loaded: boolean;
+  templates: DatabaseTemplate[];
+}
 
 /**
- * Mengambil daftar template dari database backend Laravel via REST API
+ * Mengambil daftar template AKTIF secara realtime dari database backend Laravel (/api/templates)
+ * Template yang dinonaktifkan di Master Portal tidak akan dikembalikan oleh endpoint ini.
  */
-export async function fetchTemplatesFromDatabase(): Promise<MasterTemplate[]> {
+export async function fetchActiveTemplates(): Promise<ActiveTemplatesResult> {
   try {
-    const res = await fetch(`${API_BASE_URL}/templates`, {
+    const res = await fetch(`${API_BASE_URL}/templates?_t=${Date.now()}`, {
       method: 'GET',
+      cache: 'no-store',
       headers: {
         'Accept': 'application/json',
       },
@@ -40,8 +48,10 @@ export async function fetchTemplatesFromDatabase(): Promise<MasterTemplate[]> {
     }
 
     const data = await res.json();
-    if (data.status && Array.isArray(data.templates) && data.templates.length > 0) {
-      const mapped: MasterTemplate[] = data.templates.map((t: DatabaseTemplate) => ({
+    if (data.status && Array.isArray(data.templates)) {
+      const list: DatabaseTemplate[] = data.templates.filter((t: DatabaseTemplate) => Boolean(t.is_active));
+      cachedDatabaseTemplates = list;
+      cachedTemplates = list.map((t: DatabaseTemplate) => ({
         id: t.id,
         name: t.name,
         shortName: t.short_name || t.name,
@@ -50,16 +60,30 @@ export async function fetchTemplatesFromDatabase(): Promise<MasterTemplate[]> {
         desc: t.description || undefined,
         image: t.image || undefined,
       }));
-      cachedTemplates = mapped;
-      return mapped;
+      return { loaded: true, templates: list };
     }
   } catch (err) {
-    console.warn('Gagal memuat template dari database, menggunakan fallback lokal:', err);
+    console.warn('Gagal memuat template aktif dari database, menggunakan fallback lokal:', err);
   }
 
+  return { loaded: false, templates: cachedDatabaseTemplates || [] };
+}
+
+/**
+ * Mengambil daftar template dari database backend Laravel via REST API
+ */
+export async function fetchTemplatesFromDatabase(): Promise<MasterTemplate[]> {
+  const result = await fetchActiveTemplates();
+  if (result.loaded) {
+    return cachedTemplates || [];
+  }
   return [];
 }
 
 export function getCachedTemplates(): MasterTemplate[] | null {
   return cachedTemplates;
+}
+
+export function getCachedDatabaseTemplates(): DatabaseTemplate[] | null {
+  return cachedDatabaseTemplates;
 }

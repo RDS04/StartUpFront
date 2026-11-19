@@ -1,5 +1,6 @@
 import React, { createContext, useContext } from 'react';
 import { getSavedDashboardData } from '../../dashboard/initialData';
+import { formatIndonesianDate } from '../../dashboard/sections/BrideEventSection';
 import { COUPLE, PHOTOS, AKAD, RESEPSI, GIFT, GALLERY, type ResepsiItem } from './data';
 
 export interface TemplateDuaData {
@@ -99,7 +100,9 @@ export const TemplateDuaProvider: React.FC<{
         ...AKAD,
         time: dash.event.akadTime ? `Pukul ${dash.event.akadTime}` : AKAD.time,
         venue: dash.event.akadPlace || AKAD.venue,
-        monthYear: dash.event.dateDisplay || AKAD.monthYear,
+        monthYear: dash.event.akadDate
+          ? (formatIndonesianDate(dash.event.akadDate) || dash.event.akadDate)
+          : (dash.event.dateDisplay || AKAD.monthYear),
         address: dash.event.akadAddress || AKAD.address,
         mapsUrl: dash.event.akadMapsUrl || dash.event.mapsUrl || AKAD.mapsUrl,
       },
@@ -107,7 +110,9 @@ export const TemplateDuaProvider: React.FC<{
         if (idx === 0) {
           return {
             ...item,
-            date: dash.event.dateDisplay || item.date,
+            date: dash.event.resepsiDate
+              ? (formatIndonesianDate(dash.event.resepsiDate) || dash.event.resepsiDate)
+              : (dash.event.dateDisplay || item.date),
             time: dash.event.resepsiTime || item.time,
             place: dash.event.resepsiPlace || item.place,
             address: dash.event.resepsiAddress || item.address,

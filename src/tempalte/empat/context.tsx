@@ -161,8 +161,8 @@ export const TemplateEmpatProvider: React.FC<{
       }
     }
 
-    const akadParts = parseDateParts(startDateStr || dash.event.date);
-    const resepsiParts = parseDateParts(endDateStr || dash.event.date);
+    const akadParts = parseDateParts(dash.event.akadDate || startDateStr || dash.event.date);
+    const resepsiParts = parseDateParts(dash.event.resepsiDate || endDateStr || dash.event.date);
 
     const calStartD = (startDateStr || dash.event.date || '20261123').replace(/-/g, '');
     const calStartT = (startTimeStr || '08:00').replace(/:/g, '') + '00';

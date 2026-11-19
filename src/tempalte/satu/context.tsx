@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { getSavedDashboardData } from '../../dashboard/initialData';
+import { formatIndonesianDate } from '../../dashboard/sections/BrideEventSection';
 import type { SatuGalleryPhoto } from './types';
 
 export const SAMPLE_DATA_SATU = {
@@ -177,11 +178,15 @@ export const TemplateSatuProvider: React.FC<{
         countdownTarget: dash.event.countdownTarget || 'end',
         hasCountdown: true,
         dateDisplay: dash.event.dateDisplay || SAMPLE_DATA_SATU.event.dateDisplay,
-        akadDate: dash.event.dateDisplay || SAMPLE_DATA_SATU.event.akadDate,
+        akadDate: dash.event.akadDate
+          ? (formatIndonesianDate(dash.event.akadDate) || dash.event.akadDate)
+          : (dash.event.dateDisplay || SAMPLE_DATA_SATU.event.akadDate),
         akadTime: dash.event.akadTime || SAMPLE_DATA_SATU.event.akadTime,
         akadPlace: dash.event.akadPlace || SAMPLE_DATA_SATU.event.akadPlace,
         akadAddress: dash.event.akadAddress || SAMPLE_DATA_SATU.event.akadAddress,
-        resepsiDate: dash.event.dateDisplay || SAMPLE_DATA_SATU.event.resepsiDate,
+        resepsiDate: dash.event.resepsiDate
+          ? (formatIndonesianDate(dash.event.resepsiDate) || dash.event.resepsiDate)
+          : (dash.event.dateDisplay || SAMPLE_DATA_SATU.event.resepsiDate),
         resepsiTime: dash.event.resepsiTime || SAMPLE_DATA_SATU.event.resepsiTime,
         resepsiPlace: dash.event.resepsiPlace || SAMPLE_DATA_SATU.event.resepsiPlace,
         resepsiAddress: dash.event.resepsiAddress || SAMPLE_DATA_SATU.event.resepsiAddress,

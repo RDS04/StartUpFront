@@ -102,33 +102,6 @@ export const Footer = () => {
             </ul>
           </div>
 
-          {/* Guarantee & Help */}
-          <div>
-            <h4 className="text-white font-bold text-xs uppercase tracking-wider mb-4 border-b border-emerald-800/80 pb-2">
-              Jaminan &amp; Kontak
-            </h4>
-            <div className="space-y-3 text-xs text-emerald-100/70">
-              <div className="flex items-center gap-2 text-emerald-300 font-semibold">
-                <ShieldCheck className="w-4 h-4" />
-                <span>Garansi 100% Kepuasan</span>
-              </div>
-              <p className="leading-relaxed">
-                Butuh bantuan mendadak sebelum sebar undangan? Hubungi customer service kami melalui WhatsApp:
-              </p>
-              <div className="pt-1">
-                <a
-                  href="https://wa.me/6281234567890"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-emerald-900 border border-emerald-700 text-white font-bold text-[11px] hover:bg-emerald-800 transition-colors"
-                >
-                  <Phone className="w-3 h-3 text-amber-400" />
-                  <span>+62 812-3456-7890</span>
-                </a>
-              </div>
-            </div>
-          </div>
-
         </div>
 
         {/* Midtrans Payment Gateway Partner Strip */}
@@ -155,16 +128,6 @@ export const Footer = () => {
         <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-emerald-200/60">
           <p>© 2026 <strong className="text-white">i say yes</strong>. Seluruh hak cipta dilindungi.</p>
           <div className="flex items-center gap-4">
-            <a 
-              href="http://localhost:8000/master/login" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="px-3 py-1 rounded-full bg-emerald-950 border border-emerald-600/50 text-amber-300 hover:text-white hover:bg-emerald-800 text-[11px] font-bold flex items-center gap-1.5 transition-all hover:scale-105 shadow-sm"
-              title="Akses Portal Khusus Master Administrator"
-            >
-              <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
-              <span>Portal Master</span>
-            </a>
             <div className="flex items-center gap-1">
               <span>Dibuat dengan</span>
               <Heart className="w-3.5 h-3.5 fill-rose-500 text-rose-500 inline mx-0.5" />

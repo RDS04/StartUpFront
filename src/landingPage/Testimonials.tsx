@@ -102,11 +102,7 @@ export const Testimonials = () => {
         
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-14 space-y-4">
-          <div className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-rose-50 border border-rose-200 text-rose-800 text-xs font-bold tracking-wide uppercase shadow-xs">
-            <Heart className="w-3.5 h-3.5 fill-rose-500 text-rose-500" />
-            <span>Kisah Bahagia Pasangan Pengantin</span>
-          </div>
-
+          
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight leading-tight">
             Dipercaya Lebih Dari <br className="hidden sm:inline" />
             <span className="font-display-luxury italic font-bold text-[#165b39]">

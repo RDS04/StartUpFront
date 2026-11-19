@@ -33,10 +33,12 @@ export interface EventInfo {
   countdownTime?: string;
   countdownTarget?: 'end' | 'start' | 'auto';
   dateDisplay: string;
+  akadDate?: string;
   akadTime: string;
   akadPlace: string;
   akadAddress: string;
   akadMapsUrl?: string;
+  resepsiDate?: string;
   resepsiTime: string;
   resepsiPlace: string;
   resepsiAddress: string;

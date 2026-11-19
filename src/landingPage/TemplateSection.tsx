@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import {
   Search,
   Navigation,
@@ -7,9 +7,13 @@ import {
   MapPin,
   Music,
   Sparkles,
-  ChevronDown
+  ChevronDown,
+  Check,
+  ArrowRight
 } from 'lucide-react';
 import { BotanicalLeaves } from './DecorativeBackground';
+import { fetchActiveTemplates, type DatabaseTemplate } from '../services/templateService';
+import { normalizeTemplateId } from '../dashboard/templateHelpers';
 import templateSatuMockupImg from '../tempalte/satu/image.png';
 import templateDuaMockupImg from '../tempalte/dua/image.png';
 import templateTigaMockupImg from '../tempalte/tiga/image.png';
@@ -102,6 +106,8 @@ const templates: TemplateItem[] = [
 interface TemplateSectionProps {
   onPreview: (template: TemplateItem) => void;
   onUseTemplate: (template: TemplateItem) => void;
+  activeDbTemplates?: DatabaseTemplate[] | null;
+  isLoadingTemplates?: boolean;
 }
 
 // Single Scrollable Invitation Content component for the iPhone screen mockup
@@ -413,21 +419,91 @@ export const InvitationTemplateContent: React.FC<{ item: TemplateItem }> = ({ it
 export const TemplateSection: React.FC<TemplateSectionProps> = ({
   onPreview,
   onUseTemplate,
+  activeDbTemplates: propActiveDbTemplates,
+  isLoadingTemplates: propIsLoadingTemplates,
 }) => {
   const [activeFilter, setActiveFilter] = useState('Undangan Wedding');
   const [searchQuery, setSearchQuery] = useState('');
   const [isExpanded, setIsExpanded] = useState(false);
   const gridContainerRef = useRef<HTMLDivElement>(null);
 
+  const [localDbTemplates, setLocalDbTemplates] = useState<DatabaseTemplate[] | null>(null);
+  const [localLoading, setLocalLoading] = useState<boolean>(propActiveDbTemplates === undefined);
+
+  useEffect(() => {
+    if (propActiveDbTemplates !== undefined) return;
+    let isMounted = true;
+
+    const loadTemplates = async () => {
+      const result = await fetchActiveTemplates();
+      if (!isMounted) return;
+      if (result.loaded) {
+        setLocalDbTemplates(result.templates);
+      } else {
+        setLocalDbTemplates(null);
+      }
+      setLocalLoading(false);
+    };
+
+    loadTemplates();
+
+    const handleFocus = () => {
+      loadTemplates();
+    };
+    window.addEventListener('focus', handleFocus);
+    return () => {
+      isMounted = false;
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [propActiveDbTemplates]);
+
+  const effectiveDbTemplates = propActiveDbTemplates !== undefined ? propActiveDbTemplates : localDbTemplates;
+  const isLoading = propIsLoadingTemplates !== undefined ? propIsLoadingTemplates : localLoading;
+
+  // Saring daftar template hanya yang AKTIF (is_active = true) di database Master
+  const activeTemplates = useMemo<TemplateItem[]>(() => {
+    // Jika backend berhasil dihubungi (array tersedia, termasuk jika kosong karena semua dinonaktifkan)
+    if (effectiveDbTemplates !== null) {
+      const dbMap = new Map<string, DatabaseTemplate>();
+      effectiveDbTemplates.forEach((dbTpl) => {
+        if (dbTpl.is_active) {
+          dbMap.set(normalizeTemplateId(dbTpl.id), dbTpl);
+        }
+      });
+
+      return templates
+        .filter((item) => dbMap.has(normalizeTemplateId(item.id)))
+        .map((item) => {
+          const dbTpl = dbMap.get(normalizeTemplateId(item.id));
+          if (!dbTpl) return item;
+          return {
+            ...item,
+            title: dbTpl.name || item.title,
+            tagSubtitle: dbTpl.tag_subtitle || item.tagSubtitle,
+            names: dbTpl.sample_names || item.names,
+            date: dbTpl.sample_date || item.date,
+          };
+        })
+        .sort((a, b) => {
+          const orderA = dbMap.get(normalizeTemplateId(a.id))?.sort_order ?? 999;
+          const orderB = dbMap.get(normalizeTemplateId(b.id))?.sort_order ?? 999;
+          return orderA - orderB;
+        });
+    }
+
+    // Fallback lokal jika server backend sedang tidak dapat dijangkau
+    return templates;
+  }, [effectiveDbTemplates]);
+
   const filterTabs = [
-    { label: 'Undangan Wedding', icon: '💍', count: templates.filter(t => t.category === 'Undangan Wedding' || t.category === 'Pernikahan').length },
-    { label: 'Undangan Wisuda', icon: '🎓', count: templates.filter(t => t.category === 'Undangan Wisuda' || t.category === 'Wisuda').length },
-    { label: 'GRATIS', count: templates.filter(t => t.badge === 'GRATIS').length },
-    { label: 'BRONZE', count: templates.filter(t => t.badge === 'BRONZE').length },
-    { label: 'GOLD', count: templates.filter(t => t.badge === 'GOLD').length },
+    { label: 'Undangan Wedding', icon: '💍', count: activeTemplates.filter(t => t.category === 'Undangan Wedding' || t.category === 'Pernikahan').length },
+    { label: 'Undangan Wisuda', icon: '🎓', count: activeTemplates.filter(t => t.category === 'Undangan Wisuda' || t.category === 'Wisuda').length },
+    { label: 'GRATIS', count: activeTemplates.filter(t => t.badge === 'GRATIS').length },
+    { label: 'BRONZE', count: activeTemplates.filter(t => t.badge === 'BRONZE').length },
+    { label: 'GOLD', count: activeTemplates.filter(t => t.badge === 'GOLD').length },
   ];
 
-  const filteredTemplates = templates.filter((item) => {
+  const filteredTemplates = activeTemplates.filter((item) => {
     const matchSearch =
       item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.names.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -469,92 +545,85 @@ export const TemplateSection: React.FC<TemplateSectionProps> = ({
           {/* =============================================================== */}
           {/* SECTION BAGIAN KIRI (Kata-Kata Pilih Template Terbaikmu)       */}
           {/* =============================================================== */}
-          <div className="lg:col-span-4 xl:col-span-4 flex flex-col justify-start space-y-6 lg:sticky lg:top-24">
+          <div className="lg:col-span-4 xl:col-span-4 flex flex-col justify-start space-y-5 lg:sticky lg:top-24">
             
             {/* Eyebrow Pill */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-50 border border-emerald-200/90 text-emerald-900 w-fit shadow-xs">
-              <Sparkles className="w-3.5 h-3.5 text-emerald-600 animate-pulse" />
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-50 border border-emerald-200/80 text-[#154632] w-fit shadow-2xs">
+              <Sparkles className="w-3.5 h-3.5 text-[#c29629]" />
               <span className="text-[11px] font-bold tracking-wider uppercase">
-                Koleksi Desain Terfavorit 2026
+                Koleksi Desain Terfavorit
               </span>
             </div>
 
-            {/* Main Heading with Eye-Catching Typography */}
-            <div className="space-y-2">
-              <p
-                className="text-2xl sm:text-3xl text-emerald-800 leading-tight"
-                style={{ fontFamily: "'Alex Brush', 'Pinyon Script', cursive" }}
-              >
-                Rayakan Momen Terindah
-              </p>
-              <h2 className="text-3xl sm:text-4xl xl:text-5xl font-black text-slate-900 tracking-tight leading-[1.15]">
+            {/* Main Heading */}
+            <div>
+              <h2 className="text-3xl sm:text-4xl xl:text-[44px] font-black text-[#14181f] tracking-tight leading-[1.12]">
                 Pilih Template <br />
-                <span className="font-serif italic font-normal text-transparent bg-clip-text bg-gradient-to-r from-emerald-800 via-teal-700 to-amber-700">
-                  Terbaikmu
+                <span className="font-serif-wedding italic font-normal text-[#c29629]">
+                  Undangan Impianmu
                 </span>
               </h2>
             </div>
 
-            {/* Engaging & Persuasive Copywriting */}
-            <div className="space-y-3 text-slate-600 text-xs sm:text-sm leading-relaxed">
-              <p className="font-semibold text-slate-800">
-                Setiap janji suci dan kebanggaan kelulusan pantas dirayakan dengan sentuhan yang istimewa.
-              </p>
-              <p>
-                Temukan desain undangan digital interaktif yang siap membuat para tamu terpesona sejak detik pertama. Dari kehangatan nuansa floral modern, kemegahan adat Nusantara, hingga kartu wisuda eksklusif—semuanya dirancang presisi untuk menyempurnakan hari bahagiamu.
-              </p>
-              <div className="flex items-center gap-2 text-emerald-900 font-semibold text-xs pt-1">
-                <span className="flex h-2 w-2 relative">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-600" />
-                </span>
-                <span>Siap pakai dalam 5 menit, bagikan instan ke seluruh tamu undangan!</span>
-              </div>
-            </div>
-
-            {/* Selling Points & Trust Stats */}
-            <div className="grid grid-cols-2 gap-2.5 pt-1">
-              <div className="p-3.5 rounded-2xl bg-white/90 backdrop-blur-sm border border-slate-200/90 shadow-xs flex flex-col">
-                <span className="text-xl sm:text-2xl font-black text-slate-900">50K+</span>
-                <span className="text-[11px] text-slate-500 font-medium">Pasangan & Wisudawan</span>
-              </div>
-              <div className="p-3.5 rounded-2xl bg-white/90 backdrop-blur-sm border border-slate-200/90 shadow-xs flex flex-col">
-                <span className="text-xl sm:text-2xl font-black text-emerald-800">4.9 ★</span>
-                <span className="text-[11px] text-slate-500 font-medium">Tingkat Kepuasan</span>
-              </div>
-            </div>
+            {/* Concise & Engaging Copywriting */}
+            <p className="text-stone-600 text-xs sm:text-sm leading-relaxed max-w-sm">
+              Temukan undangan digital modern dengan animasi interaktif, musik romantis, dan amplop 3D yang siap dibagikan ke seluruh tamu dalam 5 menit.
+            </p>
 
             {/* Search Input Bar */}
-            <div className="relative w-full pt-1">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <div className="relative w-full">
+              <Search className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
-                placeholder="Cari tema, nama pasangan / wisuda..."
+                placeholder="Cari tema, nama pasangan, wisuda..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 rounded-2xl border border-slate-300 bg-white text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/20 shadow-xs transition-all"
+                className="w-full pl-10 pr-9 py-2.5 sm:py-3 rounded-2xl border border-stone-200 bg-white text-xs sm:text-sm text-stone-800 placeholder-stone-400 focus:outline-none focus:border-[#154632] focus:ring-2 focus:ring-[#154632]/10 shadow-2xs transition-all"
               />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-700 text-xs cursor-pointer p-0.5"
+                  title="Hapus pencarian"
+                >
+                  ✕
+                </button>
+              )}
             </div>
 
-            {/* Custom Consultation CTA Card */}
-            <div className="p-4 rounded-2xl bg-gradient-to-br from-emerald-900 to-[#123e28] text-white shadow-lg shadow-emerald-950/20 space-y-2 relative overflow-hidden">
-              <div className="absolute right-0 bottom-0 opacity-10 pointer-events-none text-6xl">
-                💍
+            {/* Clean Trust Strip */}
+            <div className="flex items-center gap-3 py-1 text-xs text-stone-600 flex-wrap">
+              <div className="flex items-center gap-1.5 font-bold text-stone-900">
+                <span className="text-[#c29629] text-sm">★ 4.9</span>
+                <span className="text-stone-500 font-medium text-[11px]">(50K+ Pasangan)</span>
               </div>
-              <p className="text-xs font-bold tracking-wide text-emerald-200 uppercase">
-                Ingin Desain Kustom Khusus?
-              </p>
-              <p className="text-xs text-emerald-100/90 leading-relaxed">
-                Konsultasikan konsep tema impianmu langsung dengan tim desainer kami.
+              <span className="text-stone-300">•</span>
+              <div className="flex items-center gap-1 text-[11px] text-[#154632] font-semibold">
+                <Check className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Siap pakai 5 menit</span>
+              </div>
+            </div>
+
+            {/* Custom Consultation Card */}
+            <div className="p-4 rounded-2xl bg-[#faf8f5] border border-stone-200/90 space-y-2.5 shadow-2xs">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold tracking-wider text-[#154632] uppercase">
+                  Butuh Desain Kustom?
+                </span>
+                <span className="text-xs">💍</span>
+              </div>
+              <p className="text-[11px] text-stone-600 leading-relaxed">
+                Punya konsep tema impian sendiri? Konsultasikan langsung dengan desainer kami.
               </p>
               <a
                 href="https://wa.me/6281999773020?text=Halo%20Admin,%20saya%20ingin%20konsultasi%20desain%20undangan%20kustom"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-white/20 hover:bg-white/30 px-3.5 py-1.5 rounded-full transition-all border border-white/30"
+                className="inline-flex items-center justify-center gap-2 w-full text-xs font-bold text-[#154632] bg-white hover:bg-stone-50 py-2.5 px-3.5 rounded-xl transition-all border border-stone-200 shadow-2xs hover:border-[#154632]/40"
               >
                 <span>Konsultasi Desain WhatsApp</span>
-                <span>→</span>
+                <ArrowRight className="w-3.5 h-3.5 text-[#c29629]" />
               </a>
             </div>
 
@@ -684,7 +753,34 @@ export const TemplateSection: React.FC<TemplateSectionProps> = ({
               }}
             >
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 sm:gap-6">
-                {displayedTemplates.map((item) => (
+                {isLoading ? (
+                  [1, 2, 3].map((n) => (
+                    <div
+                      key={n}
+                      className="rounded-3xl bg-white/80 border border-slate-200/80 p-4 sm:p-5 space-y-4 animate-pulse"
+                    >
+                      <div className="w-full aspect-[4/3] rounded-2xl bg-slate-200/80" />
+                      <div className="space-y-2">
+                        <div className="h-4 w-3/4 bg-slate-200/80 rounded-lg" />
+                        <div className="h-3 w-1/2 bg-slate-200/70 rounded-lg" />
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 pt-2">
+                        <div className="h-9 rounded-full bg-slate-200/70" />
+                        <div className="h-9 rounded-full bg-slate-200/70" />
+                      </div>
+                    </div>
+                  ))
+                ) : displayedTemplates.length === 0 ? (
+                  <div className="col-span-full py-12 px-6 rounded-3xl bg-white/85 border border-slate-200/80 text-center space-y-2">
+                    <p className="text-sm font-bold text-slate-800">
+                      Belum ada desain template yang aktif pada kategori ini
+                    </p>
+                    <p className="text-xs text-slate-500">
+                      Silakan pilih kategori lain atau coba kata kunci pencarian yang berbeda.
+                    </p>
+                  </div>
+                ) : (
+                  displayedTemplates.map((item) => (
                   <div
                     key={item.id}
                     className="group rounded-3xl bg-white/90 backdrop-blur-sm border border-slate-200/80 shadow-[0_12px_30px_-5px_rgba(0,0,0,0.06)] hover:shadow-[0_25px_60px_-10px_rgba(20,77,49,0.15)] hover:-translate-y-2 transition-all duration-300 p-4 sm:p-5 flex flex-col justify-between relative overflow-hidden"
@@ -764,7 +860,7 @@ export const TemplateSection: React.FC<TemplateSectionProps> = ({
                     </div>
 
                   </div>
-                ))}
+                )))}
               </div>
             </div>
 

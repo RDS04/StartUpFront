@@ -18,6 +18,7 @@ import { getSavedAuthUser, type AuthUser } from '../services/authService';
 import { getMyOrders } from '../services/orderService';
 import { getSavedDashboardData, saveDashboardData } from '../dashboard/initialData';
 import { normalizeTemplateId } from '../dashboard/templateHelpers';
+import { fetchActiveTemplates, type DatabaseTemplate } from '../services/templateService';
 import templateSatuMockupImg from '../tempalte/satu/image.png';
 import templateDuaMockupImg from '../tempalte/dua/image.png';
 import templateTigaMockupImg from '../tempalte/tiga/image.png';
@@ -46,6 +47,51 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 }) => {
   const [previewTemplate, setPreviewTemplate] = useState<TemplateItem | null>(null);
   const [selectedTemplateNotice, setSelectedTemplateNotice] = useState<{ message: string; type?: 'success' | 'warning' } | null>(null);
+
+  // Sinkronisasi daftar template aktif dari database backend Master (/api/templates)
+  const [activeDbTemplates, setActiveDbTemplates] = useState<DatabaseTemplate[] | null>(null);
+  const [isLoadingTemplates, setIsLoadingTemplates] = useState<boolean>(true);
+
+  useEffect(() => {
+    let isMounted = true;
+    const loadActiveTemplates = async () => {
+      const result = await fetchActiveTemplates();
+      if (!isMounted) return;
+      if (result.loaded) {
+        setActiveDbTemplates(result.templates);
+        // Jika template yang tersimpan di sessionStorage ternyata sudah dinonaktifkan di Master, bersihkan
+        try {
+          const raw = sessionStorage.getItem('ij_selected_template');
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            const activeIds = new Set(result.templates.map((t) => normalizeTemplateId(t.id)));
+            if (parsed?.id && !activeIds.has(normalizeTemplateId(parsed.id))) {
+              sessionStorage.removeItem('ij_selected_template');
+              setCurrentTemplate(null);
+            }
+          }
+        } catch {}
+      }
+      setIsLoadingTemplates(false);
+    };
+
+    loadActiveTemplates();
+
+    const handleFocus = () => {
+      loadActiveTemplates();
+    };
+    window.addEventListener('focus', handleFocus);
+    return () => {
+      isMounted = false;
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, []);
+
+  // Cek apakah template 'card-atm' aktif di database Master
+  const isCardAtmActive =
+    activeDbTemplates === null
+      ? true
+      : activeDbTemplates.some((t) => normalizeTemplateId(t.id) === 'card-atm' && Boolean(t.is_active));
 
   const [welcomeRegisterNotice, setWelcomeRegisterNotice] = useState<boolean>(() => {
     try {
@@ -654,11 +700,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <TemplateSection
             onPreview={(item) => setPreviewTemplate(item)}
             onUseTemplate={handleUseTemplate}
+            activeDbTemplates={activeDbTemplates}
+            isLoadingTemplates={isLoadingTemplates}
           />
-          <AtmCardShowcaseSection 
-            onOpenFullGallery={onNavigateCardAtm} 
-            onUseAtmCard={handleUseAtmCard}
-          />
+          {isCardAtmActive && (
+            <AtmCardShowcaseSection 
+              onOpenFullGallery={onNavigateCardAtm} 
+              onUseAtmCard={handleUseAtmCard}
+            />
+          )}
           <HowItWorks />
           <PricingSection onSelectPlan={handleSelectPlan} />
           <PaymentInfoSection />

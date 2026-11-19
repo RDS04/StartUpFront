@@ -424,29 +424,7 @@ export const PricingSection: React.FC<PricingSectionProps> = ({ onSelectPlan }) 
             </div>
           </>
         )}
-
-        {/* Payment Channels Strip via Midtrans */}
-        <div className="mt-10 p-5 rounded-2xl bg-white border border-slate-200/90 shadow-xs flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-            <div className="text-xs text-slate-700">
-              <span className="font-bold text-slate-900">Pembayaran Praktis via Midtrans:</span>{' '}
-              Verifikasi otomatis 24 jam nonstop tanpa perlu kirim bukti transfer.
-            </div>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold text-slate-600 justify-center">
-            <span className="px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200">QRIS</span>
-            <span className="px-2.5 py-1 rounded-md bg-slate-100 text-slate-700">BCA VA</span>
-            <span className="px-2.5 py-1 rounded-md bg-slate-100 text-slate-700">Mandiri VA</span>
-            <span className="px-2.5 py-1 rounded-md bg-slate-100 text-slate-700">BRI VA</span>
-            <span className="px-2.5 py-1 rounded-md bg-slate-100 text-slate-700">BNI VA</span>
-            <span className="px-2.5 py-1 rounded-md bg-slate-100 text-slate-700">GoPay</span>
-            <span className="px-2.5 py-1 rounded-md bg-slate-100 text-slate-700">ShopeePay</span>
-            <span className="px-2.5 py-1 rounded-md bg-slate-100 text-slate-700">Visa / Mastercard</span>
-          </div>
-        </div>
-
+        
         {/* Trust & Guarantee Banner */}
         <div className="mt-6 p-6 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row items-center justify-center gap-6 text-center sm:text-left">
           <div className="flex items-center gap-3">

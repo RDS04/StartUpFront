@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { createOrder, markOrderPaid } from '../services/orderService';
 import { getPricingPlans } from '../services/pricingService';
+import { fetchActiveTemplates } from '../services/templateService';
 import type { AuthUser } from '../services/authService';
 import { BotanicalLeaves } from '../landingPage/DecorativeBackground';
 import { triggerLoading } from '../components/common/LottieLoader';
@@ -317,6 +318,31 @@ export const OrderFlowPage: React.FC<OrderFlowPageProps> = ({
     } catch {}
     return TEMPLATES[0]; // Default Rustic
   });
+
+  // Pastikan template yang dipilih di halaman checkout hanya berasal dari template yang AKTIF di Master
+  useEffect(() => {
+    let isMounted = true;
+    fetchActiveTemplates().then((result) => {
+      if (!isMounted || !result.loaded || result.templates.length === 0) return;
+      const activeIds = new Set(result.templates.map((t) => normalizeTemplateId(t.id)));
+      setLocalTemplate((prev) => {
+        if (prev && activeIds.has(normalizeTemplateId(prev.id))) {
+          return prev;
+        }
+        const firstActive = TEMPLATES.find((t) => activeIds.has(normalizeTemplateId(t.id)));
+        if (firstActive) {
+          try {
+            sessionStorage.setItem('ij_selected_template', JSON.stringify(firstActive));
+          } catch {}
+          return firstActive;
+        }
+        return prev;
+      });
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const selectedPlan = propSelectedPlan || localPlan;
   const setSelectedPlan = (plan: PlanOption) => {
@@ -628,10 +654,6 @@ export const OrderFlowPage: React.FC<OrderFlowPageProps> = ({
         </button>
 
         {/* Badge Persis Gambar: Verifikasi 100% Otomatis */}
-        <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/85 backdrop-blur-xl border border-white/95 shadow-[0_4px_20px_rgba(16,185,129,0.12)] text-xs font-black text-emerald-950">
-          <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 ring-4 ring-emerald-400/25 animate-pulse" />
-          <span>Verifikasi 100% Otomatis</span>
-        </div>
       </div>
 
       {/* Header Halaman Pembayaran */}
