@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { WeddingRingsIcon, BotanicalLeaves, GoldFoilSplash } from '../landingPage/DecorativeBackground';
 import { ArrowLeft, Heart } from 'lucide-react';
@@ -26,6 +26,15 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
   onSwitchMode,
   onBackToHome,
 }) => {
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setIsScrolled(window.scrollY > 12);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#f8faf7] via-[#f1f6ee] to-[#ebe5da] text-slate-800 flex flex-col justify-between selection:bg-emerald-700 selection:text-white relative overflow-hidden font-sans">
       
@@ -125,50 +134,56 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
       <BotanicalLeaves.TopRight />
       <GoldFoilSplash className="absolute top-12 left-8 w-28 h-28 opacity-25 pointer-events-none" />
 
-      {/* Top Navbar Header */}
+      {/* Top Navbar Header (Fixed agar tetap di atas saat halaman di-scroll) */}
       <motion.header 
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.5, ease: 'easeOut' }}
-        className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex items-center justify-between relative z-30"
+        className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${
+          isScrolled
+            ? 'bg-[#f6f9f4]/80 backdrop-blur-md border-b border-white/70 shadow-[0_4px_20px_rgba(22,91,57,0.06)]'
+            : 'bg-transparent'
+        }`}
       >
-        {/* Brand Logo with Frosted Glass Badge */}
-        <motion.div 
-          onClick={onBackToHome}
-          whileHover={{ scale: 1.03 }}
-          whileTap={{ scale: 0.97 }}
-          className="flex items-center gap-3 cursor-pointer group select-none"
-        >
-          <div className="w-11 h-11 rounded-2xl bg-white/65 backdrop-blur-xl p-1.5 border border-white/80 shadow-[0_4px_20px_rgba(22,91,57,0.06),inset_0_1px_1px_rgba(255,255,255,0.95)] flex items-center justify-center group-hover:border-amber-300 group-hover:shadow-md transition-all">
-            <WeddingRingsIcon className="w-full h-full group-hover:rotate-6 transition-transform duration-300 drop-shadow-sm" />
-          </div>
-          <div className="flex flex-col">
-            <div className="flex items-center gap-1.5">
-              <span className="font-serif-wedding text-2xl font-bold tracking-tight text-slate-900 lowercase leading-none">
-                i say yes
-              </span>
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-5 flex items-center justify-between">
+          {/* Brand Logo with Frosted Glass Badge */}
+          <motion.div 
+            onClick={onBackToHome}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
+            className="flex items-center gap-3 cursor-pointer group select-none"
+          >
+            <div className="w-11 h-11 rounded-2xl bg-white/65 backdrop-blur-xl p-1.5 border border-white/80 shadow-[0_4px_20px_rgba(22,91,57,0.06),inset_0_1px_1px_rgba(255,255,255,0.95)] flex items-center justify-center group-hover:border-amber-300 group-hover:shadow-md transition-all">
+              <WeddingRingsIcon className="w-full h-full group-hover:rotate-6 transition-transform duration-300 drop-shadow-sm" />
             </div>
-            <span className="text-[9px] uppercase tracking-[0.2em] font-bold text-amber-700/80 mt-1 font-sans leading-none">
-              Wedding Invitation
-            </span>
-          </div>
-        </motion.div>
+            <div className="flex flex-col">
+              <div className="flex items-center gap-1.5">
+                <span className="font-serif-wedding text-2xl font-bold tracking-tight text-slate-900 lowercase leading-none">
+                  i say yes
+                </span>
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+              </div>
+              <span className="text-[9px] uppercase tracking-[0.2em] font-bold text-amber-700/80 mt-1 font-sans leading-none">
+                Wedding Invitation
+              </span>
+            </div>
+          </motion.div>
 
-        {/* Back to Home Button with Frosted Glass Pill */}
-        <motion.button
-          onClick={onBackToHome}
-          whileHover={{ scale: 1.05, x: -2 }}
-          whileTap={{ scale: 0.95 }}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs sm:text-sm font-semibold text-slate-700 hover:text-[#165b39] bg-white/65 hover:bg-white/90 backdrop-blur-xl border border-white/80 shadow-[0_4px_16px_rgba(0,0,0,0.04),inset_0_1px_1px_rgba(255,255,255,0.9)] hover:shadow-md transition-all cursor-pointer"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span>Kembali ke Beranda</span>
-        </motion.button>
+          {/* Back to Home Button with Frosted Glass Pill */}
+          <motion.button
+            onClick={onBackToHome}
+            whileHover={{ scale: 1.05, x: -2 }}
+            whileTap={{ scale: 0.95 }}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs sm:text-sm font-semibold text-slate-700 hover:text-[#165b39] bg-white/65 hover:bg-white/90 backdrop-blur-xl border border-white/80 shadow-[0_4px_16px_rgba(0,0,0,0.04),inset_0_1px_1px_rgba(255,255,255,0.9)] hover:shadow-md transition-all cursor-pointer"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>Kembali ke Beranda</span>
+          </motion.button>
+        </div>
       </motion.header>
 
       {/* Main Centered Form Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 flex items-center justify-center relative z-20">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 pb-6 sm:pb-10 flex items-center justify-center relative z-20">
         <motion.div 
           initial={{ opacity: 0, y: 20, scale: 0.98 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}

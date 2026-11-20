@@ -498,9 +498,6 @@ export const TemplateSection: React.FC<TemplateSectionProps> = ({
   const filterTabs = [
     { label: 'Undangan Wedding', icon: '💍', count: activeTemplates.filter(t => t.category === 'Undangan Wedding' || t.category === 'Pernikahan').length },
     { label: 'Undangan Wisuda', icon: '🎓', count: activeTemplates.filter(t => t.category === 'Undangan Wisuda' || t.category === 'Wisuda').length },
-    { label: 'GRATIS', count: activeTemplates.filter(t => t.badge === 'GRATIS').length },
-    { label: 'BRONZE', count: activeTemplates.filter(t => t.badge === 'BRONZE').length },
-    { label: 'GOLD', count: activeTemplates.filter(t => t.badge === 'GOLD').length },
   ];
 
   const filteredTemplates = activeTemplates.filter((item) => {
@@ -657,7 +654,6 @@ export const TemplateSection: React.FC<TemplateSectionProps> = ({
                   const isActive = activeFilter === tab.label;
                   const isWedding = tab.label === 'Undangan Wedding';
                   const isWisuda = tab.label === 'Undangan Wisuda';
-                  const isGold = tab.label === 'GOLD';
 
                   if (isWedding) {
                     return (
@@ -695,26 +691,6 @@ export const TemplateSection: React.FC<TemplateSectionProps> = ({
                         <span>🎓</span>
                         <span>Undangan Wisuda</span>
                         <span className="text-[9px] px-1 py-0.2 rounded-full bg-amber-500/20 text-amber-900 font-extrabold">BARU</span>
-                        <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${isActive ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-800'}`}>
-                          {tab.count}
-                        </span>
-                      </button>
-                    );
-                  }
-
-                  if (isGold) {
-                    return (
-                      <button
-                        key={tab.label}
-                        type="button"
-                        onClick={() => setActiveFilter(tab.label)}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border select-none active:scale-95 flex items-center gap-1 ${
-                          isActive
-                            ? 'bg-amber-500 text-white border-amber-500 shadow-md shadow-amber-500/20'
-                            : 'bg-white text-amber-700 border-amber-300 hover:bg-amber-50'
-                        }`}
-                      >
-                        <span>{tab.label}</span>
                         <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${isActive ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-800'}`}>
                           {tab.count}
                         </span>
